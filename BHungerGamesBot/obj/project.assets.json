@@ -2,21 +2,21 @@
   "version": 2,
   "targets": {
     ".NETCoreApp,Version=v1.1": {
-      "Discord.Net/1.0.0-rc2": {
+      "Discord.Net/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Commands": "1.0.0-rc2",
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
-          "Discord.Net.Rpc": "1.0.0-rc2",
-          "Discord.Net.WebSocket": "1.0.0-rc2",
-          "Discord.Net.Webhook": "1.0.0-rc2"
+          "Discord.Net.Commands": "1.0.1",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
+          "Discord.Net.Rpc": "1.0.1",
+          "Discord.Net.WebSocket": "1.0.1",
+          "Discord.Net.Webhook": "1.0.1"
         }
       },
-      "Discord.Net.Commands/1.0.0-rc2": {
+      "Discord.Net.Commands/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
           "Microsoft.Extensions.DependencyInjection": "1.1.1",
           "NETStandard.Library": "1.6.1"
         },
@@ -27,7 +27,7 @@
           "lib/netstandard1.1/Discord.Net.Commands.dll": {}
         }
       },
-      "Discord.Net.Core/1.0.0-rc2": {
+      "Discord.Net.Core/1.0.1": {
         "type": "package",
         "dependencies": {
           "NETStandard.Library": "1.6.1",
@@ -42,10 +42,10 @@
           "lib/netstandard1.3/Discord.Net.Core.dll": {}
         }
       },
-      "Discord.Net.Rest/1.0.0-rc2": {
+      "Discord.Net.Rest/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
           "NETStandard.Library": "1.6.1",
           "System.Net.Http": "4.3.2"
         },
@@ -56,11 +56,11 @@
           "lib/netstandard1.3/Discord.Net.Rest.dll": {}
         }
       },
-      "Discord.Net.Rpc/1.0.0-rc2": {
+      "Discord.Net.Rpc/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
           "NETStandard.Library": "1.6.1",
           "System.Net.WebSockets.Client": "4.3.1"
         },
@@ -71,11 +71,11 @@
           "lib/netstandard1.3/Discord.Net.Rpc.dll": {}
         }
       },
-      "Discord.Net.Webhook/1.0.0-rc2": {
+      "Discord.Net.Webhook/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
           "NETStandard.Library": "1.6.1"
         },
         "compile": {
@@ -85,11 +85,11 @@
           "lib/netstandard1.1/Discord.Net.Webhook.dll": {}
         }
       },
-      "Discord.Net.WebSocket/1.0.0-rc2": {
+      "Discord.Net.WebSocket/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
           "NETStandard.Library": "1.6.1",
           "System.Net.WebSockets.Client": "4.3.1"
         },
@@ -2585,21 +2585,21 @@
       }
     },
     ".NETCoreApp,Version=v1.1/win10-x64": {
-      "Discord.Net/1.0.0-rc2": {
+      "Discord.Net/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Commands": "1.0.0-rc2",
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
-          "Discord.Net.Rpc": "1.0.0-rc2",
-          "Discord.Net.WebSocket": "1.0.0-rc2",
-          "Discord.Net.Webhook": "1.0.0-rc2"
+          "Discord.Net.Commands": "1.0.1",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
+          "Discord.Net.Rpc": "1.0.1",
+          "Discord.Net.WebSocket": "1.0.1",
+          "Discord.Net.Webhook": "1.0.1"
         }
       },
-      "Discord.Net.Commands/1.0.0-rc2": {
+      "Discord.Net.Commands/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
           "Microsoft.Extensions.DependencyInjection": "1.1.1",
           "NETStandard.Library": "1.6.1"
         },
@@ -2610,7 +2610,7 @@
           "lib/netstandard1.1/Discord.Net.Commands.dll": {}
         }
       },
-      "Discord.Net.Core/1.0.0-rc2": {
+      "Discord.Net.Core/1.0.1": {
         "type": "package",
         "dependencies": {
           "NETStandard.Library": "1.6.1",
@@ -2625,10 +2625,10 @@
           "lib/netstandard1.3/Discord.Net.Core.dll": {}
         }
       },
-      "Discord.Net.Rest/1.0.0-rc2": {
+      "Discord.Net.Rest/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
           "NETStandard.Library": "1.6.1",
           "System.Net.Http": "4.3.2"
         },
@@ -2639,11 +2639,11 @@
           "lib/netstandard1.3/Discord.Net.Rest.dll": {}
         }
       },
-      "Discord.Net.Rpc/1.0.0-rc2": {
+      "Discord.Net.Rpc/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
           "NETStandard.Library": "1.6.1",
           "System.Net.WebSockets.Client": "4.3.1"
         },
@@ -2654,11 +2654,11 @@
           "lib/netstandard1.3/Discord.Net.Rpc.dll": {}
         }
       },
-      "Discord.Net.Webhook/1.0.0-rc2": {
+      "Discord.Net.Webhook/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
           "NETStandard.Library": "1.6.1"
         },
         "compile": {
@@ -2668,11 +2668,11 @@
           "lib/netstandard1.1/Discord.Net.Webhook.dll": {}
         }
       },
-      "Discord.Net.WebSocket/1.0.0-rc2": {
+      "Discord.Net.WebSocket/1.0.1": {
         "type": "package",
         "dependencies": {
-          "Discord.Net.Core": "1.0.0-rc2",
-          "Discord.Net.Rest": "1.0.0-rc2",
+          "Discord.Net.Core": "1.0.1",
+          "Discord.Net.Rest": "1.0.1",
           "NETStandard.Library": "1.6.1",
           "System.Net.WebSockets.Client": "4.3.1"
         },
@@ -5283,32 +5283,32 @@
     }
   },
   "libraries": {
-    "Discord.Net/1.0.0-rc2": {
-      "sha512": "juPTe76AypX116/F0hRYoVrpDx1/1gxxpp1QxyyWtkMYCiksT2xczz0UWUFt/08Oglp7asYhpKMXJu46fEKmuA==",
+    "Discord.Net/1.0.1": {
+      "sha512": "4jIF3XOzKw5QgSMhT77+3ovlFhFnQXhYakj0WkGzriUwVzPsr3Cdz5mDrqLZXTMPKWJHHJ57Kl686/znycd76g==",
       "type": "package",
-      "path": "discord.net/1.0.0-rc2",
+      "path": "discord.net/1.0.1",
       "files": [
-        "discord.net.1.0.0-rc2.nupkg.sha512",
+        "discord.net.1.0.1.nupkg.sha512",
         "discord.net.nuspec"
       ]
     },
-    "Discord.Net.Commands/1.0.0-rc2": {
-      "sha512": "rJ3A6L8XnpqH8RLWbLHD84AMjzSPa5VLGF4F+4Ajq7WF7pZ2ZUSfk4/TVwnVW+4x+TcmYYCzVRYEFr/lx21A6g==",
+    "Discord.Net.Commands/1.0.1": {
+      "sha512": "1fekSYv8mDjgXD3vSNfgzftPJtjntNWudKn37wO3Vj42owalGugGWMwZpNFEo0Q/2FdQYejiWz0VVKeEYX6JKg==",
       "type": "package",
-      "path": "discord.net.commands/1.0.0-rc2",
+      "path": "discord.net.commands/1.0.1",
       "files": [
-        "discord.net.commands.1.0.0-rc2.nupkg.sha512",
+        "discord.net.commands.1.0.1.nupkg.sha512",
         "discord.net.commands.nuspec",
         "lib/netstandard1.1/Discord.Net.Commands.dll",
         "lib/netstandard1.1/Discord.Net.Commands.xml"
       ]
     },
-    "Discord.Net.Core/1.0.0-rc2": {
-      "sha512": "g0ixE+8kldsXkuerkEGBf0UCaoB8uFpLM/PPtJBJzRX6810p0tyz2nJ7vySM75X87WKdMItWKiSSM3Dq4A6vGg==",
+    "Discord.Net.Core/1.0.1": {
+      "sha512": "hKcXf32qwHdvL54yauLl+npwf0EZYkGMFC0yKdcBD0quR/1FpJ/4DyxayOnjTwJbs6o8DGW9retNyTY/ypeUzQ==",
       "type": "package",
-      "path": "discord.net.core/1.0.0-rc2",
+      "path": "discord.net.core/1.0.1",
       "files": [
-        "discord.net.core.1.0.0-rc2.nupkg.sha512",
+        "discord.net.core.1.0.1.nupkg.sha512",
         "discord.net.core.nuspec",
         "lib/net45/Discord.Net.Core.dll",
         "lib/net45/Discord.Net.Core.xml",
@@ -5318,12 +5318,12 @@
         "lib/netstandard1.3/Discord.Net.Core.xml"
       ]
     },
-    "Discord.Net.Rest/1.0.0-rc2": {
-      "sha512": "eLdg5m/X4ej8H9Xt2IcBN1urHQniDxVyCdMFsh2aB40QgJxAqnN0lXSdmHXzN01Dt/DfeIRBbdu00kTZnAKVPQ==",
+    "Discord.Net.Rest/1.0.1": {
+      "sha512": "I+/CRzq+f2NuEGG3fSl34hk2LXnh//gWd7lbd7+aAv7lyBrYgNZnxwOeqwuwmJeAWRi3ejpz9Iz0Iw6Lzrjo1g==",
       "type": "package",
-      "path": "discord.net.rest/1.0.0-rc2",
+      "path": "discord.net.rest/1.0.1",
       "files": [
-        "discord.net.rest.1.0.0-rc2.nupkg.sha512",
+        "discord.net.rest.1.0.1.nupkg.sha512",
         "discord.net.rest.nuspec",
         "lib/net45/Discord.Net.Rest.dll",
         "lib/net45/Discord.Net.Rest.xml",
@@ -5333,12 +5333,12 @@
         "lib/netstandard1.3/Discord.Net.Rest.xml"
       ]
     },
-    "Discord.Net.Rpc/1.0.0-rc2": {
-      "sha512": "Gi239g810lDBmbWMmKy6QS+LpnCFOoy0+k7c9QShALucCVxEBeahamuIFIwn489VlHj4Zfp+vG1LHxUnmn11kw==",
+    "Discord.Net.Rpc/1.0.1": {
+      "sha512": "bmMgxBxAdMSPdX54zq4bHjw6no/zpTSksmhD69KwgSSv5JsFCgBKwGZ1uL8d9RsWEyER0qeepFya458WhFSguQ==",
       "type": "package",
-      "path": "discord.net.rpc/1.0.0-rc2",
+      "path": "discord.net.rpc/1.0.1",
       "files": [
-        "discord.net.rpc.1.0.0-rc2.nupkg.sha512",
+        "discord.net.rpc.1.0.1.nupkg.sha512",
         "discord.net.rpc.nuspec",
         "lib/net45/Discord.Net.Rpc.dll",
         "lib/net45/Discord.Net.Rpc.xml",
@@ -5348,23 +5348,23 @@
         "lib/netstandard1.3/Discord.Net.Rpc.xml"
       ]
     },
-    "Discord.Net.Webhook/1.0.0-rc2": {
-      "sha512": "NfYJhoAazcJk/osnSVgdtKbwl3u3I2G6syEnJ+ZJ3eAcM90muJHw6ZAuf/D/C7t03vMXqYB4lddZQen1dX41jw==",
+    "Discord.Net.Webhook/1.0.1": {
+      "sha512": "nD3vmV2lPPysxXCQxvfXu0xBgfLevCw8oXnOBN/BZlua6dhO2x2E6vQjOvvCk0J7C+RRPfN7DalFXzKFsqV4yQ==",
       "type": "package",
-      "path": "discord.net.webhook/1.0.0-rc2",
+      "path": "discord.net.webhook/1.0.1",
       "files": [
-        "discord.net.webhook.1.0.0-rc2.nupkg.sha512",
+        "discord.net.webhook.1.0.1.nupkg.sha512",
         "discord.net.webhook.nuspec",
         "lib/netstandard1.1/Discord.Net.Webhook.dll",
         "lib/netstandard1.1/Discord.Net.Webhook.xml"
       ]
     },
-    "Discord.Net.WebSocket/1.0.0-rc2": {
-      "sha512": "U5Z9oXwRSRQvHR47e/Ru+JJk9W5HJP01OWf6FVKOEgIXcwVuxGm+ZqIKllIA6yuO+Hg/p2Q1RG4Nn1RP62g8dw==",
+    "Discord.Net.WebSocket/1.0.1": {
+      "sha512": "jJELRPeZBgivu15czCdXjSZjBNYGrov+NTGm3Va8cMCQv6m/MxAUbQwN/7KQt9WBS6bLYoouj21jVbuXdY5sxg==",
       "type": "package",
-      "path": "discord.net.websocket/1.0.0-rc2",
+      "path": "discord.net.websocket/1.0.1",
       "files": [
-        "discord.net.websocket.1.0.0-rc2.nupkg.sha512",
+        "discord.net.websocket.1.0.1.nupkg.sha512",
         "discord.net.websocket.nuspec",
         "lib/net45/Discord.Net.WebSocket.dll",
         "lib/net45/Discord.Net.WebSocket.xml",
@@ -11186,9 +11186,9 @@
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v1.1": [
-      "Discord.Net >= 1.0.0-rc2",
-      "Discord.Net.Commands >= 1.0.0-rc2",
-      "Discord.Net.WebSocket >= 1.0.0-rc2",
+      "Discord.Net >= 1.0.1",
+      "Discord.Net.Commands >= 1.0.1",
+      "Discord.Net.WebSocket >= 1.0.1",
       "Microsoft.NETCore.App >= 1.1.2"
     ]
   },
@@ -11217,11 +11217,11 @@
         "dependencies": {
           "Discord.Net.WebSocket": {
             "target": "Package",
-            "version": "1.0.0-rc2"
+            "version": "1.0.1"
           },
           "Discord.Net.Commands": {
             "target": "Package",
-            "version": "1.0.0-rc2"
+            "version": "1.0.1"
           },
           "Microsoft.NETCore.App": {
             "target": "Package",
@@ -11230,7 +11230,7 @@
           },
           "Discord.Net": {
             "target": "Package",
-            "version": "1.0.0-rc2"
+            "version": "1.0.1"
           }
         }
       }

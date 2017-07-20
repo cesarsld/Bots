@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -15,7 +16,8 @@ namespace BHungerGaemsBot
         public const string ReactionToUseText = ":smiley:(Smiley)";
 
         private readonly object _syncObj = new object();
-        private Dictionary<string,string> _playersNickNameLookup;
+        private Dictionary<Player, Player> _players;
+        private Dictionary<Player, List<string>> _cheatingPlayers;
         private bool _cancelGame;
 
         private ulong _messageId;
@@ -40,13 +42,37 @@ namespace BHungerGaemsBot
             {
                 if (reaction != null && reaction.User.IsSpecified) // for now except all reactions && reaction.Emote.Name == ReactionToUse)
                 {
-                    SocketGuildUser user = reaction.User.Value as SocketGuildUser;
-                    string playerUserName = reaction.User.Value.Username;
-                    string playerName = user?.Nickname ?? playerUserName;
+                    Player player = new Player(reaction.User.Value);
                     lock (_syncObj)
                     {
                         if (msg.Value?.Id == _messageId)
-                            _playersNickNameLookup[playerName] = playerUserName;
+                        {
+                            // check for changed NickName
+                            List<string> fullUserNameList;
+                            if (_cheatingPlayers.TryGetValue(player, out fullUserNameList) && fullUserNameList != null && fullUserNameList.Count > 1)
+                            {
+                                if (fullUserNameList.Contains(player.FullUserName) == false)
+                                {
+                                    fullUserNameList.Add(player.FullUserName);
+                                }
+                            }
+                            else
+                            {
+                                Player existingPlayer;
+                                if (_players.TryGetValue(player, out existingPlayer))
+                                {
+                                    if  (player.FullUserName.Equals(existingPlayer.FullUserName) == false)
+                                    {
+                                        _players.Remove(player);
+                                        _cheatingPlayers[player] = new List<string> { existingPlayer.FullUserName, player.FullUserName };
+                                    }
+                                }
+                                else
+                                {
+                                    _players[player] = player;
+                                }
+                            }                            
+                        }
                     }
                 }
             }
@@ -69,7 +95,7 @@ namespace BHungerGaemsBot
                     {
                         if (msg.Value?.Id == _messageId)
                         {
-                            _playersNickNameLookup.Remove(playerName);
+                            _players.Remove(playerName);
                         }
                     }
                 }
@@ -101,7 +127,7 @@ namespace BHungerGaemsBot
         {
             _testUsers = testUsers;
 
-            Task.Run(() => RunGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, channel, userName));
+            Task.Run(() => RunGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, channel, userName, false));
             return true;
         }
 
@@ -146,17 +172,20 @@ namespace BHungerGaemsBot
             Logger.Log($"RunGame - GetReactionsReturned: {getReactionsCount} EventReactions: {eventReactionsCount} BadUsers: {badGetReactions} AddedUsers: {addedGetReactions} ExistingUsers: {existingGetReactions} TotalPlayers: {newPlayersNickNameLookup.Count}");
         }
 
-        private void RunGame(int numWinners, int maxUsers, int maxMinutesToWait, int secondsDelayBetweenDays, IMessageChannel channel, string userName)
+        private void RunGame(int numWinners, int maxUsers, int maxMinutesToWait, int secondsDelayBetweenDays, IMessageChannel channel, string userName, bool startWhenMaxUsers = true)
         {
             bool removeHandler = false;
             try
             {
                 _channel = channel;
 
-                string gameMessageText = $"Preparing to start a Game for ```Markdown\r\n<{userName}> in {maxMinutesToWait} minutes or when we get {maxUsers} reactions!```\r\n"
+                string gameMessageText = $"Preparing to start a Game for ```Markdown\r\n<{userName}> in {maxMinutesToWait} minutes" 
+                    + ( startWhenMaxUsers ? $" or when we get {maxUsers} reactions!" : $"!  At the start of the game the # of players will be reduced to {maxUsers} if needed.") + "```\r\n"
                     + $"React to this message with the {ReactionToUseText} emoji to enter!  Multiple Reactions(emojis) will NOT enter you more than once.\r\nPlayer entered: ";
                 Task<IUserMessage> messageTask = channel.SendMessageAsync(gameMessageText + "0");
+                Logger.Log(gameMessageText);
                 messageTask.Wait();
+
                 if (messageTask.IsFaulted)
                 {
                     LogAndReplyError("Error getting players.", "RunGame");
@@ -170,7 +199,8 @@ namespace BHungerGaemsBot
                 }
                 lock (_syncObj)
                 {
-                    _playersNickNameLookup = new Dictionary<string, string>();
+                    _players = new Dictionary<Player, Player>();
+                    _cheatingPlayers = new Dictionary<Player, List<string>>();
                     _messageId = gameMessage.Id;
                 }
 
@@ -178,7 +208,8 @@ namespace BHungerGaemsBot
                 //Bot.DiscordClient.ReactionRemoved += HandleReactionRemoved;
                 removeHandler = true;
 
-                Dictionary<string, string> newPlayersNickNameLookup;
+                Dictionary<Player, Player> newPlayersUserNameLookup;
+                Dictionary<Player, List<string>> newCheatingPlayersLookup;
                 DateTime now = DateTime.Now;
                 int secondCounter = 0;
                 int lastPlayerCount = 0;
@@ -189,11 +220,14 @@ namespace BHungerGaemsBot
                     {
                         if (_cancelGame)
                             return;
-                        currentPlayerCount = _playersNickNameLookup.Count;
-                        if (currentPlayerCount >= maxUsers)
+                        currentPlayerCount = _players.Count;
+                        if (startWhenMaxUsers && currentPlayerCount >= maxUsers)
                         {
                             _messageId = 0;
-                            newPlayersNickNameLookup = new Dictionary<string, string>(_playersNickNameLookup);
+                            newPlayersUserNameLookup = _players;
+                            newCheatingPlayersLookup = _cheatingPlayers;
+                            _players = new Dictionary<Player, Player>();
+                            _cheatingPlayers = new Dictionary<Player, List<string>>();
                             break;
                         }
                     }
@@ -209,14 +243,17 @@ namespace BHungerGaemsBot
 
                     Thread.Sleep(1000);
                     secondCounter++;
-                    if ((DateTime.Now - now).Minutes >= maxMinutesToWait)
+                    if ((DateTime.Now - now).TotalMinutes >= maxMinutesToWait)
                     {
                         lock (_syncObj)
                         {
                             if (_cancelGame)
                                 return;
                             _messageId = 0;
-                            newPlayersNickNameLookup = new Dictionary<string, string>(_playersNickNameLookup);
+                            newPlayersUserNameLookup = _players;
+                            newCheatingPlayersLookup = _cheatingPlayers;
+                            _players = new Dictionary<Player, Player>();
+                            _cheatingPlayers = new Dictionary<Player, List<string>>();
                         }
                         break;
                     }
@@ -226,23 +263,24 @@ namespace BHungerGaemsBot
                 //Bot.DiscordClient.ReactionRemoved -= HandleReactionRemoved;
                 removeHandler = false;
 
-                CheckReactionUsers(gameMessage, newPlayersNickNameLookup);
+                //CheckReactionUsers(gameMessage, newPlayersNickNameLookup);
+
                 // for now we don't use this anymore so don't update it.
                 //lock (_syncObj)
                 //{
-                //    _playersNickNameLookup = new Dictionary<string, string>(newPlayersNickNameLookup);
+                //    _players = new Dictionary<string, string>(newPlayersNickNameLookup);
                 //}
 
-                List<string> players;
+                List<Player> players;
                 if (_testUsers > 0)
                 {
-                    players = new List<string>(_testUsers);
+                    players = new List<Player>(_testUsers);
                     for (int i = 0; i < _testUsers; i++)
-                        players.Add("P" + i);
+                        players.Add(new Player(i));
                 }
                 else
                 {
-                    players = new List<string>(newPlayersNickNameLookup.Keys);
+                    players = new List<Player>(newPlayersUserNameLookup.Values);
                     if (players.Count < 1)
                     {
                         LogAndReplyError("Error, no players reacted.", "RunGame");
@@ -255,14 +293,29 @@ namespace BHungerGaemsBot
                     gameMessage.ModifyAsync(x => x.Content = gameMessageText + players.Count); //  + "```\r\n"
                 }
 
-                new BHungerGames().Run(numWinners, secondsDelayBetweenDays, players, LogToChannel, GetCancelGame);
+                if (newCheatingPlayersLookup.Count > 0)
+                {
+                    StringBuilder sb = new StringBuilder(2000);
+                    foreach (KeyValuePair<Player, List<string>> pair in newCheatingPlayersLookup)
+                    {
+                        sb.Append($"(ID:<{pair.Key.UserId}>): ");
+                        foreach (string fullUserName in pair.Value)
+                        {
+                            sb.Append($"<{fullUserName}> ");
+                        }
+                        sb.Append("\r\n");
+                    }
+                    LogToChannel("Players REMOVED from game due to multiple NickNames:\r\n" + sb, null);
+                }
+
+                new BHungerGames().Run(numWinners, secondsDelayBetweenDays, players, LogToChannel, GetCancelGame, startWhenMaxUsers ? 0 : maxUsers);
             }
             catch (Exception ex)
             {
                 Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception", ex));
                 try
                 {
-                    channel.SendMessageAsync("Error getting players.");
+                    LogAndReply("Error Starting Game.");
                 }
                 catch (Exception ex2)
                 {
@@ -313,9 +366,47 @@ namespace BHungerGaemsBot
             }
         }
 
-        private void LogToChannel(string msg)
+        private void SendMarkdownMsg(string msg)
         {
             _channel.SendMessageAsync("```Markdown\r\n" + msg + "```\r\n").GetAwaiter().GetResult();
+        }
+
+        private bool ChrEqualToBreakableChr(char chr)
+        {
+            return chr == ' ' || chr == '\n' || chr == '\r' || chr == '\t';
+        }
+        private int GetSizeOfFirstBreakableChr(string msg, int startingSize) // space, tabe \r \n are breakable characters.
+        {
+            while (ChrEqualToBreakableChr(msg[startingSize-1]) == false)
+            {
+                startingSize--;
+            }
+            return startingSize;
+        }
+
+        private void LogToChannel(string msg, string logMsgOnly)
+        {
+            const int maxMessageSize = 1930; // 2000 minus markdown used below.
+            if (string.IsNullOrEmpty(logMsgOnly) == false)
+            {
+                Logger.LogInternal("LogMsgOnly: " + logMsgOnly);
+            }
+            Logger.LogInternal(msg);
+
+            if (msg.Length > maxMessageSize)
+            {
+                while (msg.Length > maxMessageSize)
+                {
+                    int partSize = GetSizeOfFirstBreakableChr(msg, maxMessageSize);
+                    SendMarkdownMsg(msg.Substring(0, partSize));
+                    msg = msg.Substring(partSize);
+                }
+                SendMarkdownMsg(msg);
+            }
+            else
+            {
+                SendMarkdownMsg(msg);
+            }
         }
     }
 }

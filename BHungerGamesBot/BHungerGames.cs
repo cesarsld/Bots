@@ -184,12 +184,11 @@ namespace BHungerGaemsBot
             try
             {
                 int numUsers = 100000;
-
-                List<string> players = new List<string>(numUsers);
+                List<Player> players = new List<Player>(numUsers);
                 for (int i = 0; i < numUsers; i++)
-                    players.Add("P" + i);
+                    players.Add(new Player(i));
 
-                new BHungerGames().Run(1, 1, players, Console.WriteLine, () => false);
+                new BHungerGames().Run(1, 1, players, Console.WriteLine, () => false, 40);
                 Console.ReadLine();
             }
             catch (Exception e)
@@ -216,14 +215,26 @@ namespace BHungerGaemsBot
             }
         }
 
-        public void Run(int numWinners, int secondsDelayBetweenDays, List<string> contestants, Action<string> showMessageAction, Func<bool> cannelGame)
+        public void Run(int numWinners, int secondsDelayBetweenDays, List<Player> contestants, Action<string, string> showMessageAction, Func<bool> cannelGame, int maxPlayers = 0)
         {
             TimeSpan delayBetweenDays = new TimeSpan(0, 0, 0, secondsDelayBetweenDays);
             int day = 0;
-            StringBuilder sb = new StringBuilder(1000);
+            StringBuilder sb = new StringBuilder(2000);
             int consecutiveNoCasualties = 0;
             int showPlayersWhenCountEqualIndex = 0;
 
+            if (maxPlayers > 0 && contestants.Count > maxPlayers)
+            {
+                int numToRemove = contestants.Count - maxPlayers;
+                for (int i = 0; i < numToRemove; i++)
+                {
+                    int randIndex = _random.Next(contestants.Count);
+                    sb.Append($"<{contestants[randIndex].ContestantName}>\t");
+                    contestants.RemoveAt(randIndex);
+                }
+                showMessageAction("Players killed in the stampede trying to get to the arena:\r\n" + sb, null);
+                sb.Clear();
+            }
             while (contestants.Count > numWinners)
             {
                 int startingContestantCount = contestants.Count;
@@ -234,12 +245,12 @@ namespace BHungerGaemsBot
                     if (randIndex >= PercentChanceToLivePerDay)
                     { // Someone has to die.
                         randIndex = _random.Next(contestants.Count);
-                        string selectedPlayer = "<" + contestants[randIndex] + ">";
+                        string selectedPlayer = "<" + contestants[randIndex].ContestantName + ">";
                         contestants.RemoveAt(randIndex);
                         string[] players;
                         if (contestants.Count == 1)
                         {
-                            players = new[] { selectedPlayer, "<" + contestants[0] + ">" };
+                            players = new[] { selectedPlayer, "<" + contestants[0].ContestantName + ">" };
                         }
                         else
                         {
@@ -249,7 +260,7 @@ namespace BHungerGaemsBot
                             {
                                 randIndex2 = _random.Next(contestants.Count);
                             }
-                            players = new[] { selectedPlayer, "<" + contestants[randIndex] + ">", "<" + contestants[randIndex2] + ">" };
+                            players = new[] { selectedPlayer, "<" + contestants[randIndex].ContestantName + ">", "<" + contestants[randIndex2].ContestantName + ">" };
                         }
                         sb.Append(GetScenario(players.Length).GetText(players)).Append("\n\n");
                         foreach (Scenario scenario in Scenarios)
@@ -277,7 +288,7 @@ namespace BHungerGaemsBot
                     consecutiveNoCasualties = 0;
                 }
 
-                showMessageAction($"\nDay **{++day}**  <{startingContestantCount}> Players remaining\n\n" + sb);
+                showMessageAction($"\nDay **{++day}**  <{startingContestantCount}> Players remaining\n\n" + sb, null);
                 sb.Clear();
 
                 if (cannelGame())
@@ -288,11 +299,11 @@ namespace BHungerGaemsBot
                     if (contestants.Count <= ShowPlayersWhenCountEqual[showPlayersWhenCountEqualIndex])
                     {
                         showPlayersWhenCountEqualIndex++;
-                        foreach (string contestant in contestants)
+                        foreach (Player contestant in contestants)
                         {
-                            sb.Append($"<{contestant}>\t");
+                            sb.Append($"<{contestant.ContestantName}>\t");
                         }
-                        showMessageAction("Players Remaining:\r\n" + sb);
+                        showMessageAction("Players Remaining:\r\n" + sb, null);
                         sb.Clear();
                     }
 
@@ -303,13 +314,14 @@ namespace BHungerGaemsBot
             }
 
             sb.Clear();
-            sb.Append("\n\n**Game Over**\n\n");
-            foreach (string contestant in contestants)
+            sb.Append("\n\n**Game Over**\r\n\r\n");
+            StringBuilder sbP = new StringBuilder(1000);
+            foreach (Player contestant in contestants)
             {
-                sb.Append($"<{contestant}> is victorious!\n");
-
+                sbP.Append($"(ID:{contestant.UserId})<{contestant.FullUserName}> is victorious!\r\n");
+                sb.Append($"<{contestant.FullUserName}> is victorious!\r\n");
             }
-            showMessageAction(sb.ToString());
+            showMessageAction(sb.ToString(), sbP.ToString());
         }
     }
 }

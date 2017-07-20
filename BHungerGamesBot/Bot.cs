@@ -15,11 +15,10 @@ namespace BHungerGaemsBot
          URL to add bot: https://discordapp.com/api/oauth2/authorize?client_id=326010315760205834&scope=bot&permissions=0
         */
         public static string AppName = "BHungerGamesBot";
-        public static string AppVersion = "1.0.0.3";
-        // Real Bot Token
+        public static string AppVersion = "1.0.1.0";
         // Test Bot Token
-        public static string AppToken = "MzI2MDEwMzE1NzYwMjA1ODM0.DCgkSA.EkhQj0DVvMlBgBLjqWnC9hJ1vtE";
-        public static char CommandPrefix = '?';
+        //public static string AppToken = "MzI2MDEwMzE1NzYwMjA1ODM0.DCgkSA.EkhQj0DVvMlBgBLjqWnC9hJ1vtE";
+        //public static char CommandPrefix = '?';
 
         public static DiscordSocketClient DiscordClient { get; set; }
         private readonly CommandService _commands;
@@ -56,6 +55,26 @@ namespace BHungerGaemsBot
             DiscordClient = null;
         }
 
+        private string GetUserName(SocketUser socketUser)
+        {
+            string userName = "NULL";
+            try
+            {
+                if (socketUser != null)
+                {
+                    userName = socketUser.ToString();
+                    SocketGuildUser user = socketUser as SocketGuildUser;
+                    if (user?.Nickname != null)
+                    {
+                        userName += " NickName: " + user.Nickname;
+                    }
+                }
+
+            }
+            catch { }
+            return userName;
+        }
+
         public async Task HandleCommandAsync(SocketMessage messageParam)
         {
             try
@@ -67,7 +86,9 @@ namespace BHungerGaemsBot
 
                 if (msg.HasCharPrefix(CommandPrefix, ref argPos)) /* || msg.HasMentionPrefix(_client.CurrentUser, ref pos) */
                 {
-                    Logger.LogInternal($"HandleCommandAsync User: {(msg.Author == null ? "NULL" : msg.Author.ToString())}  Msg: {msg}");
+                    string userName = GetUserName(msg.Author);
+                    string channelName = msg.Channel?.Name ?? "NULL";
+                    Logger.LogInternal($"HandleCommandAsync ChannelName: {channelName} User: {userName}  Msg: {msg}");
 
                     //var context = new SocketCommandContext(DiscordClient, msg);
                     var context = new CommandContext(DiscordClient, msg);
@@ -77,7 +98,7 @@ namespace BHungerGaemsBot
                     {
                         string message = "Command Failed: " + result;
                         await Logger.Log(new LogMessage(LogSeverity.Error, "HandleCommandAsync", message));
-                        await context.Channel.SendMessageAsync(message);
+                        //await context.Channel.SendMessageAsync(message);
                     }
                 }
             }

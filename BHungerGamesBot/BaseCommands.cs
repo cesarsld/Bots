@@ -73,10 +73,14 @@ namespace BHungerGaemsBot
             300+ OH EM GEE  3 members
             Level 250 - 299 1 members
             Level 200 - 249 29 members          */
-        private bool CheckAccess()
+        private bool CheckAccess(bool allowPrivateMessage = false)
         {
             try
             {
+                if (Context.Guild == null)
+                {
+                    return allowPrivateMessage;
+                }
                 if (Context.Guild.Name.Equals("Bit Heroes"))
                 {
                     HashSet<ulong> rolesWithAccess = new HashSet<ulong>();
@@ -100,7 +104,6 @@ namespace BHungerGaemsBot
                     return false;
                 }
                 return true;
-
             }
             catch (Exception ex)
             {
@@ -161,8 +164,8 @@ namespace BHungerGaemsBot
         {
             try
             {
-                Logger.LogInternal($"Command 'Help' executed by '{Context.Message.Author.Username}'");
-                if (CheckAccess())
+                //Logger.LogInternal($"Command 'Help' executed by '{Context.Message.Author.Username}'");
+                if (CheckAccess(true))
                 {
                     await ReplyAsync("```Markdown\r\n<!CancelGame> - Cancels the current running game if there is one.\n"
                                      + "Only the user that started the game or an Admin/Mod can run this command.```\r\n");
@@ -181,7 +184,7 @@ namespace BHungerGaemsBot
         {
             try
             {
-                Logger.LogInternal($"Command 'CancelGame' executed by '{Context.Message.Author.Username}'");
+                //Logger.LogInternal($"Command 'CancelGame' executed by '{Context.Message.Author.Username}'");
                 if (CheckAccess())
                 {
                     string returnMessage = "No Game is currently running!";
@@ -212,13 +215,13 @@ namespace BHungerGaemsBot
                 [RequireBotPermission(GuildPermission.ManageMessages)]
                 [RequireUserPermission(GuildPermission.ManageMessages)]
         */
-        [Command("cleanup"), Summary("Provides Help with commands.")]
+        [Command("cleanup", RunMode = RunMode.Async), Summary("Provides Help with commands.")]
         public async Task CleanUp()
         {
             bool cleanupCommandInstance = false;
             try
             {
-                Logger.LogInternal($"Command 'CleanUp' executed by '{Context.Message.Author.Username}'");
+                //Logger.LogInternal($"Command 'CleanUp' executed by '{Context.Message.Author.Username}'");
                 if (CheckAccess())
                 {
                     RunningCommandInfo commandInfo;
@@ -290,15 +293,15 @@ namespace BHungerGaemsBot
         [Command("startGame"), Summary("Starts the BHungerGames.")]
         public async Task StartGame()
         {
-            Logger.LogInternal($"Command 'startGame <Help>' executed by '{Context.Message.Author.Username}'");
+            //Logger.LogInternal($"Command 'startGame <Help>' executed by '{Context.Message.Author.Username}'");
 
-            if (CheckAccess())
+            if (CheckAccess(true))
             {
                 await ShowGameHelp();
             }
         }
 
-        [Command("startGame"), Summary("Starts the BHungerGames.")]
+        [Command("startGame", RunMode = RunMode.Async), Summary("Starts the BHungerGames.")]
         public async Task StartGame([Summary("Max User that can play")]string strMaxUsers,
             [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
             [Summary("Seconds to delay between displaying next day")]string strSecondsDelayBetweenDays = null,
@@ -308,14 +311,14 @@ namespace BHungerGaemsBot
             await StartGameInternal(strMaxUsers, strMaxMinutesToWait, strSecondsDelayBetweenDays, strNumWinners, displayMessage, 0);
         }
 
-        [Command("startGameT"), Summary("Starts the BHungerGames.")]
+        [Command("startGameT", RunMode = RunMode.Async), Summary("Starts the BHungerGames.")]
         public async Task StartGameT([Summary("Max User that can play")]string strMaxUsers,
             [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
             [Summary("Seconds to delay between displaying next day")]string strSecondsDelayBetweenDays = null,
             [Summary("Number of Winners")]string strNumWinners = null,
             [Remainder, Summary("Message to display")]string displayMessage = null)
         {
-            await StartGameInternal(strMaxUsers, strMaxMinutesToWait, strSecondsDelayBetweenDays, strNumWinners, displayMessage, 30);
+            await StartGameInternal(strMaxUsers, strMaxMinutesToWait, strSecondsDelayBetweenDays, strNumWinners, displayMessage, 300);
         }
 
         private async Task StartGameInternal(string strMaxUsers, string strMaxMinutesToWait, string strSecondsDelayBetweenDays, string strNumWinners, string displayMessage, int testUsers)
@@ -341,6 +344,11 @@ namespace BHungerGaemsBot
                         if (Int32.TryParse(strMaxMinutesToWait, out maxMinutesToWait) == false) maxMinutesToWait = 5;
                         if (Int32.TryParse(strSecondsDelayBetweenDays, out secondsDelayBetweenDays) == false) secondsDelayBetweenDays = 10;
                         if (Int32.TryParse(strNumWinners, out numWinners) == false) numWinners = 1;
+                        if (numWinners <= 0) numWinners = 1;
+                        if (maxMinutesToWait <= 0) maxMinutesToWait = 1;
+                        if (secondsDelayBetweenDays <= 0) secondsDelayBetweenDays = 5;
+                        if (maxUsers <= 0) maxUsers = 1;
+
 
                         SocketGuildUser user = Context.Message.Author as SocketGuildUser;
                         string userThatStartedGame = user?.Nickname ?? Context.Message.Author.Username;
