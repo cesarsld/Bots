@@ -17,7 +17,9 @@ namespace BHungerGaemsBot
 
         private readonly object _syncObj = new object();
         private Dictionary<Player, Player> _players;
+        private Dictionary<InteractivePlayer, InteractivePlayer> _interactivePlayers;
         private Dictionary<Player, List<string>> _cheatingPlayers;
+        private Dictionary<InteractivePlayer, List<string>> _interactiveCheatingPlayers;
         private bool _cancelGame;
 
         private ulong _messageId;
@@ -82,31 +84,55 @@ namespace BHungerGaemsBot
             }
             return Task.CompletedTask;
         }
-/*
-        private Task HandleReactionRemoved(Cacheable<IUserMessage, ulong> msg, ISocketMessageChannel channel, SocketReaction reaction)
+
+        private Task HandleReactionAddedI(Cacheable<IUserMessage, ulong> msg, ISocketMessageChannel channel, SocketReaction reaction)
         {
             try
             {
-                if (reaction != null && reaction.User.IsSpecified)
+                if (reaction != null && reaction.User.IsSpecified) // for now except all reactions && reaction.Emote.Name == ReactionToUse)
                 {
-                    SocketGuildUser user = reaction.User.Value as SocketGuildUser;
-                    string playerName = user?.Nickname ?? reaction.User.Value.Username;
+                    InteractivePlayer interactivePlayer = new InteractivePlayer(reaction.User.Value);
                     lock (_syncObj)
                     {
                         if (msg.Value?.Id == _messageId)
                         {
-                            _players.Remove(playerName);
+                            // check for changed NickName
+                            List<string> fullUserNameList;
+                            if (_interactiveCheatingPlayers.TryGetValue(interactivePlayer, out fullUserNameList) && fullUserNameList != null && fullUserNameList.Count > 1)
+                            {
+                                if (fullUserNameList.Contains(interactivePlayer.FullUserName) == false)
+                                {
+                                    fullUserNameList.Add(interactivePlayer.FullUserName);
+                                }
+                            }
+                            else
+                            {
+                                InteractivePlayer existingInteractivePlayer;
+                                if (_interactivePlayers.TryGetValue(interactivePlayer, out existingInteractivePlayer))
+                                {
+                                    if (interactivePlayer.FullUserName.Equals(existingInteractivePlayer.FullUserName) == false)
+                                    {
+                                        _players.Remove(interactivePlayer);
+                                        _cheatingPlayers[interactivePlayer] = new List<string> { existingInteractivePlayer.FullUserName, interactivePlayer.FullUserName };
+                                    }
+                                }
+                                else
+                                {
+                                    _interactivePlayers[interactivePlayer] = interactivePlayer;
+                                }
+                            }
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log(new LogMessage(LogSeverity.Error, "HandleReactionRemoved", "Unexpected Exception", ex));
+                Logger.Log(new LogMessage(LogSeverity.Error, "HandleReactionAdded", "Unexpected Exception", ex));
             }
             return Task.CompletedTask;
         }
-*/
+
+
         public void AbortGame()
         {
             lock (_syncObj)
@@ -128,6 +154,13 @@ namespace BHungerGaemsBot
             _testUsers = testUsers;
 
             Task.Run(() => RunGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, channel, userName, false));
+            return true;
+        }
+        public bool StartIGame(int numWinners, int maxUsers, int maxMinutesToWait, IMessageChannel channel, string userName)
+        {
+            //_testUsers = testUsers;
+
+            Task.Run(() => RunInteractiveGame(numWinners, maxUsers, maxMinutesToWait, channel, userName, false));
             return true;
         }
 
@@ -365,6 +398,199 @@ namespace BHungerGaemsBot
                 }
             }
         }
+
+        private void RunInteractiveGame(int numWinners, int maxUsers, int maxMinutesToWait, IMessageChannel channel, string userName, bool startWhenMaxUsers = true)
+        {
+            bool removeHandler = false;
+            try
+            {
+                _channel = channel;
+
+                string gameMessageText = $"Preparing to start an Interactive Hunger Games for ```Markdown\r\n<{userName}> in {maxMinutesToWait} minutes"
+                    + (startWhenMaxUsers ? $" or when we get {maxUsers} reactions!" : $"!  At the start of the game the # of players will be reduced to {maxUsers} if needed.") + "```\r\n"
+                    + $"React to this message with any emoji to enter!  Multiple Reactions(emojis) will NOT enter you more than once.\r\nPlayer entered: ";
+                Task<IUserMessage> messageTask = channel.SendMessageAsync(gameMessageText + "0");
+                Logger.Log(gameMessageText);
+                messageTask.Wait();
+
+                if (messageTask.IsFaulted)
+                {
+                    LogAndReplyError("Error getting players.", "RunGame");
+                    return;
+                }
+                var gameMessage = messageTask.Result;
+                if (gameMessage == null)
+                {
+                    LogAndReplyError("Error accessing Game Message.", "RunGame");
+                    return;
+                }
+                lock (_syncObj)
+                {
+                    _interactivePlayers = new Dictionary<InteractivePlayer, InteractivePlayer>();
+                    _interactiveCheatingPlayers = new Dictionary<InteractivePlayer, List<string>>();
+                    _messageId = gameMessage.Id;
+                }
+
+                Bot.DiscordClient.ReactionAdded += HandleReactionAddedI;
+                //Bot.DiscordClient.ReactionRemoved += HandleReactionRemoved;
+                removeHandler = true;
+
+                Dictionary<InteractivePlayer, InteractivePlayer> newPlayersUserNameLookup;
+                Dictionary<InteractivePlayer, List<string>> newCheatingPlayersLookup;
+                DateTime now = DateTime.Now;
+                int secondCounter = 0;
+                int lastPlayerCount = 0;
+                while (true)
+                {
+                    int currentPlayerCount;
+                    lock (_syncObj)
+                    {
+                        if (_cancelGame)
+                            return;
+                        currentPlayerCount = _interactivePlayers.Count;
+                        if (startWhenMaxUsers && currentPlayerCount >= maxUsers)
+                        {
+                            _messageId = 0;
+                            newPlayersUserNameLookup = _interactivePlayers;
+                            newCheatingPlayersLookup = _interactiveCheatingPlayers;
+                            _interactivePlayers = new Dictionary<InteractivePlayer, InteractivePlayer>();
+                            _interactiveCheatingPlayers = new Dictionary<InteractivePlayer, List<string>>();
+                            break;
+                        }
+                    }
+                    if (secondCounter > 10)
+                    {
+                        secondCounter = 0;
+                        if (currentPlayerCount != lastPlayerCount)
+                        {
+                            lastPlayerCount = currentPlayerCount;
+                            gameMessage.ModifyAsync(x => x.Content = gameMessageText + currentPlayerCount); // + "```\r\n");
+                        }
+                    }
+
+                    Thread.Sleep(1000);
+                    secondCounter++;
+                    if ((DateTime.Now - now).TotalMinutes >= maxMinutesToWait)
+                    {
+                        lock (_syncObj)
+                        {
+                            if (_cancelGame)
+                                return;
+                            _messageId = 0;
+                            newPlayersUserNameLookup = _interactivePlayers;
+                            newCheatingPlayersLookup = _interactiveCheatingPlayers;
+                            _interactivePlayers = new Dictionary<InteractivePlayer, InteractivePlayer>();
+                            _interactiveCheatingPlayers = new Dictionary<InteractivePlayer, List<string>>();
+                        }
+                        break;
+                    }
+                }
+
+                Bot.DiscordClient.ReactionAdded -= HandleReactionAddedI;
+                //Bot.DiscordClient.ReactionRemoved -= HandleReactionRemoved;
+                removeHandler = false;
+
+                //CheckReactionUsers(gameMessage, newPlayersNickNameLookup);
+
+                // for now we don't use this anymore so don't update it.
+                //lock (_syncObj)
+                //{
+                //    _players = new Dictionary<string, string>(newPlayersNickNameLookup);
+                //}
+
+                List<InteractivePlayer> players;
+                //if (_testUsers > 0)
+                //{
+                //    players = new List<InteractivePlayer>(_testUsers);
+                //    for (int i = 0; i < _testUsers; i++)
+                //        players.Add(new InteractivePlayer(i));
+                //}
+                players = new List<InteractivePlayer>(newPlayersUserNameLookup.Values);
+                    if (players.Count < 1)
+                    {
+                        LogAndReplyError("Error, no players reacted.", "RunGame");
+                        return;
+               }
+                
+
+                if (lastPlayerCount != players.Count)
+                {
+                    gameMessage.ModifyAsync(x => x.Content = gameMessageText + players.Count); //  + "```\r\n"
+                }
+
+                if (newCheatingPlayersLookup.Count > 0)
+                {
+                    StringBuilder sb = new StringBuilder(2000);
+                    foreach (KeyValuePair<InteractivePlayer, List<string>> pair in newCheatingPlayersLookup)
+                    {
+                        sb.Append($"(ID:<{pair.Key.UserId}>): ");
+                        foreach (string fullUserName in pair.Value)
+                        {
+                            sb.Append($"<{fullUserName}> ");
+                        }
+                        sb.Append("\r\n");
+                    }
+                    LogToChannel("Players REMOVED from game due to multiple NickNames:\r\n" + sb, null);
+                }
+
+                new BHungerGamesV2().Run(numWinners, players, LogToChannel, GetCancelGame, startWhenMaxUsers ? 0 : maxUsers);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception", ex));
+                try
+                {
+                    LogAndReply("Error Starting Game.");
+                }
+                catch (Exception ex2)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception Sending Error to Discord", ex2));
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (removeHandler)
+                    {
+                        Bot.DiscordClient.ReactionAdded -= HandleReactionAdded;
+                        //Bot.DiscordClient.ReactionRemoved -= HandleReactionRemoved;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception In Finally", ex));
+                }
+                try
+                {
+                    BaseCommands.RemoveChannelCommandInstance(channel.Id);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception In Finally2", ex));
+                }
+                try
+                {
+                    string cancelMessage = null;
+                    lock (_syncObj)
+                    {
+                        if (_cancelGame)
+                        {
+                            cancelMessage = "GAME CANCELLED!!!";
+                        }
+                    }
+                    if (cancelMessage != null)
+                    {
+                        LogAndReply(cancelMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception In Finally3", ex));
+                }
+            }
+        }
+
 
         private void SendMarkdownMsg(string msg)
         {

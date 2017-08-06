@@ -159,6 +159,15 @@ namespace BHungerGaemsBot
                                 + "<Number of Winners (Default: 1)>```\r\n");
         }
 
+        [Command("StartV2", RunMode = RunMode.Async), Summary("Start the Hunger Games V2")]
+        public async Task StartV2( [Summary("Max User that can play")]string strMaxUsers,
+            [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
+            [Summary("Number of Winners")]string strNumWinners = null
+            )
+        {
+            await StartIGameInterval(strMaxUsers, strMaxMinutesToWait, strNumWinners);
+        }
+
         [Command("Help"), Summary("Shows Bot Help")]
         public async Task Help()
         {
@@ -354,7 +363,7 @@ namespace BHungerGaemsBot
                         string userThatStartedGame = user?.Nickname ?? Context.Message.Author.Username;
                         gameInstance.StartGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, Context.Channel, userThatStartedGame, testUsers);
                         cleanupCommandInstance = false;
-                        //await Context.Channel.SendMessageAsync($"MaxUsers: {maxUsers}  MaxMinutesToWait: {maxMinutesToWait} SecondsDelayBetweenDays: {secondsDelayBetweenDays} NumWinners: {numWinners}");
+                       //await Context.Channel.SendMessageAsync($"MaxUsers: {maxUsers}  MaxMinutesToWait: {maxMinutesToWait} SecondsDelayBetweenDays: {secondsDelayBetweenDays} NumWinners: {numWinners}");
                     }
                     else
                     {
@@ -383,6 +392,69 @@ namespace BHungerGaemsBot
                 catch (Exception ex)
                 {
                     await Logger.Log(new LogMessage(LogSeverity.Error, "StartGame", "Unexpected Exception in Finally", ex));
+                }
+            }
+        }
+
+        private async Task StartIGameInterval(string strMaxUsers, string strMaxMinutesToWait, string strNumWinners)
+        {
+            bool cleanupCommandInstance = false;
+            try
+            {
+                if (CheckAccess())
+                {
+                    BotGameInstance gameInstance = new BotGameInstance();
+                    RunningCommandInfo commandInfo;
+                    if (CreateChannelCommandInstance("StartGame", Context.User.Id, Context.Channel.Id, Context.Guild.Id, gameInstance, out commandInfo))
+                    {
+                        cleanupCommandInstance = true;
+                        int maxUsers;
+                        int maxMinutesToWait;
+                        //int secondsDelayBetweenDays;
+                        int numWinners;
+
+                        if (Int32.TryParse(strMaxUsers, out maxUsers) == false) maxUsers = 100;
+                        if (Int32.TryParse(strMaxMinutesToWait, out maxMinutesToWait) == false) maxMinutesToWait = 5;
+
+                        if (Int32.TryParse(strNumWinners, out numWinners) == false) numWinners = 1;
+                        if (numWinners <= 0) numWinners = 1;
+                        if (maxMinutesToWait <= 0) maxMinutesToWait = 1;
+
+                        if (maxUsers <= 0) maxUsers = 1;
+
+
+                        SocketGuildUser user = Context.Message.Author as SocketGuildUser;
+                        string userThatStartedGame = user?.Nickname ?? Context.Message.Author.Username;
+                        gameInstance.StartIGame(numWinners, maxUsers, maxMinutesToWait, Context.Channel, userThatStartedGame);
+                        cleanupCommandInstance = false;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            await LogAndReplyAsync($"The '{commandInfo.CommandName}' command is currently running!.  Can't run this command until that finishes");
+                        }
+                        catch (Exception ex)
+                        {
+                            await Logger.Log(new LogMessage(LogSeverity.Error, "StartIGameInternal", "Unexpected Exception", ex));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.Log(new LogMessage(LogSeverity.Error, "StartV2", "Unexpected Exception", ex));
+            }
+            finally
+            {
+                try
+                {
+                    if (cleanupCommandInstance)
+                        RemoveChannelCommandInstance(Context.Channel.Id);
+                }
+                catch (Exception ex)
+                {
+                    await Logger.Log(new LogMessage(LogSeverity.Error, "StartV2", "Unexpected Exception in Finally", ex));
                 }
             }
         }

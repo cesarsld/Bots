@@ -5284,7 +5284,7 @@
   },
   "libraries": {
     "Discord.Net/1.0.1": {
-      "sha512": "4jIF3XOzKw5QgSMhT77+3ovlFhFnQXhYakj0WkGzriUwVzPsr3Cdz5mDrqLZXTMPKWJHHJ57Kl686/znycd76g==",
+      "sha512": "XtHV1DvqzBlwN1fPwurmxKNpUgCQ193wucXU7K+3yuF84bRVmRq68Hm+d8q1UE5Mqi4QJcoNGF8K08KL2hQZYQ==",
       "type": "package",
       "path": "discord.net/1.0.1",
       "files": [
@@ -5293,7 +5293,7 @@
       ]
     },
     "Discord.Net.Commands/1.0.1": {
-      "sha512": "1fekSYv8mDjgXD3vSNfgzftPJtjntNWudKn37wO3Vj42owalGugGWMwZpNFEo0Q/2FdQYejiWz0VVKeEYX6JKg==",
+      "sha512": "ElRbYXsR3WCLGN1Ln5nXc6twHyWOk3Prb1fANatjMk9Xi1dvY+uqjVgcVGmRKI85UOjlt9D5R7teXXPUokLp1g==",
       "type": "package",
       "path": "discord.net.commands/1.0.1",
       "files": [
@@ -5304,7 +5304,7 @@
       ]
     },
     "Discord.Net.Core/1.0.1": {
-      "sha512": "hKcXf32qwHdvL54yauLl+npwf0EZYkGMFC0yKdcBD0quR/1FpJ/4DyxayOnjTwJbs6o8DGW9retNyTY/ypeUzQ==",
+      "sha512": "WiNDLJMMdYOwy2xaJdUAoCvXloFL4EO1rB/JNA09Unca2m9kIbFg3c1LajgGL6mXaSlidu4Ypu4dSaD0fHoEig==",
       "type": "package",
       "path": "discord.net.core/1.0.1",
       "files": [
@@ -5319,7 +5319,7 @@
       ]
     },
     "Discord.Net.Rest/1.0.1": {
-      "sha512": "I+/CRzq+f2NuEGG3fSl34hk2LXnh//gWd7lbd7+aAv7lyBrYgNZnxwOeqwuwmJeAWRi3ejpz9Iz0Iw6Lzrjo1g==",
+      "sha512": "jRn65pvJHpDTp2wb8RRstg1YkQ/hEGHe40g2pA7Cjk5s15BOT/EDgPRCadkdxU7g+7jmq4EQQ0OfAjXl+6SC0Q==",
       "type": "package",
       "path": "discord.net.rest/1.0.1",
       "files": [
@@ -5334,7 +5334,7 @@
       ]
     },
     "Discord.Net.Rpc/1.0.1": {
-      "sha512": "bmMgxBxAdMSPdX54zq4bHjw6no/zpTSksmhD69KwgSSv5JsFCgBKwGZ1uL8d9RsWEyER0qeepFya458WhFSguQ==",
+      "sha512": "PF1+x3pGPkg0SVBW9vWgDHvgoPzyySwOmsng/NFhPu38IFCuH8f0X9beoUyPPqqbBgYJJrjgJyzN52wwy5ZCgg==",
       "type": "package",
       "path": "discord.net.rpc/1.0.1",
       "files": [
@@ -5349,7 +5349,7 @@
       ]
     },
     "Discord.Net.Webhook/1.0.1": {
-      "sha512": "nD3vmV2lPPysxXCQxvfXu0xBgfLevCw8oXnOBN/BZlua6dhO2x2E6vQjOvvCk0J7C+RRPfN7DalFXzKFsqV4yQ==",
+      "sha512": "jzWWh6rCfEs0fYmuE263+lPD/78PTwd+6LISsdJa/0EzMWMHZyi/d/BDGogHvfTsziR2UbgcfeaqnfpVKOmxBA==",
       "type": "package",
       "path": "discord.net.webhook/1.0.1",
       "files": [
@@ -5360,7 +5360,7 @@
       ]
     },
     "Discord.Net.WebSocket/1.0.1": {
-      "sha512": "jJELRPeZBgivu15czCdXjSZjBNYGrov+NTGm3Va8cMCQv6m/MxAUbQwN/7KQt9WBS6bLYoouj21jVbuXdY5sxg==",
+      "sha512": "cbaD8OuSL53WiuV4SA92X8ZfI8kiY3FsPPWES/W0cGBy370LEzhsOtPr0bJgWFPqBefx+a99nzT7EBGerNoCjg==",
       "type": "package",
       "path": "discord.net.websocket/1.0.1",
       "files": [
@@ -11193,15 +11193,15 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Samuel\\.nuget\\packages\\": {}
+    "C:\\Users\\Cesar Jaimes\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "G:\\Bot\\BHungerGamesBot\\BHungerGaemsBot.csproj",
+      "projectUniqueName": "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\BHungerGaemsBot.csproj",
       "projectName": "BHungerGaemsBot",
-      "projectPath": "G:\\Bot\\BHungerGamesBot\\BHungerGaemsBot.csproj",
-      "outputPath": "G:\\Bot\\BHungerGamesBot\\obj\\",
+      "projectPath": "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\BHungerGaemsBot.csproj",
+      "outputPath": "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\obj\\",
       "projectStyle": "PackageReference",
       "originalTargetFrameworks": [
         "netcoreapp1.1"

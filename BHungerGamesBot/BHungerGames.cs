@@ -23,20 +23,20 @@ namespace BHungerGaemsBot
             public int PlayersNeeded { get; }
             public int Delay { get; set; }
 
-            public Scenario(string description, int playersNeeded)
+            public Scenario(string description, int playersNeeded) //creates instance of a scenario, defining its description and players needed
             {
                 _description = description;
                 PlayersNeeded = playersNeeded;
                 Delay = 0;
             }
 
-            public void ReduceDelay()
+            public void ReduceDelay()// reduce delay after scenario has been used
             {
                 if (Delay > 0)
                     Delay -= 1;
             }
 
-            public string GetText(string[] players)
+            public string GetText(string[] players) //replace {@Px} by player name
             {
                 string value = _description?.Replace("{@P1}", players[0]);
                 if (players.Length > 1)
@@ -51,7 +51,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        static BHungerGames()
+        static BHungerGames() //list of scenarios
         {
             Scenarios = new[]
             {
@@ -179,7 +179,7 @@ namespace BHungerGaemsBot
             };
         }
 
-        public static void Test()
+        public static void Test() //test code won't matter here
         {
             try
             {
@@ -197,12 +197,12 @@ namespace BHungerGaemsBot
             }
         }
 
-        public BHungerGames()
+        public BHungerGames() //instanciate random method
         {
             _random = new Random();
         }
 
-        private Scenario GetScenario(int playersAvailable)
+        private Scenario GetScenario(int playersAvailable) //get a scenario
         {
             while (true)
             {

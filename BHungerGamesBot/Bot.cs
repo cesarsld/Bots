@@ -17,8 +17,8 @@ namespace BHungerGaemsBot
         public static string AppName = "BHungerGamesBot";
         public static string AppVersion = "1.0.1.0";
         // Test Bot Token
-        //public static string AppToken = "MzI2MDEwMzE1NzYwMjA1ODM0.DCgkSA.EkhQj0DVvMlBgBLjqWnC9hJ1vtE";
-        //public static char CommandPrefix = '?';
+        public static string AppToken = "MzI0MjgxODAyMjY3Mjk1NzU1.DDaWeA.tJiTCftc6WIIZvVd9Ew1-MqD2tI";
+        public static char CommandPrefix = '!';
 
         public static DiscordSocketClient DiscordClient { get; set; }
         private readonly CommandService _commands;
