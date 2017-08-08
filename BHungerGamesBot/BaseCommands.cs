@@ -87,7 +87,7 @@ namespace BHungerGaemsBot
                     var roles = Context.Guild.Roles;
                     foreach (IRole role in roles)
                     {
-                        if (role.Name.Contains("Level 2") || role.Name.Contains("300+") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod "))
+                        if (role.Name.Contains("300+") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod ") || Context.User.Username.Contains("Owl of"))
                         {
                             rolesWithAccess.Add(role.Id);
                         }
@@ -157,6 +157,41 @@ namespace BHungerGaemsBot
                                 + "<Max minutes to wait for players (Default: 5)>\n"
                                 + "<Seconds to delay between displaying next day (Default: 10)>\n"
                                 + "<Number of Winners (Default: 1)>```\r\n");
+        }
+
+        [Command("pong"), Summary("input")]
+        public async Task PvP()
+        {
+            //if (CheckAccess())
+            //{
+                await ReplyAsync("!ping");
+            //}
+        }
+
+        [Command("ShadownBot"), Summary("Funny message")]
+        public async Task shadownBot()
+        {
+            Random rnd = new Random(Guid.NewGuid().GetHashCode());
+            if (CheckAccess())
+            {
+                switch (rnd.Next(4))
+                {
+                    case 0:
+                        await ReplyAsync("``` Beep boop... Shad made me! Wait... no! I made him >:D```");
+                        break;
+                    case 1:
+                        await ReplyAsync("``` Stop Pestering me!!!```");
+                        break;
+                    case 2:
+                        await ReplyAsync("``` Shad the weird freak keep on molesting me D:```");
+                        break;
+                    case 3:
+                        await ReplyAsync("``` Do you have oil? *Hic* I really like it :3```");
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         [Command("StartV2", RunMode = RunMode.Async), Summary("Start the Hunger Games V2")]
@@ -257,7 +292,7 @@ namespace BHungerGaemsBot
                                     Logger.Log("Deleted 1 message.");
                                     //await LogAndReplyAsync("Deleted 1 message.");
                                 }
-                                else
+                                else 
                                 {
                                     Logger.Log($"Deleted {messagesToDelete.Count} messages.");
                                     //await LogAndReplyAsync($"Deleted {messagesToDelete.Count} messages.");
@@ -405,7 +440,7 @@ namespace BHungerGaemsBot
                 {
                     BotGameInstance gameInstance = new BotGameInstance();
                     RunningCommandInfo commandInfo;
-                    if (CreateChannelCommandInstance("StartGame", Context.User.Id, Context.Channel.Id, Context.Guild.Id, gameInstance, out commandInfo))
+                    if (CreateChannelCommandInstance("StartV2", Context.User.Id, Context.Channel.Id, Context.Guild.Id, gameInstance, out commandInfo))
                     {
                         cleanupCommandInstance = true;
                         int maxUsers;

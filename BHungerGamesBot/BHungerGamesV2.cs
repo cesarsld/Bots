@@ -2,20 +2,26 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Linq;
+using Discord;
+using Discord.Commands;
 
 
 namespace BHungerGaemsBot
 {
-    class BHungerGamesV2
+    public class BHungerGamesV2
     {
-        public Random _random;
+        private readonly Random _random;
         public BHungerGamesV2()
         {
             _random = new Random();
         }
-        public int duelCooldown = 4;
+        private int duelCooldown = 4;
         public List<Trap> traps;
+        public  List<InteractivePlayer> contestants;
+        public  List<int> enhancedIndexList = new List<int>();
         private static readonly Scenario[] Scenarios;
+        //private BotGameInstance botGameInstance = new BotGameInstance();
 
         private class Scenario {
             private readonly string _description;
@@ -68,13 +74,14 @@ namespace BHungerGaemsBot
         }
 
 
-        public void Run(int numWinners, List<InteractivePlayer> contestants, Action<string, string> showMessageAction, Func<bool> cannelGame, int maxPlayers = 0)
+        public void Run(int numWinners, List<InteractivePlayer> contestantsTransfer, Action<string, string> showMessageAction, Func<bool> cannelGame, int maxPlayers = 0)
         {
-            TimeSpan delayBetweenCycles = new TimeSpan(0, 0, 0, 10);
+            TimeSpan delayBetweenCycles = new TimeSpan(0, 0, 0, 30);
             int day = 0;
             int night = 0;
             int scenarioToBeExecuted;
             int index;
+            contestants = contestantsTransfer;
             StringBuilder sb = new StringBuilder(2000);
             traps = new List<Trap>();
 
@@ -102,15 +109,44 @@ namespace BHungerGaemsBot
                 {
                     scenarioToBeExecuted = 1;
                 }
+                int playerToEnhance = contestants.Count / 4;
+                if (playerToEnhance < 0)
+                {
+                    playerToEnhance = 1;
+                }
+                // Select Enhanced players
+                showMessageAction("Reached Enahnced Slection code", null);
+                /*enhancedIndexList.Add(_random.Next(contestants.Count));
+                playerToEnhance--;
+                while (playerToEnhance != 0)
+                {
+                    int enhancedIndexCheck = _random.Next(contestants.Count);
+                    foreach (int enhanced in enhancedIndexList.ToList())
+                    {
+                        if (enhancedIndexCheck == enhanced)
+                        {
+                            enhancedIndexCheck = _random.Next(contestants.Count);
+                            break;
+                        }
+                        enhancedIndexList.Add(enhancedIndexCheck);
+                        playerToEnhance--;
+                    }
+                    
+                }*/
+                showMessageAction("You have 30 seconds to input your decision"
+                    + $" You may select 💰 to Loot or ❗ to Stay On Alert! If you do NOT select a reaction, you will Do Nothing.", null);
+                Thread.Sleep(delayBetweenCycles);
+
+                //botGameInstance.fetchInteractivePlayerInput(30, channel);
                 //code to collect users choice to be implemented
-
-
+                //Bot.DiscordClient.ReactionAdded += 
+                sb.Append("People that successfully dropped loot: \n\n");
                 foreach (InteractivePlayer contestant in contestants)
                 {
                     switch (contestant.interactiveDecision)
                     {
                         case InteractivePlayer.InteractiveDecision.Loot:
-                            loot(contestant);
+                            loot(contestant, ref sb);
                             break;
                         case InteractivePlayer.InteractiveDecision.StayOnAlert:
                             stayOnAlert(contestant);
@@ -119,7 +155,7 @@ namespace BHungerGaemsBot
                             //do nothing
                             break;
                     }
-                    switch (contestant.enhancedDecision)
+                    /*switch (contestant.enhancedDecision)
                     {
                         case InteractivePlayer.EnhancedDecision.Sabotage:
                             sabotage(contestant, contestants);
@@ -133,8 +169,10 @@ namespace BHungerGaemsBot
                         default:
                             //player not selected for enhanced options
                             break;
-                    }
+                    }*/
                 }
+                showMessageAction("" + sb, null);
+                sb.Clear();
 
                 //night cycle
                 night++;
@@ -209,11 +247,11 @@ namespace BHungerGaemsBot
                 }
                 else
                 {
-                    duel(contestants);
+                    duel(contestants, ref sb);
                 }
                 foreach (InteractivePlayer contestant in contestants)
                 {
-                    reset(contestant); //resets value of scenariolikelihood and duelchance each end of cycle
+                    reset(contestant); //resets value of scenariolikelihood and interactive options
                 }
                 Thread.Sleep(delayBetweenCycles);
 
@@ -225,7 +263,7 @@ namespace BHungerGaemsBot
 
         //duel method
 
-        void duel(List <InteractivePlayer> contestants)
+        void duel(List <InteractivePlayer> contestants,ref StringBuilder sb)
         {
             int duelChance = 50;
             int duelist_1, duelist_2;
@@ -311,10 +349,10 @@ namespace BHungerGaemsBot
             }
         }
         //interactive options
-        public void loot(InteractivePlayer contestant)
+        private void loot(InteractivePlayer contestant, ref StringBuilder sb)
         {
             contestant.scenarioLikelihood += 10;
-            int lootChance = 60;
+            int lootChance = 100;
             if (contestant.debuff == InteractivePlayer.Debuff.DecreasedItemFind && contestant.debuffTimer > 0)
             {
                 lootChance -= 5;
@@ -338,22 +376,28 @@ namespace BHungerGaemsBot
                         break;
                 }
                 int lootRarity = _random.Next(100);
+                lootRarity = 55;
                 switch (lootType)
                 {
                     case 0 when lootRarity < 60:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Common;
+                        sb.Append($"{contestant.NickName} has obtained a Common item!");
                         break;
                     case 0 when lootRarity < 87:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Rare;
+                        sb.Append($"{contestant.NickName} has obtained a Rare item!");
                         break;
                     case 0 when lootRarity < 97:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Epic;
+                        sb.Append($"{contestant.NickName} has obtained a Epic item!");
                         break;
                     case 0 when lootRarity < 99:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Legendary;
+                        sb.Append($"{contestant.NickName} has obtained a Legendary item!");
                         break;
                     case 0 when lootRarity < 100:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Set;
+                        sb.Append($"{contestant.NickName} has obtained a Set item!");
                         break;
                     case 1 when lootRarity < 60:
                         contestant.armourRarity = InteractivePlayer.Rarity.Common;
@@ -373,7 +417,7 @@ namespace BHungerGaemsBot
                 }
             }
         }
-        public void stayOnAlert(InteractivePlayer contestant)
+        private void stayOnAlert(InteractivePlayer contestant)
         {
             if (contestant.alertCooldown == 0)
             {
@@ -398,7 +442,7 @@ namespace BHungerGaemsBot
 
 
         //enhanced options
-        public void sabotage(InteractivePlayer contestant, List<InteractivePlayer> contestants)
+        private void sabotage(InteractivePlayer contestant, List<InteractivePlayer> contestants)
         {
             if (RNGroll(75))
             {
@@ -449,14 +493,14 @@ namespace BHungerGaemsBot
                 }
             }
         }
-        public void trap(InteractivePlayer contestant)
+        private void trap(InteractivePlayer contestant)
         {
             if (_random.Next(10) < 7)
             {
                 traps.Add(new Trap(contestant));
             }
         }
-        public void steal(InteractivePlayer contestant, List<InteractivePlayer> contestants)
+        private void steal(InteractivePlayer contestant, List<InteractivePlayer> contestants)
         {
             if (RNGroll(30))
             {
@@ -488,12 +532,12 @@ namespace BHungerGaemsBot
             }
         }
 
-        public static bool RNGroll(int a)
+        private  bool RNGroll(int a)
         {
-            Random rnd = new Random(Guid.NewGuid().GetHashCode());
+           
             bool outcome;
             int chance = a * 10;
-            int roll = rnd.Next(0, 1000);
+            int roll = _random.Next(0, 1000);
             if (roll <= chance)
             {
                 outcome = true;
@@ -507,9 +551,11 @@ namespace BHungerGaemsBot
 
 
         //reset values
-        void reset(InteractivePlayer contestant)
+        private void reset(InteractivePlayer contestant)
         {
             contestant.scenarioLikelihood = 20;
+            contestant.interactiveDecision = InteractivePlayer.InteractiveDecision.DoNothing;
+            contestant.enhancedDecision = InteractivePlayer.EnhancedDecision.None;
         }
     }
 }
