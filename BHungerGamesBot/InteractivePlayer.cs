@@ -14,6 +14,7 @@ namespace BHungerGaemsBot
         public int debuffTimer { get; set; }
         public int weaponLife { get; set; }
         public int armourLife { get; set; }
+        public int scenarioItemFindBonus { get; set; }
 
         public InteractivePlayer(IUser userParm) : base(userParm)
         {
@@ -23,6 +24,7 @@ namespace BHungerGaemsBot
             debuffTimer = 0;
             weaponLife = 0;
             armourLife = 0;
+            scenarioItemFindBonus = 0;
         }
 
         public InteractiveDecision interactiveDecision;

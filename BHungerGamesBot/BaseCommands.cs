@@ -159,13 +159,13 @@ namespace BHungerGaemsBot
                                 + "<Number of Winners (Default: 1)>```\r\n");
         }
 
-        [Command("pong"), Summary("input")]
+        [Command("num1"), Summary("input")]
         public async Task PvP()
         {
-            //if (CheckAccess())
-            //{
-                await ReplyAsync("!ping");
-            //}
+            if (CheckAccess())
+            {
+                await ReplyAsync("Yo Num2 members, don't forget that there is a channel called #salt_mines");
+            }
         }
 
         [Command("ShadownBot"), Summary("Funny message")]

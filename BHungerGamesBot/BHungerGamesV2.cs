@@ -11,21 +11,28 @@ namespace BHungerGaemsBot
 {
     public class BHungerGamesV2
     {
+        private const int DelayValue = 10;
         private readonly Random _random;
         public BHungerGamesV2()
         {
             _random = new Random();
         }
         private int duelCooldown = 4;
-        public List<Trap> traps;
+        private List<Trap> traps;
         public  List<InteractivePlayer> contestants;
         public  List<int> enhancedIndexList = new List<int>();
+        public bool enhancedOptions = false;
         private static readonly Scenario[] Scenarios;
         //private BotGameInstance botGameInstance = new BotGameInstance();
+        
+        private List<IEmote> emojiListOptions = new List<IEmote> { new Emoji("💰"), new Emoji("❗") };
+        private List<IEmote> emojiListEnhancedOptions = new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji ("🔧") };
+        
 
         private class Scenario {
             private readonly string _description;
             public int _typeValue;
+            public int Delay { get; set; }
             public enum Type
             {
                 Damaging,
@@ -43,22 +50,73 @@ namespace BHungerGaemsBot
                 {
                     _description = _description.Replace("{_typeValue}", _typeValue.ToString());
                 }
+                Delay = 0;
             }
             public string GetText(string player) //replace {@Px} by player name
             {
                 string value = _description?.Replace("{@P1}", player);
                 return value;
             }
+            public void ReduceDelay()// reduce delay after scenario has been used
+            {
+                if (Delay > 0)
+                    Delay -= 1;
+            }
+
         }
 
         static BHungerGamesV2()
         {
             Scenarios = new[]
             {
-                new Scenario ("{@P1} has been dealt {_typeValue} HP", Scenario.Type.Damaging, 20),
-                new Scenario ("{@P1} has been killed", Scenario.Type.Lethal, 100),
-                new Scenario ("{@P1} has been healed for {_typeValue} HP", Scenario.Type.Healing, 20),
-                new Scenario ("{@P1} has increased loot find pf {_typeValue} for the next turn", Scenario.Type.LootFind, 10),
+                //new Scenario ("{@P1} has been dealt {_typeValue} HP", Scenario.Type.Damaging, 20),
+                //new Scenario ("{@P1} has been killed", Scenario.Type.Lethal, 100),
+                //new Scenario ("{@P1} has been healed for {_typeValue} HP", Scenario.Type.Healing, 20),
+                //new Scenario ("{@P1} has increased loot find pf {_typeValue} for the next turn", Scenario.Type.LootFind, 10),
+                new Scenario ("{@P1} swam though a pond filled with Blubbler's acidic waste to pursue his journey. (-{_typeValue}HP)", Scenario.Type.Damaging, 20),
+                new Scenario ("{@P1} stubbed his toe on a hypershard. (-100000000HP)", Scenario.Type.Lethal, 100000000),
+                new Scenario ("{@P1} forgot that this was the INTERACTIVE Hunger Games and stood idle for 5 minutes which was just enough time for a Grampz to come by and smack him with his cane. (-{_typeValue}HP)", Scenario.Type.Damaging, 5),
+                new Scenario ("{@P1} saw a Booty fly and tried to catch it. It noticed and, unhappy about that, decided to boop {@P1} on the head.  (-{_typeValue}HP)", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} encounters Ragnar in his quest for Loot. Ragnar will only let him pass if {@P1} beats him at a game of chess. Sadly, {@P1} forgot  Ragnar was an avit chess player... (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+                new Scenario ("'Lets play hangman' said Zorul. Sadly Zorul never really understood that game. {@P1} got hanged and died.", Scenario.Type.Lethal, 10),
+                new Scenario ("{@P1} got caught staring at Kov'Alg's cleavage... (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+                new Scenario ("{@P1} entered R3 and saw Woodbeard talk to Beido, his long distance brother he hasn't seen for months who got addicted to meth. Being an intimate moment, Woodbeard kicked you out of the dungeon. (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+                new Scenario ("{@P1} encountered the legendary Wemmbo in the woods while searching for cover! 'Heal me please!' - 'Get lost kiddo, I'm just a mantis *bzzt bzzt*' (-{_typeValue}HP)", Scenario.Type.Damaging, 10),
+                new Scenario ("While adventuring out into the wilderness {@P1} found a horde of Zirg. Attempting to back away {@P1} steps on a twig and causes the Zirg to zerg him. (-{_typeValue}HP) ", Scenario.Type.Damaging, 30),
+                new Scenario ("{@P1} finds several piles of bones from previous adventurers. While searching some of the bones starts to shake violently. {@P1} proceeds to get Jacked up. (-{_typeValue}HP)", Scenario.Type.Damaging, 40),
+                new Scenario ("{@P1} attempted to venture out in search of treasure.  Sadly the treasure chest was actually Mimzy. (-{_typeValue}HP)", Scenario.Type.Damaging, 20),
+                new Scenario ("{@P1} went in search of his old friend Bob whom they had heard lived in a small cottage deep inside the forest. Wait... wrong Bob. (-{_typeValue}HP)", Scenario.Type.Damaging, 25),
+                new Scenario ("While trekking across a mountain range in an attempt to get a better view of the arena {@P1} slipped on a loose rock and tumbled back down to the base. Time to start over... (-{_typeValue}HP)", Scenario.Type.Damaging, 5),
+                new Scenario ("While searching for shelter in the jungle P1 came across a roaming Trixie. {@P1} runs as fast as possible, but trips on a log...oh shiieeeet. (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} found a slightly damaged parachute. 'This will surely work'...it didn't. (-{_typeValue}HP)", Scenario.Type.Damaging, 40),
+                new Scenario ("{@P1} encountered the almighty Bobodom and tried slaying him for some loot. While fighting {P@1} could hear Bobodom hum 'Can't Touch This' by MC Hammer  (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+                new Scenario ("{@P1} sees a dark figure in the horizon. It is the powerful SSS1. It is said that people who witness his existence see a bright light before their death. {@P1} isn't an exception (-10000HP)", Scenario.Type.Lethal, 10000), //to be edited
+                //new Scenario ("{@P1} bumped into Tarri in his journey to slay Grimz. Tarri didn't like that and cock slapped him with her well endowed penis (-{_typeValue}HP)", Scenario.Type.Lethal, 696969),
+                new Scenario ("{@P1} ran into a battle with 4 Bargz on his way to slay Woodbeard. They all bombarded him with dozens of cannon shots. (-{_typeValue}HP))", Scenario.Type.Damaging, 35),
+                new Scenario ("{@P1} is walking in the woods. He sees Gobby, Olxa, Mimzy AND Bully swinging their sacks onto a poor defenceless Batty. {@P1} tried to interfere, but ended up getting sack-whacked. (-{_typeValue}HP)", Scenario.Type.Damaging, 45),
+                new Scenario ("{@P1} was standing on the pier, waiting for a fishing minigame to be implemented. The wood broke under their feet, and they fell into the water. (-{_typeValue}HP)", Scenario.Type.Damaging, 20),
+                new Scenario ("{@P1} mistook Capt. Woodbeard for Jack Sparrow and asked him for an autograph. Woodbeard signed whith his cutlass and slaps {@P1} with the book (-{_typeValue}HP)", Scenario.Type.Damaging, 5),
+                new Scenario ("{@P1}, while hiding in a tree woke up a group of Batties that startled him. {@P1} fell off the tree (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+                new Scenario ("{@P1} hurt their back carrying all the unnecessary common and rare mats in his bag. (-{_typeValue}HP)", Scenario.Type.Damaging, 5),
+                new Scenario ("{@P1} attacked Mimzy while he was sleeping! Inside his chest he found a minor healing potion! (+{_typeValue}HP)", Scenario.Type.Healing, 25),
+                new Scenario ("{@P1} challenged Krackers to a tickle fight! He didn't realised Krackers had eight legs... (-{_typeValue}HP)", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} tried to beat Conan in an arm wrestle. 'Tried' (-{_typeValue})", Scenario.Type.Damaging, 15),
+                new Scenario ("{@P1} is exhausted... He is on the verge of dying. But wait! A wild HP shrine appears! (-{_typeValue})", Scenario.Type.Healing, 100),
+                new Scenario ("{@P1} equipped Epic Speed Kick to reach loot faster! Sadly he didn't tie his laces properly, tripped and fell on his face *ouch* (-{_typeValue})", Scenario.Type.Damaging, 25),
+                new Scenario ("{@P1} sees a Shrump and tried to bribe him. tsk tsk tsk... Shrump can't be bribed! {@P1} got bribed instead and forced to serve Shrump. (-{_typeValue})", Scenario.Type.Damaging, 15),
+                new Scenario ("Feeling thirsty, {@P1} ventured in Quirell's fortress for water. He found Juice instead who promptly attempted to empale him. (-{_typeValue})", Scenario.Type.Damaging, 30),
+                new Scenario ("In his quest, {@P1} found a sad Trixie sat on a rock. {@P1} tried to give it a hug but Trixie couldn't hug back due to its small arms. Filled with rage, Trixie chomped {@P1}'s arm off (-{_typeValue})", Scenario.Type.Damaging, 65)
+                /*new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),*/
+
             };
         }
         public class Trap
@@ -72,18 +130,34 @@ namespace BHungerGaemsBot
                 trapID = contestant.UserNameWithDiscriminator;
             }
         }
-
-
-        public void Run(int numWinners, List<InteractivePlayer> contestantsTransfer, Action<string, string> showMessageAction, Func<bool> cannelGame, int maxPlayers = 0)
+        private Scenario GetScenario( ref int randIndex) //get a scenario
         {
-            TimeSpan delayBetweenCycles = new TimeSpan(0, 0, 0, 30);
+            while (true)
+            {
+                randIndex = _random.Next(Scenarios.Length);
+                if (Scenarios[randIndex].Delay <= 0)
+                {
+                    Scenarios[randIndex].Delay = DelayValue;
+                    return Scenarios[randIndex];
+                }
+            }
+        }
+
+
+        public void Run(int numWinners, List<InteractivePlayer> contestantsTransfer, Action<string, string> showMessageAction, Func<bool> cannelGame, Action<List<IEmote>> AddReaction, int maxPlayers = 0)
+        {
+            TimeSpan delayBetweenCycles = new TimeSpan(0, 0, 0, 20);
+            TimeSpan delayAfterOptions = new TimeSpan(0, 0, 0, 20);
+            TimeSpan delayAfterScenarios = new TimeSpan(0, 0, 0, 20);
             int day = 0;
             int night = 0;
             int scenarioToBeExecuted;
             int index;
             contestants = contestantsTransfer;
             StringBuilder sb = new StringBuilder(2000);
+            StringBuilder sbLoot = new StringBuilder(2000);
             traps = new List<Trap>();
+            List<Trap> trapsToBeRemoved = new List<Trap>();
 
             if (maxPlayers > 0 && contestants.Count > maxPlayers)
             {
@@ -97,12 +171,13 @@ namespace BHungerGaemsBot
                 showMessageAction("Players killed in the stampede trying to get to the arena:\r\n" + sb, null);
                 sb.Clear();
             }
-            
+
             while (contestants.Count > numWinners)
             {
 
                 // day cycle
                 day++;
+                List<int> scenarioImmune = new List<int>();
                 int startingContestantCount = contestants.Count;
                 scenarioToBeExecuted = startingContestantCount / 4;
                 if (scenarioToBeExecuted < 1)
@@ -110,75 +185,100 @@ namespace BHungerGaemsBot
                     scenarioToBeExecuted = 1;
                 }
                 int playerToEnhance = contestants.Count / 4;
-                if (playerToEnhance < 0)
+                if (playerToEnhance <= 0)
                 {
                     playerToEnhance = 1;
                 }
                 // Select Enhanced players
-                showMessageAction("Reached Enahnced Slection code", null);
-                /*enhancedIndexList.Add(_random.Next(contestants.Count));
-                playerToEnhance--;
-                while (playerToEnhance != 0)
-                {
-                    int enhancedIndexCheck = _random.Next(contestants.Count);
-                    foreach (int enhanced in enhancedIndexList.ToList())
-                    {
-                        if (enhancedIndexCheck == enhanced)
-                        {
-                            enhancedIndexCheck = _random.Next(contestants.Count);
-                            break;
-                        }
-                        enhancedIndexList.Add(enhancedIndexCheck);
-                        playerToEnhance--;
-                    }
-                    
-                }*/
-                showMessageAction("You have 30 seconds to input your decision"
-                    + $" You may select 💰 to Loot or ❗ to Stay On Alert! If you do NOT select a reaction, you will Do Nothing.", null);
-                Thread.Sleep(delayBetweenCycles);
+                
+                
+                showMessageAction($"\n Day**{day}**\nYou have 30 seconds to input your decision\n"
+                    + $" You may select :moneybag: to Loot or :exclamation: to Stay On Alert! If you do NOT select a reaction, you will Do Nothing.", null);
+                AddReaction(emojiListOptions);
+                Thread.Sleep(delayAfterOptions);
 
-                //botGameInstance.fetchInteractivePlayerInput(30, channel);
-                //code to collect users choice to be implemented
-                //Bot.DiscordClient.ReactionAdded += 
-                sb.Append("People that successfully dropped loot: \n\n");
+                //sbLoot.Append("People that successfully dropped loot: \n\n");
                 foreach (InteractivePlayer contestant in contestants)
                 {
                     switch (contestant.interactiveDecision)
                     {
                         case InteractivePlayer.InteractiveDecision.Loot:
-                            loot(contestant, ref sb);
+                            loot(contestant, ref sbLoot);
                             break;
                         case InteractivePlayer.InteractiveDecision.StayOnAlert:
-                            stayOnAlert(contestant);
+                            stayOnAlert(contestant, ref sb);
                             break;
                         default:
                             //do nothing
                             break;
                     }
-                    /*switch (contestant.enhancedDecision)
+                }
+                showMessageAction("" + sbLoot + sb, null);
+                sbLoot.Clear();
+                sb.Clear();
+
+                //enhanced
+                enhancedOptions = true;
+                sb.Append("Enhanced Decisions have been attributed to:\n");
+                enhancedIndexList.Add(_random.Next(contestants.Count));
+                playerToEnhance--;
+                while (playerToEnhance != 0)
+                {
+                    int enhancedIndexCheck = _random.Next(contestants.Count);
+                    if (enhancedIndexList.Contains(enhancedIndexCheck))
+                    {
+                        enhancedIndexCheck = _random.Next(contestants.Count);
+                    }
+                    else
+                    {
+                        enhancedIndexList.Add(enhancedIndexCheck);
+                        playerToEnhance--;
+                    }
+                }
+                foreach (int enhanced in enhancedIndexList)
+                {
+                    sb.Append($"<{contestants[enhanced].NickName}>\n");
+                }
+                showMessageAction(sb +"You have 30 seconds to input your decision\n"
+                    + $"You may select :bomb: to Make A Trap, :gun: To Steal or :wrench: To Sabotage! If you do NOT select a reaction, you will Do Nothing.\n", null);
+                AddReaction(emojiListEnhancedOptions);
+                //make bot react to prevent players from searching emojis
+                sb.Clear();
+                Thread.Sleep(delayAfterOptions);
+                
+
+                foreach (InteractivePlayer contestant in contestants)
+                {
+                    switch (contestant.enhancedDecision)
                     {
                         case InteractivePlayer.EnhancedDecision.Sabotage:
-                            sabotage(contestant, contestants);
+                            sabotage(contestant, contestants, ref sb);
                             break;
                         case InteractivePlayer.EnhancedDecision.Steal:
-                            steal(contestant, contestants);
+                            steal(contestant, contestants, ref sb);
                             break;
                         case InteractivePlayer.EnhancedDecision.MakeATrap:
-                            trap(contestant);
+                            trap(contestant, ref sb);
                             break;
                         default:
                             //player not selected for enhanced options
                             break;
-                    }*/
+                    }
                 }
+                enhancedOptions = false;
                 showMessageAction("" + sb, null);
                 sb.Clear();
 
-                //night cycle
-                night++;
+                    //night cycle
+                    night++;
                 while (scenarioToBeExecuted != 0) //scenarios
                 {
+                    string selectedPlayer;
                     index = _random.Next(contestants.Count);
+                    if (scenarioImmune.Contains(index))
+                    {
+                        continue;
+                    }
                     switch (contestants[index].debuff)
                     {
                         case InteractivePlayer.Debuff.IncreasedScenarioLikelihood when contestants[index].debuffTimer > 0:
@@ -194,9 +294,13 @@ namespace BHungerGaemsBot
                     }
                     if (RNGroll(contestants[index].scenarioLikelihood))
                     {
+                        scenarioImmune.Add(index);
                         scenarioToBeExecuted--;
+                        selectedPlayer = "<" + contestants[index].NickName + ">";
+
                         //scenario method 
-                        int scenarioIndex = _random.Next(Scenarios.Length);
+                        int scenarioIndex = 0;
+                        sb.Append(GetScenario(ref scenarioIndex).GetText(selectedPlayer)).Append("\n\n");
                         switch (Scenarios[scenarioIndex]._type)
                         {
                             case Scenario.Type.Damaging:
@@ -221,9 +325,6 @@ namespace BHungerGaemsBot
                         }
                     }
                 }
-
-                for (int i = 0; i < traps.Count; i++)
-
                 foreach (Trap trap in traps)
                 {
                     if (RNGroll(15))
@@ -233,14 +334,18 @@ namespace BHungerGaemsBot
                         {
                             index = _random.Next(contestants.Count);
                         }
+                        sb.Append($"<{contestants[index].NickName}> fell into a trap damaging him for {trap.damage}HP\n\n");
                         contestants[index].hp -= trap.damage;
+
                         if (contestants[index].hp < 0)
                         {
+                            sb.Append($"<{contestants[index].NickName}> died from the trap.\n\n");
                             contestants.RemoveAt(index);
                         }
-                            traps.Remove(trap);
+                        trapsToBeRemoved.Add(trap);
                     }
                 }
+                traps = traps.Except(trapsToBeRemoved).ToList();
                 if (duelCooldown != 0)
                 {
                     duelCooldown--;
@@ -253,6 +358,14 @@ namespace BHungerGaemsBot
                 {
                     reset(contestant); //resets value of scenariolikelihood and interactive options
                 }
+                foreach (Scenario scenario in Scenarios)
+                {
+                    scenario.ReduceDelay();
+                }
+                showMessageAction($"\nNight**{night}** <{startingContestantCount}> players remaining\n\n" + sb, null);
+                scenarioImmune.Clear();
+                enhancedIndexList.Clear();
+                sb.Clear();
                 Thread.Sleep(delayBetweenCycles);
 
                 if (cannelGame())
@@ -265,6 +378,7 @@ namespace BHungerGaemsBot
 
         void duel(List <InteractivePlayer> contestants,ref StringBuilder sb)
         {
+            TimeSpan duelTimeSpan = new TimeSpan(0, 0, 10);
             int duelChance = 50;
             int duelist_1, duelist_2;
             duelist_1 = _random.Next(contestants.Count);
@@ -273,8 +387,10 @@ namespace BHungerGaemsBot
             {
                 duelist_2 = _random.Next(contestants.Count);
             }
+            sb.Append($"A Duel started in betwwen <{contestants[duelist_1].NickName}> and <{contestants[duelist_2].NickName}>\n\n");
             if (contestants[duelist_1].weaponLife > 0)
             {
+                contestants[duelist_1].weaponLife--;
                 switch (contestants[duelist_1].weaponRarity)
                 {
                     case InteractivePlayer.Rarity.Common:
@@ -308,6 +424,7 @@ namespace BHungerGaemsBot
             }
             if (contestants[duelist_2].weaponLife > 0)
             {
+                contestants[duelist_2].weaponLife--;
                 switch (contestants[duelist_2].weaponRarity)
                 {
                     case InteractivePlayer.Rarity.Common:
@@ -341,18 +458,20 @@ namespace BHungerGaemsBot
             }
             if (RNGroll(duelChance))
             {
+                sb.Append($"<{contestants[duelist_1].NickName}> won the duel and slayed <{contestants[duelist_2].NickName}>\n\n");
                 contestants.RemoveAt(duelist_2);
             }
             else
             {
+                sb.Append($"<{contestants[duelist_2].NickName}> won the duel and slayed <{contestants[duelist_1].NickName}>\n\n");
                 contestants.RemoveAt(duelist_1);
             }
         }
         //interactive options
-        private void loot(InteractivePlayer contestant, ref StringBuilder sb)
+        private void loot(InteractivePlayer contestant, ref StringBuilder sbLoot)
         {
             contestant.scenarioLikelihood += 10;
-            int lootChance = 100;
+            int lootChance = 60;
             if (contestant.debuff == InteractivePlayer.Debuff.DecreasedItemFind && contestant.debuffTimer > 0)
             {
                 lootChance -= 5;
@@ -376,53 +495,59 @@ namespace BHungerGaemsBot
                         break;
                 }
                 int lootRarity = _random.Next(100);
-                lootRarity = 55;
+                //lootRarity = 55;
                 switch (lootType)
                 {
                     case 0 when lootRarity < 60:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Common;
-                        sb.Append($"{contestant.NickName} has obtained a Common item!");
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Common weapon!\n");
                         break;
                     case 0 when lootRarity < 87:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Rare;
-                        sb.Append($"{contestant.NickName} has obtained a Rare item!");
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Rare weapon!\n");
                         break;
                     case 0 when lootRarity < 97:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Epic;
-                        sb.Append($"{contestant.NickName} has obtained a Epic item!");
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Epic weapon!\n");
                         break;
                     case 0 when lootRarity < 99:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Legendary;
-                        sb.Append($"{contestant.NickName} has obtained a Legendary item!");
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Legendary weapon!\n");
                         break;
                     case 0 when lootRarity < 100:
                         contestant.weaponRarity = InteractivePlayer.Rarity.Set;
-                        sb.Append($"{contestant.NickName} has obtained a Set item!");
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Set weapon!\n");
                         break;
                     case 1 when lootRarity < 60:
                         contestant.armourRarity = InteractivePlayer.Rarity.Common;
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Common body!\n");
                         break;
                     case 1 when lootRarity < 87:
                         contestant.armourRarity = InteractivePlayer.Rarity.Rare;
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Rare body!\n");
                         break;
                     case 1 when lootRarity < 97:
                         contestant.armourRarity = InteractivePlayer.Rarity.Epic;
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Epic body!\n");
                         break;
                     case 1 when lootRarity < 99:
                         contestant.armourRarity = InteractivePlayer.Rarity.Legendary;
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Legendary body!\n");
                         break;
                     case 1 when lootRarity < 100:
                         contestant.armourRarity = InteractivePlayer.Rarity.Set;
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a Set body!\n");
                         break;
                 }
             }
         }
-        private void stayOnAlert(InteractivePlayer contestant)
+        private void stayOnAlert(InteractivePlayer contestant,  ref StringBuilder sb)
         {
             if (contestant.alertCooldown == 0)
             {
                 contestant.alertCooldown = 4;
                 contestant.scenarioLikelihood -= 10;
+                sb.Append($"<{contestant.NickName}> successfully staryed On Alert. -10% Scenario likelihood. \n");
             }
             else
             {
@@ -431,18 +556,21 @@ namespace BHungerGaemsBot
                 {
                     contestant.alertCooldown = 4;
                     contestant.scenarioLikelihood += 40;
+                    sb.Append($"<{contestant.NickName}> tried to Stay On Alert but fell in a deep sleep. +40% Scenario likelihood. \n");
                 }
                 else
                 {
                     contestant.alertCooldown = 4;
                     contestant.scenarioLikelihood -= 10;
+                    sb.Append($"<{contestant.NickName}> successfully staryed On Alert. -10% Scenario likelihood. \n");
+
                 }
             }
         }
 
 
         //enhanced options
-        private void sabotage(InteractivePlayer contestant, List<InteractivePlayer> contestants)
+        private void sabotage(InteractivePlayer contestant, List<InteractivePlayer> contestants, ref StringBuilder sb)
         {
             if (RNGroll(75))
             {
@@ -491,16 +619,30 @@ namespace BHungerGaemsBot
                     default:
                         break;
                 }
+                sb.Append($"<{contestant.NickName}> has sabotaged <{contestants[index].NickName}> by giving him a {contestants[index].debuff} debuff for {contestants[index].debuffTimer} turns!\n");
+
             }
-        }
-        private void trap(InteractivePlayer contestant)
-        {
-            if (_random.Next(10) < 7)
+            else
             {
-                traps.Add(new Trap(contestant));
+                sb.Append($"<{contestant.NickName}> failed to sabotage someone... U trash or wut?");
             }
         }
-        private void steal(InteractivePlayer contestant, List<InteractivePlayer> contestants)
+        private void trap(InteractivePlayer contestant, ref StringBuilder sb)
+        {
+            Logger.Log("accessed trap method");
+            if (_random.Next(10) < 12)
+            {
+                Logger.Log("trap made");
+                traps.Add(new Trap(contestant));
+                sb.Append($"<{contestant.NickName}> made a Trap!\n");
+
+            }
+            else
+            {
+                sb.Append($"<{contestant.NickName}> has failed to make a trap.\n");
+            }
+        }
+        private void steal(InteractivePlayer contestant, List<InteractivePlayer> contestants, ref StringBuilder sb)
         {
             if (RNGroll(30))
             {
@@ -517,6 +659,9 @@ namespace BHungerGaemsBot
                         {
                             contestant.weaponRarity = contestants[index].weaponRarity;
                             contestant.weaponLife = 5;
+                            contestants[index].weaponLife = 0;
+
+                            sb.Append($"<{contestant.NickName}> stole <{contestants[index].NickName}>'s {contestants[index].weaponRarity} Weapon!\n");
                         }
                         break;
                     case 1:
@@ -524,11 +669,17 @@ namespace BHungerGaemsBot
                         {
                             contestant.armourRarity = contestants[index].armourRarity;
                             contestant.armourLife = 5;
+                            contestants[index].armourLife = 0;
+                            sb.Append($"<{contestant.NickName}> stole <{contestants[index].NickName}>'s {contestants[index].armourRarity} Armour!\n");
                         }
                         break;
                     default:
                         break;
                 }
+            }
+            else
+            {
+                sb.Append($"<{contestant.NickName}> failed to steal something... git gud ¯_(ツ)_/¯");
             }
         }
 

@@ -25,8 +25,10 @@ namespace BHungerGaemsBot
         private bool _cancelGame;
 
         public BHungerGamesV2 V2GameInstance = new BHungerGamesV2();
+        
 
         private ulong _messageId;
+        private IUserMessage _message;
         private IMessageChannel _channel;
         private int _testUsers;
 
@@ -143,27 +145,63 @@ namespace BHungerGaemsBot
 
         public Task FetchPlayerInput(Cacheable<IUserMessage, ulong> msg, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            
             try
             {
-                if (reaction != null && reaction.User.IsSpecified) // for now except all reactions && reaction.Emote.Name == ReactionToUse)
+                if (V2GameInstance.enhancedOptions)
                 {
-                    lock (_syncObj)
+                    if (reaction != null && reaction.User.IsSpecified) // for now except all reactions && reaction.Emote.Name == ReactionToUse)
                     {
-                        if (msg.Value?.Id == _messageId)
+                        lock (_syncObj)
                         {
-                            var authenticPlayer = V2GameInstance.contestants.FirstOrDefault(contestant => contestant.UserId == reaction.UserId);
-                            if (authenticPlayer != null)
+                            if (msg.Value?.Id == _messageId)
                             {
-                                switch (reaction.Emote.Name)
+                                foreach (int enhanceCheck in V2GameInstance.enhancedIndexList)
                                 {
-                                    case "💰":
-                                        authenticPlayer.interactiveDecision = InteractivePlayer.InteractiveDecision.Loot;
-                                        break;
-                                    case "❗":
-                                        authenticPlayer.interactiveDecision = InteractivePlayer.InteractiveDecision.StayOnAlert;
-                                        break;
-                                    default:
-                                        break;
+                                    if (V2GameInstance.contestants[enhanceCheck].UserId == reaction.UserId)
+                                    {
+                                        switch (reaction.Emote.Name)
+                                        {
+                                            case "💣":
+                                                V2GameInstance.contestants[enhanceCheck].enhancedDecision = InteractivePlayer.EnhancedDecision.MakeATrap;
+                                                break;
+                                            case "🔫":
+                                                V2GameInstance.contestants[enhanceCheck].enhancedDecision = InteractivePlayer.EnhancedDecision.Steal;
+                                                break;
+                                            case "🔧":
+                                                V2GameInstance.contestants[enhanceCheck].enhancedDecision = InteractivePlayer.EnhancedDecision.Sabotage;
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (reaction != null && reaction.User.IsSpecified) // for now except all reactions && reaction.Emote.Name == ReactionToUse)
+                    {
+                        lock (_syncObj)
+                        {
+                            if (msg.Value?.Id == _messageId)
+                            {
+                                var authenticPlayer = V2GameInstance.contestants.FirstOrDefault(contestant => contestant.UserId == reaction.UserId);
+                                if (authenticPlayer != null)
+                                {
+                                    switch (reaction.Emote.Name)
+                                    {
+                                        case "💰":
+                                            authenticPlayer.interactiveDecision = InteractivePlayer.InteractiveDecision.Loot;
+                                            break;
+                                        case "❗":
+                                            authenticPlayer.interactiveDecision = InteractivePlayer.InteractiveDecision.StayOnAlert;
+                                            break;
+                                        default:
+                                            break;
+                                    }
                                 }
                             }
                         }
@@ -485,6 +523,7 @@ namespace BHungerGaemsBot
             bool removeHandler = false;
             try
             {
+                //LogToChannel("test", null);
                 _channel = channel;
 
                 string gameMessageText = $"Preparing to start an Interactive Hunger Games for ```Markdown\r\n<{userName}> in {maxMinutesToWait} minutes"
@@ -600,10 +639,9 @@ namespace BHungerGaemsBot
                     }
                     LogToChannel("Players REMOVED from game due to multiple NickNames:\r\n" + sb, null);
                 }
-                // BHungerGamesV2 gameInstance = new BHungerGamesV2();
-                //gameInstance.Run(numWinners, players, LogToChannel, GetCancelGame, startWhenMaxUsers ? 0 : maxUsers);
+               
                 Bot.DiscordClient.ReactionAdded += FetchPlayerInput;
-                V2GameInstance.Run(numWinners, players, LogToChannel, GetCancelGame, startWhenMaxUsers ? 0 : maxUsers);
+                V2GameInstance.Run(numWinners, players, LogToChannel, GetCancelGame, AddReaction, startWhenMaxUsers ? 0 : maxUsers);
 
             }
             catch (Exception ex)
@@ -762,7 +800,10 @@ namespace BHungerGaemsBot
         }
         private void SendMarkdownMsg(string msg)
         {
-            _channel.SendMessageAsync("```Markdown\r\n" + msg + "```\r\n").GetAwaiter().GetResult();
+            //_channel.SendMessageAsync("```Markdown\r\n" + msg + "```\r\n").GetAwaiter().GetResult();
+            var messageTask = _channel.SendMessageAsync("```Markdown\r\n" + msg + "```\r\n").GetAwaiter().GetResult();
+            _messageId = messageTask.Id;
+            _message = messageTask;
         }
 
         private bool ChrEqualToBreakableChr(char chr)
@@ -801,6 +842,15 @@ namespace BHungerGaemsBot
             {
                 SendMarkdownMsg(msg);
             }
+        }
+
+        private void AddReaction(List<IEmote> emojiList)
+        {
+            foreach (IEmote emoji in emojiList)
+            {
+                _message.AddReactionAsync(emoji, null);
+            }
+            //return 0;
         }
     }
 }
