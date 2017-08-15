@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -73,6 +73,8 @@ namespace BHungerGaemsBot
                 //new Scenario ("{@P1} has been killed", Scenario.Type.Lethal, 100),
                 //new Scenario ("{@P1} has been healed for {_typeValue} HP", Scenario.Type.Healing, 20),
                 //new Scenario ("{@P1} has increased loot find pf {_typeValue} for the next turn", Scenario.Type.LootFind, 10),
+
+                //Miscellaneous stuff
                 new Scenario ("{@P1} swam though a pond filled with Blubbler's acidic waste to pursue his journey. (-{_typeValue}HP)", Scenario.Type.Damaging, 20),
                 new Scenario ("{@P1} stubbed his toe on a hypershard. (-100000000HP)", Scenario.Type.Lethal, 100000000),
                 new Scenario ("{@P1} forgot that this was the INTERACTIVE Hunger Games and stood idle for 5 minutes which was just enough time for a Grampz to come by and smack him with his cane. (-{_typeValue}HP)", Scenario.Type.Damaging, 5),
@@ -102,11 +104,49 @@ namespace BHungerGaemsBot
                 new Scenario ("{@P1} challenged Krackers to a tickle fight! He didn't realised Krackers had eight legs... (-{_typeValue}HP)", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} tried to beat Conan in an arm wrestle. 'Tried' (-{_typeValue})", Scenario.Type.Damaging, 15),
                 new Scenario ("{@P1} is exhausted... He is on the verge of dying. But wait! A wild HP shrine appears! (-{_typeValue})", Scenario.Type.Healing, 100),
-                new Scenario ("{@P1} equipped Epic Speed Kick to reach loot faster! Sadly he didn't tie his laces properly, tripped and fell on his face *ouch* (-{_typeValue})", Scenario.Type.Damaging, 25),
-                new Scenario ("{@P1} sees a Shrump and tried to bribe him. tsk tsk tsk... Shrump can't be bribed! {@P1} got bribed instead and forced to serve Shrump. (-{_typeValue})", Scenario.Type.Damaging, 15),
-                new Scenario ("Feeling thirsty, {@P1} ventured in Quirell's fortress for water. He found Juice instead who promptly attempted to empale him. (-{_typeValue})", Scenario.Type.Damaging, 30),
-                new Scenario ("In his quest, {@P1} found a sad Trixie sat on a rock. {@P1} tried to give it a hug but Trixie couldn't hug back due to its small arms. Filled with rage, Trixie chomped {@P1}'s arm off (-{_typeValue})", Scenario.Type.Damaging, 65)
-                /*new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} equipped Epic Speed Kick to reach loot faster! Sadly he didn't tie his laces properly, tripped and fell on his face *ouch* (-{_typeValue}hP)", Scenario.Type.Damaging, 25),
+                new Scenario ("{@P1} sees a Shrump and tried to bribe him. tsk tsk tsk... Shrump can't be bribed! {@P1} got bribed instead and forced to serve Shrump. (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+                new Scenario ("Feeling thirsty, {@P1} ventured in Quirell's fortress for water. He found Juice instead who promptly attempted to empale him. (-{_typeValue}HP)", Scenario.Type.Damaging, 30),
+                new Scenario ("In his quest, {@P1} found a sad Trixie sat on a rock. {@P1} tried to give it a hug but Trixie couldn't hug back due to its small arms. Filled with rage, Trixie chomped {@P1}'s arm off (-{_typeValue}HP)", Scenario.Type.Damaging, 65),
+				new Scenario ("{@P1} found Zayu cheating on his body pillow with an actual woman! Zayu made sure {@P1} couldn't see anything anymore. (-{_typeValue}HP)\n", Scenario.Type.Damaging, 30),
+				new Scenario ("'Nice legs you got there, Woodbea-errr... legendaries, nice legendaries' said {@P1}. Woodbeard proceeded to plunder {@P1}'s booty (-{_typeValue}HP)", Scenario.Type.Damaging, 25),
+				new Scenario ("{@P1} sneaked into Warty's dungeon looking for the Wemmbo schematic. Sadly {@P1} encountered a fleet of Zammies haeding towards him (-{_typeValue}HP)", Scenario.Type.Damaging, 10),
+				new Scenario ("While avoiding the other survivors, {@P1} unknowingly entered Remruade's hunting grounds. Remruade shot an arrow towards {@P1}. *Thunk*. {@P1} takes an arrow to the knee!  (-{_typeValue}HP)\" _typeValue = 15} (-{_typeValue}hP)", Scenario.Type.Damaging, 10),
+				new Scenario ("{@P1} found Blubber's mating grounds. Many Blubbies (bably Blubbers) start rudshing towards {@P1} and nearly suffocate him to death (-{_typeValue}HP)", Scenario.Type.Damaging, 65),
+                new Scenario ("{@P1} imagined a fusion in between Gemm and Conan. In his deep thinking, a wild Tubbo appeared and kicked him in the groin. (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+				new Scenario ("A rock fell onto {@P1}'s head. Wait~ what? But it already happened before! HG is rigged!! (-{_typeValue}HP)", Scenario.Type.Lethal, 100),
+				new Scenario ("{@P1} is on his way to defeat the mighty King Dina. HP shrine available, familiars not potted, what could go wrong? Dina got slayed but at the cost of {@P1} left arm (-{_typeValue}HP)", Scenario.Type.Damaging, 80),
+                new Scenario ("{@P1} found the Legendary B.I.T. Chain! It is guarded by the mighty Kaleido. On his attempt it to steal it, {@P1} bumped into a Rolace that tried slaying him (-{_typeValue}HP)", Scenario.Type.Damaging, 30),
+               
+                //pet related
+                new Scenario ("{@P1} sees a flock of legendary Nemos feasting on a Rexxie carcass. Those things look deadly. *crack* {@P1} stepped on a twig. All Nemos started flying towards the sound. {@P1} managed to escape  with minor bruises. (-{_typeValue}HP)", Scenario.Type.Damaging, 15),
+				new Scenario ("{@P1} found a Legendary Nerder. It is said no one likes them, that they're too selfish. But this Nerder looked different. Argh, {@P1}, how can he be fooled like this. Nerder proceeded to rob {@P1}  (-{_typeValue}HP)", Scenario.Type.Damaging, 20),
+				new Scenario ("{@P1} is blessed with Gemmi's great healing! (+{_typeValue})", Scenario.Type.Healing, 15),
+				new Scenario ("{@P1} was heading back towards B.I.T. Town when he bumped into a lone Sudz. They spent the evening together. Drunken {@P1} tripped on stairs a hurt his head (-{_typeValue})", Scenario.Type.Damaging, 20),
+                new Scenario ("Even in the darkest of times, light can be seen if you look well enough. {@P1} sees a dim orange light in the horizon. It is the Legendary Crem! {@P1} is granted an immense revitalising heal. (+{_typeValue}HP)", Scenario.Type.Healing, 40),
+				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+
+
+                //material related
+                new Scenario ("{@P1} found a Doubloon on the floor! But Bully saw this and knocked out {@P1} to steal it. (-{_typeValue})", Scenario.Type.Damaging, 30),
+				new Scenario ("After many miles travelled, {@P1} encounters his first Hypershard. Tears start dripping on the rare crystal has {@P1} is filled with relief. But wait! He forgot Hypershards dissolved in water. Filled with anger, {@P1} slammed himself on a tree. (-{_typeValue})", Scenario.Type.Damaging, 25),
+				new Scenario ("{@P1} didn't realise he used all his rare mats on rare enchants reroll. {@P1} facepalmed himself so hard, he lost {_typeValue}HP", Scenario.Type.Damaging, 10),
+				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+				
+                //Notorious players related
+                new Scenario ("{@P1}, on his journey to become the best BIT Hero, thought about all the past legends. Blasian, Zim, Leg0Lars.. how he wished he was like them. He also ended up wishing he had paid more attention, but instead ended up walking right towards a raging Tubbo. (-{_typeValue})", Scenario.Type.Damaging, 15),
+				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+
+                //fam related
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
@@ -115,7 +155,7 @@ namespace BHungerGaemsBot
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
-                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),*/
+
 
             };
         }
