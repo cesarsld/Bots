@@ -131,9 +131,9 @@ namespace BHungerGaemsBot
 
                 //material related
                 new Scenario ("{@P1} found a Doubloon on the floor! But Bully saw this and knocked out {@P1} to steal it. (-{_typeValue})", Scenario.Type.Damaging, 30),
-				new Scenario ("After many miles travelled, {@P1} encounters his first Hypershard. Tears start dripping on the rare crystal has {@P1} is filled with relief. But wait! He forgot Hypershards dissolved in water. Filled with anger, {@P1} slammed himself on a tree. (-{_typeValue})", Scenario.Type.Damaging, 25),
+				new Scenario ("After many miles travelled, {@P1} encounters his first Hypershard. Tears start dripping on the rare crystal as {@P1} is filled with relief. But wait! He forgot Hypershards dissolved in water. Filled with anger, {@P1} slammed himself on a tree. (-{_typeValue})", Scenario.Type.Damaging, 25),
 				new Scenario ("{@P1} didn't realise he used all his rare mats on rare enchants reroll. {@P1} facepalmed himself so hard, he lost {_typeValue}HP", Scenario.Type.Damaging, 10),
-				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+				new Scenario ("{@P1} was lookin' for dem leg sneks in Z5D3. Sadly, {@P1}  only found dust and a Brute charging at him. (-{_typeValue})", Scenario.Type.Damaging, 20),
 				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
@@ -147,6 +147,16 @@ namespace BHungerGaemsBot
 				new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
 
                 //fam related
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+                new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
+
+                //HG related
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
                 new Scenario ("{@P1} (-{_typeValue})", Scenario.Type.Damaging, 10),
