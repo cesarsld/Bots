@@ -1,72 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Discord;
-using Discord.WebSocket;
+﻿using Discord;
 
 namespace BHungerGaemsBot
 {
     public class InteractivePlayer: Player
     {
-        public int hp { get; set; }
-        public int scenarioLikelihood { get; set; }
-        public int alertCooldown { get; set; }
-        public int debuffTimer { get; set; }
-        public int weaponLife { get; set; }
-        public int armourLife { get; set; }
-        public int scenarioItemFindBonus { get; set; }
+        public int Hp { get; set; }
+        public int ScenarioLikelihood { get; set; }
+        public int AlertCooldown { get; set; }
+        public int DebuffTimer { get; set; }
+        public int WeaponLife { get; set; }
+        public int ArmourLife { get; set; }
+        public int ScenarioItemFindBonus { get; set; }
+        public InteractiveDecision InteractiveDecision { get; set; }
+        public EnhancedDecision EnhancedDecision { get; set; }
+        public Rarity WeaponRarity { get; set; }
+        public Rarity ArmourRarity { get; set; }
+        public Debuff Debuff { get; set; }
 
         public InteractivePlayer(IUser userParm) : base(userParm)
         {
-            hp = 100;
-            scenarioLikelihood = 30;
-            alertCooldown = 0;
-            debuffTimer = 0;
-            weaponLife = 0;
-            armourLife = 0;
-            scenarioItemFindBonus = 0;
+            Hp = 100;
+            ScenarioLikelihood = 30;
+            AlertCooldown = 0;
+            DebuffTimer = 0;
+            WeaponLife = 0;
+            ArmourLife = 0;
+            ScenarioItemFindBonus = 0;
         }
 
-        public InteractiveDecision interactiveDecision;
-        public enum InteractiveDecision
+        public void Reset()
         {
-            DoNothing,
-            Loot,
-            StayOnAlert
-        }
-        public EnhancedDecision enhancedDecision;
-        public enum EnhancedDecision
-        {
-            None,
-            MakeATrap,
-            Sabotage,
-            Steal
+            ScenarioLikelihood = 20;
+            InteractiveDecision = InteractiveDecision.DoNothing;
+            EnhancedDecision = EnhancedDecision.None;
         }
 
-        public Rarity weaponRarity;
-        public Rarity armourRarity;
-        public enum Rarity
-        {
-            Common,
-            Rare,
-            Epic,
-            Legendary,
-            Set
-        }
-        public Debuff debuff;
-        public enum Debuff
-        {
-            DecreasedItemFind,
-            SevererlyDecreasedItemFind,
-
-            IncreasedScenarioLikelihood,
-            SeverlyIncreasedScenarioLikelihood,
-
-            DecreasedDuelChance,
-            SeverlyDecreasedDuelChance,
-
-            IncreasedDamageTaken,
-            SeverlyIncreasedDamgeTaken
-        }
     }
 }

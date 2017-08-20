@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -65,6 +66,76 @@ namespace BHungerGaemsBot
             await ReplyAsync(message);
         }
 
+        private bool CheckAccessByGuild(bool checkCancelAccess = false)
+        {
+            HashSet<ulong> rolesWithAccess = new HashSet<ulong>();
+            var roles = Context.Guild.Roles;
+            if (Context.Guild.Name.Equals("Bit Heroes"))
+            {
+                foreach (IRole role in roles)
+                {
+                    if ((checkCancelAccess == false && role.Name.Contains("Level 2"))
+                        || role.Name.Contains("300+") || role.Name.Contains("400") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod "))
+                    {
+                        rolesWithAccess.Add(role.Id);
+                    }
+                }
+            }
+            else if (Context.Guild.Name.Equals("Bit Heroes - FR") || Context.Guild.Name.Equals("Crash Test Server"))
+            {
+                // 150-199  ,  200-249 ,  250+ ,  Admin , Modérateur
+                foreach (IRole role in roles)
+                {
+                    if ((checkCancelAccess == false && (role.Name.Contains("150") || role.Name.Contains("200")))
+                        || role.Name.Contains("Admin") || role.Name.StartsWith("Mod"))
+                    {
+                        rolesWithAccess.Add(role.Id);
+                    }
+                }
+            }
+            else
+            { // default
+                if (checkCancelAccess == false)
+                    return true;
+
+                foreach (IRole role in roles)
+                {
+                    if (role.Name.Contains("Admin") || role.Name.StartsWith("Mod"))
+                    {
+                        rolesWithAccess.Add(role.Id);
+                    }
+                }
+            }
+
+            var authorRoles = ((IGuildUser)Context.Message.Author).RoleIds;
+            foreach (ulong roleId in authorRoles)
+            {
+                if (rolesWithAccess.Contains(roleId))
+                    return true;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            if (checkCancelAccess)
+                sb.AppendLine($"Guild: '{Context.Guild.Name}' User: '{Context.Message.Author.Username}' does not have Access to run Cancel Command");
+            else
+                sb.AppendLine($"Guild: '{Context.Guild.Name}' User: '{Context.Message.Author.Username}' does not have Access to run Command");
+
+            sb.AppendLine("Guild Roles:");
+            foreach (IRole role in roles)
+            {
+                sb.AppendLine($"{role.Name} -- {role.Id}");
+            }
+
+            sb.Append("User Roles: ");
+            foreach (ulong id in authorRoles)
+            {
+                sb.AppendLine(id + ",");
+            }
+
+            Logger.LogInternal(sb.ToString());
+            return false;
+        }
+
         /* Roles that can run commands on Bit Heros Guild Only
             Server Admin    1 members
             Admin           3 members
@@ -81,29 +152,7 @@ namespace BHungerGaemsBot
                 {
                     return allowPrivateMessage;
                 }
-                if (Context.Guild.Name.Equals("Bit Heroes"))
-                {
-                    HashSet<ulong> rolesWithAccess = new HashSet<ulong>();
-                    var roles = Context.Guild.Roles;
-                    foreach (IRole role in roles)
-                    {
-                        if (role.Name.Contains("300+") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod ") || Context.User.Username.Contains("Owl of"))
-                        {
-                            rolesWithAccess.Add(role.Id);
-                        }
-                    }
-
-                    var authorRoles = ((IGuildUser)Context.Message.Author).RoleIds;
-                    foreach (ulong roleId in authorRoles)
-                    {
-                        if (rolesWithAccess.Contains(roleId))
-                            return true;
-                    }
-
-                    Logger.LogInternal($"User '{Context.Message.Author.Username}' does not have Access to run Command");
-                    return false;
-                }
-                return true;
+                return CheckAccessByGuild();
             }
             catch (Exception ex)
             {
@@ -116,29 +165,7 @@ namespace BHungerGaemsBot
         {
             try
             {
-                if (Context.Guild.Name.Equals("Bit Heroes"))
-                {
-                    HashSet<ulong> rolesWithAccess = new HashSet<ulong>();
-                    var roles = Context.Guild.Roles;
-                    foreach (IRole role in roles)
-                    {
-                        if (role.Name.Contains("300+") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod "))
-                        {
-                            rolesWithAccess.Add(role.Id);
-                        }
-                    }
-
-                    var authorRoles = ((IGuildUser)Context.Message.Author).RoleIds;
-                    foreach (ulong roleId in authorRoles)
-                    {
-                        if (rolesWithAccess.Contains(roleId))
-                            return true;
-                    }
-
-                    Logger.LogInternal($"User '{Context.Message.Author.Username}' does not have Access to run Cancel Command");
-                    return false;
-                }
-                return true;
+                return CheckAccessByGuild(true);
             }
             catch (Exception ex)
             {
@@ -157,50 +184,6 @@ namespace BHungerGaemsBot
                                 + "<Max minutes to wait for players (Default: 5)>\n"
                                 + "<Seconds to delay between displaying next day (Default: 10)>\n"
                                 + "<Number of Winners (Default: 1)>```\r\n");
-        }
-
-        [Command("num1"), Summary("input")]
-        public async Task PvP()
-        {
-            if (CheckAccess())
-            {
-                await ReplyAsync("Yo Num2 members, don't forget that there is a channel called #salt_mines");
-            }
-        }
-
-        [Command("ShadownBot"), Summary("Funny message")]
-        public async Task shadownBot()
-        {
-            Random rnd = new Random(Guid.NewGuid().GetHashCode());
-            if (CheckAccess())
-            {
-                switch (rnd.Next(4))
-                {
-                    case 0:
-                        await ReplyAsync("``` Beep boop... Shad made me! Wait... no! I made him >:D```");
-                        break;
-                    case 1:
-                        await ReplyAsync("``` Stop Pestering me!!!```");
-                        break;
-                    case 2:
-                        await ReplyAsync("``` Shad the weird freak keep on molesting me D:```");
-                        break;
-                    case 3:
-                        await ReplyAsync("``` Do you have oil? *Hic* I really like it :3```");
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        [Command("StartV2", RunMode = RunMode.Async), Summary("Start the Hunger Games V2")]
-        public async Task StartV2( [Summary("Max User that can play")]string strMaxUsers,
-            [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
-            [Summary("Number of Winners")]string strNumWinners = null
-            )
-        {
-            await StartIGameInterval(strMaxUsers, strMaxMinutesToWait, strNumWinners);
         }
 
         [Command("Help"), Summary("Shows Bot Help")]
@@ -292,7 +275,7 @@ namespace BHungerGaemsBot
                                     Logger.Log("Deleted 1 message.");
                                     //await LogAndReplyAsync("Deleted 1 message.");
                                 }
-                                else 
+                                else
                                 {
                                     Logger.Log($"Deleted {messagesToDelete.Count} messages.");
                                     //await LogAndReplyAsync($"Deleted {messagesToDelete.Count} messages.");
@@ -345,36 +328,54 @@ namespace BHungerGaemsBot
             }
         }
 
+        [Command("num1"), Summary("input")]
+        public async Task PvP()
+        {
+            if (CheckAccess())
+            {
+                await ReplyAsync("Yo Num2 members, don't forget that there is a channel called #salt_mines");
+            }
+        }
+
         [Command("startGame", RunMode = RunMode.Async), Summary("Starts the BHungerGames.")]
         public async Task StartGame([Summary("Max User that can play")]string strMaxUsers,
             [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
             [Summary("Seconds to delay between displaying next day")]string strSecondsDelayBetweenDays = null,
-            [Summary("Number of Winners")]string strNumWinners = null,
-            [Remainder, Summary("Message to display")]string displayMessage = null)
+            [Summary("Number of Winners")]string strNumWinners = null)
         {
-            await StartGameInternal(strMaxUsers, strMaxMinutesToWait, strSecondsDelayBetweenDays, strNumWinners, displayMessage, 0);
+            BotGameInstance gameInstance = new BotGameInstance();
+            await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, strSecondsDelayBetweenDays, strNumWinners, 0);
         }
 
         [Command("startGameT", RunMode = RunMode.Async), Summary("Starts the BHungerGames.")]
         public async Task StartGameT([Summary("Max User that can play")]string strMaxUsers,
             [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
             [Summary("Seconds to delay between displaying next day")]string strSecondsDelayBetweenDays = null,
-            [Summary("Number of Winners")]string strNumWinners = null,
-            [Remainder, Summary("Message to display")]string displayMessage = null)
+            [Summary("Number of Winners")]string strNumWinners = null)
         {
-            await StartGameInternal(strMaxUsers, strMaxMinutesToWait, strSecondsDelayBetweenDays, strNumWinners, displayMessage, 300);
+            BotGameInstance gameInstance = new BotGameInstance();
+            await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, strSecondsDelayBetweenDays, strNumWinners, 300);
         }
 
-        private async Task StartGameInternal(string strMaxUsers, string strMaxMinutesToWait, string strSecondsDelayBetweenDays, string strNumWinners, string displayMessage, int testUsers)
+        [Command("StartV2", RunMode = RunMode.Async), Summary("Start the Hunger Games V2")]
+        public async Task StartV2([Summary("Max User that can play")]string strMaxUsers,
+            [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
+            [Summary("Number of Winners")]string strNumWinners = null
+        )
+        {
+            BotV2GameInstance gameInstance = new BotV2GameInstance();
+            await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, "1", strNumWinners, 0);
+        }
+
+        private async Task StartGameInternal(BotGameInstance gameInstance, string strMaxUsers, string strMaxMinutesToWait, string strSecondsDelayBetweenDays, string strNumWinners, int testUsers)
         {
             bool cleanupCommandInstance = false;
             try
             {
-                Logger.LogInternal("Command " + (testUsers > 0 ? "T" : "") + $"'startGame' executed by '{Context.Message.Author.Username}'");
+                Logger.LogInternal($"G:{Context.Guild.Name}  Command " + (testUsers > 0 ? "T" : "") + $"'startGame' executed by '{Context.Message.Author.Username}'");
 
                 if (CheckAccess())
                 {
-                    BotGameInstance gameInstance = new BotGameInstance();
                     RunningCommandInfo commandInfo;
                     if (CreateChannelCommandInstance("StartGame", Context.User.Id, Context.Channel.Id, Context.Guild.Id, gameInstance, out commandInfo))
                     {
@@ -396,9 +397,9 @@ namespace BHungerGaemsBot
 
                         SocketGuildUser user = Context.Message.Author as SocketGuildUser;
                         string userThatStartedGame = user?.Nickname ?? Context.Message.Author.Username;
-                        gameInstance.StartGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, Context.Channel, userThatStartedGame, testUsers);
+                        gameInstance.StartGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, Context, userThatStartedGame, testUsers);
                         cleanupCommandInstance = false;
-                       //await Context.Channel.SendMessageAsync($"MaxUsers: {maxUsers}  MaxMinutesToWait: {maxMinutesToWait} SecondsDelayBetweenDays: {secondsDelayBetweenDays} NumWinners: {numWinners}");
+                        //await Context.Channel.SendMessageAsync($"MaxUsers: {maxUsers}  MaxMinutesToWait: {maxMinutesToWait} SecondsDelayBetweenDays: {secondsDelayBetweenDays} NumWinners: {numWinners}");
                     }
                     else
                     {
@@ -427,69 +428,6 @@ namespace BHungerGaemsBot
                 catch (Exception ex)
                 {
                     await Logger.Log(new LogMessage(LogSeverity.Error, "StartGame", "Unexpected Exception in Finally", ex));
-                }
-            }
-        }
-
-        private async Task StartIGameInterval(string strMaxUsers, string strMaxMinutesToWait, string strNumWinners)
-        {
-            bool cleanupCommandInstance = false;
-            try
-            {
-                if (CheckAccess())
-                {
-                    BotGameInstance gameInstance = new BotGameInstance();
-                    RunningCommandInfo commandInfo;
-                    if (CreateChannelCommandInstance("StartV2", Context.User.Id, Context.Channel.Id, Context.Guild.Id, gameInstance, out commandInfo))
-                    {
-                        cleanupCommandInstance = true;
-                        int maxUsers;
-                        int maxMinutesToWait;
-                        //int secondsDelayBetweenDays;
-                        int numWinners;
-
-                        if (Int32.TryParse(strMaxUsers, out maxUsers) == false) maxUsers = 100;
-                        if (Int32.TryParse(strMaxMinutesToWait, out maxMinutesToWait) == false) maxMinutesToWait = 5;
-
-                        if (Int32.TryParse(strNumWinners, out numWinners) == false) numWinners = 1;
-                        if (numWinners <= 0) numWinners = 1;
-                        if (maxMinutesToWait <= 0) maxMinutesToWait = 1;
-
-                        if (maxUsers <= 0) maxUsers = 1;
-
-
-                        SocketGuildUser user = Context.Message.Author as SocketGuildUser;
-                        string userThatStartedGame = user?.Nickname ?? Context.Message.Author.Username;
-                        gameInstance.StartIGame(numWinners, maxUsers, maxMinutesToWait, Context.Channel, userThatStartedGame);
-                        cleanupCommandInstance = false;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            await LogAndReplyAsync($"The '{commandInfo.CommandName}' command is currently running!.  Can't run this command until that finishes");
-                        }
-                        catch (Exception ex)
-                        {
-                            await Logger.Log(new LogMessage(LogSeverity.Error, "StartIGameInternal", "Unexpected Exception", ex));
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                await Logger.Log(new LogMessage(LogSeverity.Error, "StartV2", "Unexpected Exception", ex));
-            }
-            finally
-            {
-                try
-                {
-                    if (cleanupCommandInstance)
-                        RemoveChannelCommandInstance(Context.Channel.Id);
-                }
-                catch (Exception ex)
-                {
-                    await Logger.Log(new LogMessage(LogSeverity.Error, "StartV2", "Unexpected Exception in Finally", ex));
                 }
             }
         }
