@@ -10,11 +10,15 @@ namespace BHungerGaemsBot
         public int DebuffTimer { get; set; }
         public int WeaponLife { get; set; }
         public int ArmourLife { get; set; }
+        public int OffhandLife { get; set; }
+        public int HelmetLife { get; set; }
         public int ScenarioItemFindBonus { get; set; }
         public InteractiveDecision InteractiveDecision { get; set; }
         public EnhancedDecision EnhancedDecision { get; set; }
         public Rarity WeaponRarity { get; set; }
         public Rarity ArmourRarity { get; set; }
+        public Rarity HelmetRarity { get; set; }
+        public Rarity OffhandRarity { get; set; }
         public Debuff Debuff { get; set; }
 
         public InteractivePlayer(IUser userParm) : base(userParm)
