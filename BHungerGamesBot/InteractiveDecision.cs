@@ -4,6 +4,7 @@
     {
         DoNothing,
         Loot,
-        StayOnAlert
+        StayOnAlert,
+        ImmuneToDuel
     }
 }

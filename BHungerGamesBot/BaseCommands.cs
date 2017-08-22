@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System.Threading;
 
 namespace BHungerGaemsBot
 {
@@ -328,12 +329,17 @@ namespace BHungerGaemsBot
             }
         }
 
-        [Command("num1"), Summary("input")]
+        [Command("startv2"), Summary("input")]
         public async Task PvP()
         {
             if (CheckAccess())
             {
-                await ReplyAsync("Yo Num2 members, don't forget that there is a channel called #salt_mines");
+                await ReplyAsync("FATAL ERROR CODE:\n ```cs\nBHungerGames2 code could not be found.```");
+                Thread.Sleep(5000);
+                await ReplyAsync("```Has SSS1 and Shadown88 bamboozled all of you? Could they have pretended to create a great game but only brought memes?```");
+                Thread.Sleep(8000);
+                await ReplyAsync("```jk.... it's the wrong command bros... hehe\n\nBot humour, get it? skrubs.```");
+               
             }
         }
 

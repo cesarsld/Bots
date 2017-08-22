@@ -11,7 +11,7 @@
         DecreasedDuelChance,
         SeverlyDecreasedDuelChance,
 
-        IncreasedDamageTaken,
-        SeverlyIncreasedDamageTaken
+        //IncreasedDamageTaken,
+        //SeverlyIncreasedDamageTaken
     }
 }

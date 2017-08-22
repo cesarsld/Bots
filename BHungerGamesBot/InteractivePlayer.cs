@@ -7,6 +7,7 @@ namespace BHungerGaemsBot
         public int Hp { get; set; }
         public int ScenarioLikelihood { get; set; }
         public int AlertCooldown { get; set; }
+        public int DuelCooldown { get; set; }
         public int DebuffTimer { get; set; }
         public int WeaponLife { get; set; }
         public int ArmourLife { get; set; }
@@ -26,6 +27,7 @@ namespace BHungerGaemsBot
             Hp = 100;
             ScenarioLikelihood = 30;
             AlertCooldown = 0;
+            DuelCooldown = 0;
             DebuffTimer = 0;
             WeaponLife = 0;
             ArmourLife = 0;
@@ -37,6 +39,14 @@ namespace BHungerGaemsBot
             ScenarioLikelihood = 20;
             InteractiveDecision = InteractiveDecision.DoNothing;
             EnhancedDecision = EnhancedDecision.None;
+            if (AlertCooldown > 0)
+            {
+                AlertCooldown--;
+            }
+            if (DuelCooldown > 0)
+            {
+                DuelCooldown--;
+            }
         }
 
     }

@@ -28,15 +28,16 @@ namespace BHungerGaemsBot
 
         private readonly Dictionary<string, int[]> DangerToLoot = new Dictionary<string, int[]>()
         {//                 FailChance Co  Ra  Ep  Le  Se
-            { "Safe",      new int[] {0, 60, 87, 97, 99, 100} },
+            { "Safe",      new int[] { 0, 60, 87, 97, 99, 100} },
             { "Unsafe",    new int[] {10, 57, 82, 94, 98, 100} },
-            { "Dangerous", new int[] {25, 50, 75, 90, 97, 100} },
-            { "Deadly",    new int[] {50, 40, 60, 85, 95, 100} },
+            { "Dangerous", new int[] {25, 40, 70, 85, 95, 100} },
+            { "Deadly",    new int[] {50,  0, 40, 70, 90, 100} },
         };
 
-        private readonly List<IEmote> _emojiListOptions = new List<IEmote> { new Emoji("💰"), new Emoji("❗") };
+        private readonly List<IEmote> _emojiListOptions = new List<IEmote> { new Emoji("💰"), new Emoji("❗"), new Emoji("⚔") };
         private readonly List<IEmote> _emojiListEnhancedOptions = new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji ("🔧") };
         private static readonly int[] ShowPlayersWhenCountEqual = {10, 5, 2, 0 };
+        private List<InteractivePlayer> DuelImmune = new List<InteractivePlayer>();
 
         public class Trap
         {
@@ -92,48 +93,48 @@ namespace BHungerGaemsBot
                 //new Scenario ("{@P1} has increased loot find pf {_typeValue} for the next turn", ScenarioType.LootFind, 10),
 
                 //Miscellaneous stuff
-                new Scenario ("{@P1} swam though a pond filled with Blubbler's acidic waste to pursue his journey. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
-                new Scenario ("{@P1} stubbed his toe on a hypershard. (-100000000HP)", ScenarioType.Lethal, 100000000),
-                new Scenario ("{@P1} forgot that this was the INTERACTIVE Hunger Games and stood idle for 5 minutes which was just enough time for a Grampz to come by and smack him with his cane. (-{_typeValue}HP)", ScenarioType.Damaging, 5),
+                new Scenario ("{@P1} swam though a pond filled with Blubbler's acidic waste to pursue their journey. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} stubbed their toe on a hypershard. (-100000000HP)", ScenarioType.Lethal, 100000000),
+                new Scenario ("{@P1} forgot that this was the INTERACTIVE Hunger Games and stood idle for 5 minutes which was just enough time for a Grampz to come by and smack them with his cane. (-{_typeValue}HP)", ScenarioType.Damaging, 5),
                 new Scenario ("{@P1} saw a Booty fly and tried to catch it. It noticed and, unhappy about that, decided to boop {@P1} on the head.  (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-                new Scenario ("{@P1} encounters Ragnar in his quest for Loot. Ragnar will only let him pass if {@P1} beats him at a game of chess. Sadly, {@P1} forgot  Ragnar was an avit chess player... (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} encounters Ragnar in his quest for Loot. Ragnar will only let them pass if {@P1} beats them at a game of chess. Sadly, {@P1} forgot  Ragnar was an avid chess player... (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("'Lets play hangman' said Zorul. Sadly Zorul never really understood that game. {@P1} got hanged and died.", ScenarioType.Lethal, 100),
                 new Scenario ("{@P1} got caught staring at Kov'Alg's cleavage... (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 //new Scenario ("{@P1} entered R3 and saw Woodbeard talk to Beido, his long distance brother he hasn't seen for months who got addicted to meth. Being an intimate moment, Woodbeard kicked you out of the dungeon. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} encountered the legendary Wemmbo in the woods while searching for cover! 'Heal me please!' - 'Get lost kiddo, I'm just a mantis *bzzt bzzt*' (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-                new Scenario ("While adventuring out into the wilderness {@P1} found a horde of Zirg. Attempting to back away {@P1} steps on a twig and causes the Zirg to zerg him. (-{_typeValue}HP) ", ScenarioType.Damaging, 30),
+                new Scenario ("While adventuring out into the wilderness {@P1} found a horde of Zirg. Attempting to back away {@P1} steps on a twig and causes the Zirg to zerg them. (-{_typeValue}HP) ", ScenarioType.Damaging, 30),
                 new Scenario ("{@P1} finds several piles of bones from previous adventurers. While searching some of the bones starts to shake violently. {@P1} proceeds to get Jacked up. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
-                new Scenario ("{@P1} attempted to venture out in search of treasure.  Sadly the treasure chest was actually Mimzy. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} attempted to venture out in search of treasure. Sadly the treasure chest was actually Mimzy. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1} went in search of his old friend Bob whom they had heard lived in a small cottage deep inside the forest. Wait... wrong Bob. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 new Scenario ("While trekking across a mountain range in an attempt to get a better view of the arena {@P1} slipped on a loose rock and tumbled back down to the base. Time to start over... (-{_typeValue}HP)", ScenarioType.Damaging, 5),
-                new Scenario ("While searching for shelter in the jungle P1 came across a roaming Trixie. {@P1} runs as fast as possible, but trips on a log...oh shiieeeet. (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                new Scenario ("While searching for shelter in the jungle {@P1} came across a roaming Trixie. {@P1} ran as fast as possible, but tripped on a log...oh shiieeeet. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 new Scenario ("{@P1} found a slightly damaged parachute. 'This will surely work'...it didn't. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
                 new Scenario ("{@P1} encountered the almighty Bobodom and tried slaying him for some loot. While fighting {P@1} could hear Bobodom hum 'Can't Touch This' by MC Hammer  (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} sees a dark figure in the horizon. It is the powerful SSS1. It is said that people who witness his existence see a bright light before their death. {@P1} isn't an exception (-10000HP)", ScenarioType.Lethal, 10000), //to be edited
                 //new Scenario ("{@P1} bumped into Tarri in his journey to slay Grimz. Tarri didn't like that and cock slapped him with her well endowed penis (-{_typeValue}HP)", ScenarioType.Lethal, 696969),
-                new Scenario ("{@P1} ran into a battle with 4 Bargz on his way to slay Woodbeard. They all bombarded him with dozens of cannon shots. (-{_typeValue}HP))", ScenarioType.Damaging, 35),
-                new Scenario ("{@P1} is walking in the woods. He sees Gobby, Olxa, Mimzy AND Bully swinging their sacks onto a poor defenceless Batty. {@P1} tried to interfere, but ended up getting sack-whacked. (-{_typeValue}HP)", ScenarioType.Damaging, 45),
+                new Scenario ("{@P1} ran into a battle with 4 Bargz on his way to slay Woodbeard. They all bombarded them with dozens of cannon shots. (-{_typeValue}HP))", ScenarioType.Damaging, 35),
+                new Scenario ("{@P1} is walking in the woods. They sees Gobby, Olxa, Mimzy AND Bully swinging their sacks onto a poor defenceless Batty. {@P1} tried to interfere, but ended up getting sack-whacked. (-{_typeValue}HP)", ScenarioType.Damaging, 45),
                 new Scenario ("{@P1} was standing on the pier, waiting for a fishing minigame to be implemented. The wood broke under their feet, and they fell into the water. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
-                new Scenario ("{@P1} mistook Capt. Woodbeard for Jack Sparrow and asked him for an autograph. Woodbeard signed whith his cutlass and slaps {@P1} with the book (-{_typeValue}HP)", ScenarioType.Damaging, 5),
-                new Scenario ("{@P1}, while hiding in a tree woke up a group of Batties that startled him. {@P1} fell off the tree (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} mistook Capt. Woodbeard for Jack Sparrow and asked him for an autograph. Woodbeard signed whith his cutlass and slapped {@P1} with the book (-{_typeValue}HP)", ScenarioType.Damaging, 5),
+                new Scenario ("{@P1}, while hiding in a tree woke up a group of Batties that startled them. {@P1} fell off the tree (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} hurt their back carrying all the unnecessary common and rare mats in his bag. (-{_typeValue}HP)", ScenarioType.Damaging, 5),
-                new Scenario ("{@P1} attacked Mimzy while he was sleeping! Inside his chest he found a minor healing potion! (+{_typeValue}HP)", ScenarioType.Healing, 25),
-                new Scenario ("{@P1} challenged Krackers to a tickle fight! He didn't realised Krackers had eight legs... (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                new Scenario ("{@P1} attacked Mimzy while he was sleeping! Inside his chest they found a minor healing potion! (+{_typeValue}HP)", ScenarioType.Healing, 25),
+                new Scenario ("{@P1} challenged Krackers to a tickle fight! They didn't realised Krackers had eight legs... (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 new Scenario ("{@P1} tried to beat Conan in an arm wrestle. 'Tried' (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} is exhausted... He is on the verge of dying. But wait! A wild HP shrine appears! (+{_typeValue})", ScenarioType.Healing, 100),
-                new Scenario ("{@P1} equipped Epic Speed Kick to reach loot faster! Sadly he didn't tie his laces properly, tripped and fell on his face *ouch* (-{_typeValue}hP)", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1} is exhausted... They were on the verge of dying. But wait! A wild HP shrine appears! (+{_typeValue})", ScenarioType.Healing, 100),
+                new Scenario ("{@P1} equipped Epic Speed Kick to reach loot faster! Sadly they didn't tie his laces properly, tripped and fell on his face *ouch* (-{_typeValue}hP)", ScenarioType.Damaging, 25),
                 new Scenario ("{@P1} sees a Shrump and tried to bribe him. tsk tsk tsk... Shrump can't be bribed! {@P1} got bribed instead and forced to serve Shrump. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("Feeling thirsty, {@P1} ventured in Quirell's fortress for water. He found Juice instead who promptly attempted to empale him. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
+                new Scenario ("Feeling thirsty, {@P1} ventured in Quirell's fortress for water. They found Juice instead who promptly attempted to empale them. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
                 new Scenario ("In his quest, {@P1} found a sad Trixie sat on a rock. {@P1} tried to give it a hug but Trixie couldn't hug back due to its small arms. Filled with rage, Trixie chomped {@P1}'s arm off (-{_typeValue}HP)", ScenarioType.Damaging, 65),
                 new Scenario ("{@P1} found Zayu cheating on his body pillow with an actual woman! Zayu made sure {@P1} couldn't see anything anymore. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
                 new Scenario ("'Nice legs you got there, Woodbea-errr... legendaries, nice legendaries' said {@P1}. Woodbeard proceeded to plunder {@P1}'s booty (-{_typeValue}HP)", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1} sneaked into Warty's dungeon looking for the Wemmbo schematic. Sadly {@P1} encountered a fleet of Zammies haeding towards him (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                new Scenario ("{@P1} sneaked into Warty's dungeon looking for the Wemmbo schematic. Sadly {@P1} encountered a fleet of Zammies haeding towards them (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 new Scenario ("While avoiding the other survivors, {@P1} unknowingly entered Remruade's hunting grounds. Remruade shot an arrow towards {@P1}. *Thunk*. {@P1} takes an arrow to the knee!  (-{_typeValue}HP)\" _typeValue = 15} (-{_typeValue}hP)", ScenarioType.Damaging, 10),
-                new Scenario ("{@P1} found Blubber's mating grounds. Many Blubbies (baby Blubbers) started rushing towards {@P1} and nearly suffocated him to death (-{_typeValue}HP)", ScenarioType.Damaging, 65),
-                new Scenario ("{@P1} imagined a fusion in between Gemm and Conan. In his deep thinking, a wild Tubbo appeared and kicked him in the groin. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("A rock fell onto {@P1}'s head. Wait~ what? But it already happened before! HG is rigged!! (-{_typeValue}HP)", ScenarioType.Lethal, 100),
-                new Scenario ("{@P1} is on his way to defeat the mighty King Dina. HP shrine available, familiars not potted, what could go wrong? Dina got slayed but at the cost of {@P1} left arm (-{_typeValue}HP)", ScenarioType.Damaging, 80),
-                new Scenario ("{@P1} found the Legendary B.I.T. Chain! It is guarded by the mighty Kaleido. On his attempt it to steal it, {@P1} bumped into a Rolace that tried slaying him (-{_typeValue}HP)", ScenarioType.Damaging, 30),
+                new Scenario ("{@P1} found Blubber's mating grounds. Many Blubbies (baby Blubbers) started rushing towards {@P1} and nearly suffocated them to death (-{_typeValue}HP)", ScenarioType.Damaging, 65),
+                new Scenario ("{@P1} imagined a fusion in between Gemm and Conan. In his deep thinking, a wild Tubbo appeared and kicked them in the groin. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("A rock fell onto {@P1}'s head. Wait~ what? But it already happened before! HG is rigged!! (-100HP)", ScenarioType.Lethal, 100),
+                new Scenario ("{@P1} is on his way to defeat the mighty King Dina. HP shrine available, familiars not potted, what could go wrong? Dina got slain but at the cost of {@P1} left arm (-{_typeValue}HP)", ScenarioType.Damaging, 80),
+                new Scenario ("{@P1} found the Legendary B.I.T. Chain! It is guarded by the mighty Kaleido. On his attempt it to steal it, {@P1} bumped into a Rolace that tried slaying them (-{_typeValue}HP)", ScenarioType.Damaging, 30),
                
                
                
@@ -141,12 +142,12 @@ namespace BHungerGaemsBot
                
                 //pet related
                 new Scenario ("{@P1} sees a flock of legendary Nemos feasting on a Rexxie carcass. Those things look deadly. *crack* {@P1} stepped on a twig. All Nemos started flying towards the sound. {@P1} managed to escape  with minor bruises. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} found a Legendary Nerder. It is said no one likes them, that they're too selfish. But this Nerder looked different. Argh, {@P1}, how can he be fooled like this. Nerder proceeded to rob {@P1}  (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} found a Legendary Nerder. It is said no one likes them, that they're too selfish. But this Nerder looked different. Argh, {@P1}, how can they be fooled like this. Nerder proceeded to rob {@P1}  (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1} is blessed with Gemmi's great healing! (+{_typeValue}HP)", ScenarioType.Healing, 15),
-                new Scenario ("{@P1} was heading back towards B.I.T. Town when he bumped into a lone Sudz. They spent the evening together. Drunk, {@P1} tripped on stairs a hurt his head (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} was heading back towards B.I.T. Town when they bumped into a lone Sudz. They spent the evening together. Drunk, {@P1} tripped on stairs a hurt his head (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("Even in the darkest of times, light can be seen if you look well enough. {@P1} sees a dim orange light in the horizon. It is the Legendary Crem! {@P1} is granted an immense revitalising heal. (+{_typeValue}HP)", ScenarioType.Healing, 40),
                 new Scenario ("{@P1} encounters the Legendary Nelson! A majestic creature. His bite is eve moreso majestic and painful(-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} was about to eat a BITburger when he realised it was in fact Boiguh. Unhappy, Boiguh headbutted him. No one eats Boiguh. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1} was about to eat a BITburger when they realised it was in fact Boiguh. Unhappy, Boiguh headbutted them. No one eats Boiguh. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 new Scenario ("{@P1}'s melvin champ slipped off their stick and double kicked {@P1} in the face (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 //new Scenario ("{@P1} (-{_typeValue})", ScenarioType.Damaging, 10),
                 //new Scenario ("{@P1} (-{_typeValue})", ScenarioType.Damaging, 10),
@@ -156,9 +157,9 @@ namespace BHungerGaemsBot
 
                 //material related
                 new Scenario ("{@P1} found a Doubloon on the floor! But Bully saw this and knocked out {@P1} to steal it. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
-                new Scenario ("After many miles travelled, {@P1} encounters his first Hypershard. Tears start dripping on the rare crystal as {@P1} is filled with relief. But wait! He forgot Hypershards dissolved in water. Filled with anger, {@P1} slammed himself on a tree. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1} didn't realise he used all his rare mats on rare enchants reroll. {@P1} facepalmed himself so hard, he lost {_typeValue}HP", ScenarioType.Damaging, 10),
-                new Scenario ("{@P1} was lookin' for dem leg sneks in Z5D3. Sadly, {@P1}  only found dust and a Brute charging at him. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("After many miles travelled, {@P1} encounters his first Hypershard. Tears start dripping on the rare crystal as {@P1} is filled with relief. But wait! They forgot Hypershards dissolved in water. Filled with anger, {@P1} slammed himself on a tree. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1} didn't realise they used all his rare mats on rare enchants reroll. {@P1} facepalmed themself so hard, they lost {_typeValue}HP", ScenarioType.Damaging, 10),
+                new Scenario ("{@P1} was lookin' for dem leg sneks in Z5D3. Sadly, {@P1} only found dust and a Brute charging at them. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1}, after a long search of riches, found a Harmony Orb! A valuable ressource. It would be his if there wasn't a Bluz guarding it. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1}, while pausing briefly to catch their breath, saw movement in the bushes. An enchanted snek! {@P1} sprung headlong into the brambles, seizing the alarmed serpent, before quickly discovering that it was just a regular (but incredibly venomous and now angry) one.  (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 new Scenario ("{@P1} was running through a forest glade when they tripped over a rock, sending their knee 10% more painfully into the ground thanks to their Bushido set. (-{_typeValue}HP)", ScenarioType.Damaging, 22),
@@ -166,17 +167,17 @@ namespace BHungerGaemsBot
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 
                 //Notorious players related
-                new Scenario ("{@P1}, on his journey to become the best BIT Hero, thought about all the past legends. Blasian, Zim, Leg0Lars.. how he wished he was like them. He also ended up wishing he had paid more attention, but instead ended up walking right towards a raging Tubbo. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1}, on his journey to become the best BIT Hero, thought about all the past legends. Blasian, Zim, Leg0Lars.. how they wished they were like them. They also ended up wishing they had paid more attention, but instead ended up walking right towards a raging Tubbo. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} laughed at Shadown88's build. Shadown88 laughed too when he Dual crit-empower striked {@P1} for 30386 damage. (-30386HP)", ScenarioType.Lethal, 10),
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
 
                 //fam related
                 new Scenario ("{@P1} encountered Prof. Oak. 'Don't come back here until you've completed your Juppiodex!' *kicks {@P1} out of his lab*. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} went to walk around the beach to fish when an Ives attacked him unexpectedly (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} went to walk around the beach to fish when an Ives attacked them unexpectedly (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} sees a doubloon in the corner of the cabin! {@P1} walks right in front of Woodbeard who was waiting for them. 'You arrrr mine!'. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
                 new Scenario ("{@P1} walked through the Hyper Dimension and got ran over by a herd of Oevor. (-{_typeValue}HP)", ScenarioType.Damaging, 35),
-                new Scenario ("{@P1} lost his mind eating some psychedelic Shrump offsprings. He attempted to ride a wild Trixxie while shouting 'Toga! Toga!'.  (-{_typeValue}HP)", ScenarioType.Damaging, 35),
+                new Scenario ("{@P1} lost his mind eating some psychedelic Shrump offsprings. they attempted to ride a wild Trixxie while shouting 'Toga! Toga!'.  (-{_typeValue}HP)", ScenarioType.Damaging, 35),
                 new Scenario ("{@P1} was apprehensively moving through shadowy woods when they were suddenly startled by the sound of heavy footsteps behind them. Out of desperation, and perhaps a dash of curiosity, {@P1} tried mounting their Driffin like a horse to gallop to a hasty getaway. The Driffin made its displeasure known. Painfully. (-{_typeValue}HP)", ScenarioType.Damaging, 45),
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
@@ -289,7 +290,7 @@ namespace BHungerGaemsBot
 
                 _ignoreReactions = false;
                 showMessageDelegate($"\n Day**{day}**\nYou have 30 seconds to input your decision\n"
-                    + " You may select <:moneybag:> to Loot or <:exclamation:> to Stay On Alert! If you do NOT select a reaction, you will Do Nothing." + sb, null, _emojiListOptions);
+                    + " You may select <:moneybag:> to Loot, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, _emojiListOptions);
                 sb.Clear();
                 Thread.Sleep(delayAfterOptions);
                 _ignoreReactions = true;
@@ -304,6 +305,9 @@ namespace BHungerGaemsBot
                             break;
                         case InteractiveDecision.StayOnAlert:
                             StayOnAlert(contestant, sb);
+                            break;
+                        case InteractiveDecision.ImmuneToDuel:
+                            DuelImmuneOption(sb, contestant);
                             break;
                     }
                 }
@@ -363,7 +367,7 @@ namespace BHungerGaemsBot
                 //night cycle
                 night++;
                 int index;
-                while (scenarioToBeExecuted != 0) //scenarios
+                while (scenarioToBeExecuted != 0 && Contestants.Count > 2) //scenarios
                 {
                     index = _random.Next(Contestants.Count);
                     if (scenarioImmune.Contains(index))
@@ -402,6 +406,7 @@ namespace BHungerGaemsBot
                                 break;
                             case ScenarioType.Lethal:
                                 Contestants.RemoveAt(index);
+                                sb.Append("\n\n");
                                 break;
                             case ScenarioType.Healing:
                                 Contestants[index].Hp += currentScenario.TypeValue;
@@ -424,7 +429,7 @@ namespace BHungerGaemsBot
                             index = _random.Next(Contestants.Count);
                         }
                         Contestants[index].Hp -= trap.Damage;
-                        sb.Append($"<{Contestants[index].NickName}> fell into a trap damaging him for {trap.Damage}HP. Current HP = {Contestants[index].Hp}\n\n");
+                        sb.Append($"<{Contestants[index].NickName}> fell into a trap damaging them for {trap.Damage}HP. Current HP = {Contestants[index].Hp}\n\n");
                         
 
                         if (Contestants[index].Hp <= 0)
@@ -440,9 +445,13 @@ namespace BHungerGaemsBot
                 {
                     _duelCooldown--;
                 }
-                else
+                else if (Contestants.Count >= 2 && Contestants.Count - DuelImmune.Count >= 2)
                 {
                     Duel(sb);
+                }
+                else
+                {
+                    sb.Append("#No Duel occured due to lack of available players.\n\n");
                 }
                 foreach (InteractivePlayer contestant in Contestants)
                 {
@@ -457,14 +466,15 @@ namespace BHungerGaemsBot
                 EnhancedIndexList.Clear();
                 trapsToBeRemoved.Clear();
                 playersToBeRemoved.Clear();
+                DuelImmune.Clear();
                 sb.Clear();
 
                 if (Contestants.Count <= ShowPlayersWhenCountEqual[showPlayersWhenCountEqualIndex])
                 {
                     showPlayersWhenCountEqualIndex++;
-                    foreach (Player contestant in Contestants)
+                    foreach (InteractivePlayer contestant in Contestants)
                     {
-                        sb.Append($"<{contestant.ContestantName}>\t");
+                        sb.Append($"<{contestant.ContestantName}> * HP = {contestant.Hp} *\t");
                     }
                     showMessageDelegate("Players Remaining:\r\n" + sb);
                     sb.Clear();
@@ -492,12 +502,16 @@ namespace BHungerGaemsBot
         {
             int duelChance = 50;
             int duelist1 = _random.Next(Contestants.Count);
+            while (DuelImmune.Contains(Contestants[duelist1]))
+            {
+                duelist1 = _random.Next(Contestants.Count);
+            }
             int duelist2 = _random.Next(Contestants.Count);
-            while (duelist1 == duelist2)
+            while (duelist1 == duelist2 && DuelImmune.Contains(Contestants[duelist2]))
             {
                 duelist2 = _random.Next(Contestants.Count);
             }
-            sb.Append($"A Duel started in betwwen <{Contestants[duelist1].NickName}> and <{Contestants[duelist2].NickName}>\n\n");
+            sb.Append($"A Duel started in between <{Contestants[duelist1].NickName}> and <{Contestants[duelist2].NickName}>\n\n");
             if (Contestants[duelist1].WeaponLife > 0)
             {
                 Contestants[duelist1].WeaponLife--;
@@ -708,13 +722,27 @@ namespace BHungerGaemsBot
             }
             if (RngRoll(duelChance))
             {
-                sb.Append($"<{Contestants[duelist1].NickName}> won the duel and slayed <{Contestants[duelist2].NickName}>\n\n");
+                sb.Append($"<{Contestants[duelist1].NickName}> won the duel and slew <{Contestants[duelist2].NickName}>\n\n");
                 Contestants.RemoveAt(duelist2);
             }
             else
             {
-                sb.Append($"<{Contestants[duelist2].NickName}> won the duel and slayed <{Contestants[duelist1].NickName}>\n\n");
+                sb.Append($"<{Contestants[duelist2].NickName}> won the duel and slew <{Contestants[duelist1].NickName}>\n\n");
                 Contestants.RemoveAt(duelist1);
+            }
+        }
+
+        void DuelImmuneOption(StringBuilder sb, InteractivePlayer contestant)
+        {
+            if (contestant.DuelCooldown == 0)
+            {
+                contestant.DuelCooldown = 5;
+                DuelImmune.Add(contestant);
+                sb.Append($"<{contestant.NickName}> will not participate in a Duel today.\n\n");
+            }
+            else
+            {
+                sb.Append($"<{contestant.NickName}> has already used that option less than 5 days ago. They will instead Do Nothing today.\n\n");
             }
         }
         //interactive options
@@ -1020,7 +1048,7 @@ namespace BHungerGaemsBot
             {
                 contestant.AlertCooldown = 4;
                 contestant.ScenarioLikelihood -= 10;
-                sb.Append($"<{contestant.NickName}> successfully staryed On Alert. -10% Scenario likelihood. \n");
+                sb.Append($"<{contestant.NickName}> successfully stayed On Alert. -10% Scenario likelihood. \n");
             }
             else
             {
@@ -1035,7 +1063,7 @@ namespace BHungerGaemsBot
                 {
                     contestant.AlertCooldown = 4;
                     contestant.ScenarioLikelihood -= 10;
-                    sb.Append($"<{contestant.NickName}> successfully staryed On Alert. -10% Scenario likelihood. \n");
+                    sb.Append($"<{contestant.NickName}> successfully stayed On Alert. -10% Scenario likelihood. \n");
 
                 }
             }
@@ -1049,11 +1077,11 @@ namespace BHungerGaemsBot
                 {
                     case 0:
                         return Debuff.DecreasedItemFind;
+                    //case 1:
+                    //    return Debuff.IncreasedDamageTaken;
                     case 1:
-                        return Debuff.IncreasedDamageTaken;
-                    case 2:
                         return Debuff.DecreasedDuelChance;
-                    case 3:
+                    case 2:
                         return Debuff.IncreasedScenarioLikelihood;
                 }
                 return Debuff.DecreasedItemFind; // what should be default if not found?
@@ -1062,11 +1090,11 @@ namespace BHungerGaemsBot
             {
                 case 0:
                     return Debuff.SeverlyDecreasedItemFind;
+                //case 1:
+                 //   return Debuff.SeverlyIncreasedDamageTaken;
                 case 1:
-                    return Debuff.SeverlyIncreasedDamageTaken;
-                case 2:
                     return Debuff.SeverlyDecreasedDuelChance;
-                case 3:
+                case 2:
                     return Debuff.SeverlyIncreasedScenarioLikelihood;
             }
             return Debuff.SeverlyDecreasedItemFind; // what should be default if not found?
@@ -1084,11 +1112,11 @@ namespace BHungerGaemsBot
                 }
 
                 bool severityFactor = RngRoll(20);
-                int debuffSelection = _random.Next(4);
+                int debuffSelection = _random.Next(3);
 
                 Contestants[index].Debuff = ConvertToDebuff(debuffSelection, severityFactor);
                 Contestants[index].DebuffTimer = severityFactor ? 3 : 5;
-                sb.Append($"<{contestant.NickName}> has sabotaged <{Contestants[index].NickName}> by giving him a {Contestants[index].Debuff} debuff for {Contestants[index].DebuffTimer} turns!\n");
+                sb.Append($"<{contestant.NickName}> has sabotaged <{Contestants[index].NickName}> by giving themm a {Contestants[index].Debuff} debuff for {Contestants[index].DebuffTimer} turns!\n");
             }
             else
             {
@@ -1114,7 +1142,7 @@ namespace BHungerGaemsBot
 
         private void Steal(InteractivePlayer contestant, StringBuilder sb)
         {
-            if (RngRoll(30))
+            if (RngRoll(35))
             {
                 int index = _random.Next(Contestants.Count);
                 while (Contestants[index].UserId == contestant.UserId)
@@ -1135,7 +1163,7 @@ namespace BHungerGaemsBot
                         }
                         else
                         {
-                            sb.Append($"<{contestant.NickName}> tried to steal <{Contestants[index].NickName}> but realised that his Weapon was worse than theirs. \n");
+                            sb.Append($"<{contestant.NickName}> tried to steal from <{Contestants[index].NickName}> but realised that his Weapon was worse than theirs. \n");
                         }
                         break;
                     case 1:
@@ -1148,7 +1176,7 @@ namespace BHungerGaemsBot
                         }
                         else
                         {
-                            sb.Append($"<{contestant.NickName}> tried to steal <{Contestants[index].NickName}> but realised that his armour was worse than theirs. \n");
+                            sb.Append($"<{contestant.NickName}> tried to steal from <{Contestants[index].NickName}> but realised that his armour was worse than theirs. \n");
                         }
                         break;
                     case 2:
@@ -1161,7 +1189,7 @@ namespace BHungerGaemsBot
                         }
                         else
                         {
-                            sb.Append($"<{contestant.NickName}> tried to steal <{Contestants[index].NickName}> but realised that his Offhand was worse than theirs. \n");
+                            sb.Append($"<{contestant.NickName}> tried to steal from <{Contestants[index].NickName}> but realised that his Offhand was worse than theirs. \n");
                         }
                         break;
                     case 3:
@@ -1174,7 +1202,7 @@ namespace BHungerGaemsBot
                         }
                         else
                         {
-                            sb.Append($"<{contestant.NickName}> tried to steal <{Contestants[index].NickName}> but realised that his Helmet was worse than theirs. \n");
+                            sb.Append($"<{contestant.NickName}> tried to steal from <{Contestants[index].NickName}> but realised that his Helmet was worse than theirs. \n");
                         }
                         break;
                 }
@@ -1229,6 +1257,9 @@ namespace BHungerGaemsBot
                             break;
                         case "❗":
                             authenticPlayer.InteractiveDecision = InteractiveDecision.StayOnAlert;
+                            break;
+                        case "⚔":
+                            authenticPlayer.InteractiveDecision = InteractiveDecision.ImmuneToDuel;
                             break;
                     }
                 }
