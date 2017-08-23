@@ -334,6 +334,7 @@ namespace BHungerGaemsBot
         {
             if (CheckAccess())
             {
+                Thread.Sleep(5000);
                 await ReplyAsync("FATAL ERROR CODE:\n ```cs\nBHungerGames2 code could not be found.```");
                 Thread.Sleep(5000);
                 await ReplyAsync("```Has SSS1 and Shadown88 bamboozled all of you? Could they have pretended to create a great game but only brought memes?```");

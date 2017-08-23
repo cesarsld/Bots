@@ -14,27 +14,21 @@ namespace BHungerGaemsBot
 
         private static readonly TimeSpan DelayBetweenCycles;
         private static readonly TimeSpan DelayAfterOptions;
-        private static readonly ReadOnlyDictionary<string, int[]> DangerToLoot;
+        private static readonly ReadOnlyCollection<DangerLevel> LootDangerLevels;
         private static readonly int[] ShowPlayersWhenCountEqual;
         private static readonly ReadOnlyCollection<IEmote> EmojiListOptions;
         private static readonly ReadOnlyCollection<IEmote> EmojiListEnhancedOptions;
         private static readonly Scenario[] Scenarios;
 
         private readonly Random _random;
-        private readonly List<int> _enhancedIndexList;
-        private readonly List<InteractivePlayer> _duelImmune;
+        private readonly HashSet<InteractivePlayer> _enchancedPlayers;
+        private readonly HashSet<InteractivePlayer> _duelImmune;
         private volatile bool _ignoreReactions;
         private List<Trap> _traps;
         private List<InteractivePlayer> _contestants;
         private bool _enhancedOptions;
 
-        private int _commonChance;
-        private int _rareChance;
-        private int _epicChance;
-        private int _legendaryChance;
-        private int SetChance = 100;
-        private int _failToLoot;
-
+        private DangerLevel _currentDangerLevel;
 
         public class Trap
         {
@@ -45,6 +39,38 @@ namespace BHungerGaemsBot
             {
                 Damage = 5 * random.Next(2, 9);
                 TrapUserID = contestant.UserId;
+            }
+        }
+
+        public class DangerLevel
+        {
+            public readonly string Name;
+            public readonly int FailChance;
+            public readonly int CommonChance;
+            public readonly int RareChance;
+            public readonly int EpicChance;
+            public readonly int LegendaryChance;
+            public readonly int SetChance;
+
+            public DangerLevel(string name, int failChance, int commonChance, int rareChance, int epicChance, int legendaryChance, int setChance)
+            {
+                Name = name;
+                FailChance = failChance;
+                CommonChance = commonChance;
+                RareChance = rareChance;
+                EpicChance = epicChance;
+                LegendaryChance = legendaryChance;
+                SetChance = setChance;
+            }
+
+            public Rarity GetRarity(int value)
+            {
+                if (value < CommonChance) return Rarity.Common;
+                if (value < RareChance) return Rarity.Rare;
+                if (value < EpicChance) return Rarity.Epic;
+                if (value < LegendaryChance) return Rarity.Legendary;
+                if (value < SetChance) return Rarity.Set;
+                return Rarity.None;
             }
         }
 
@@ -84,14 +110,15 @@ namespace BHungerGaemsBot
         {
             DelayBetweenCycles = new TimeSpan(0, 0, 0, 25);
             DelayAfterOptions = new TimeSpan(0, 0, 0, 15);
-            DangerToLoot = new ReadOnlyDictionary<string, int[]>(new Dictionary<string, int[]>()
-            {//                 FailChance Co  Ra  Ep  Le  Se
-                { "Safe",      new[] { 0, 60, 87, 97, 99, 100} },
-                { "Unsafe",    new[] {10, 57, 82, 94, 98, 100} },
-                { "Dangerous", new[] {25, 40, 70, 85, 95, 100} },
-                { "Deadly",    new[] {50,  0, 40, 70, 90, 100} },
+            LootDangerLevels = new ReadOnlyCollection<DangerLevel>(new List<DangerLevel>()
+            {
+                new DangerLevel("Safe", 0, 60, 87, 97, 99, 100),
+                new DangerLevel("Unsafe", 10, 57, 82, 94, 98, 100),
+                new DangerLevel("Dangerous", 25, 40, 70, 85, 95, 100),
+                new DangerLevel("Deadly", 50,  0, 40, 70, 90, 100)
             });
-            ShowPlayersWhenCountEqual = new[] { 10, 5, 2, 0 };
+
+            ShowPlayersWhenCountEqual = new[] {20, 10, 5, 2, 0 };
             EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💰"), new Emoji("❗"), new Emoji("⚔") });
             EmojiListEnhancedOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji("🔧") });
 
@@ -103,62 +130,62 @@ namespace BHungerGaemsBot
                 //new Scenario ("{@P1} has increased loot find pf {_typeValue} for the next turn", ScenarioType.LootFind, 10),
 
                 //Miscellaneous stuff
-                new Scenario ("{@P1} swam though a pond filled with Blubbler's acidic waste to pursue their journey. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
-                new Scenario ("{@P1} stubbed their toe on a hypershard. (-100000000HP)", ScenarioType.Lethal, 100000000),
-                new Scenario ("{@P1} forgot that this was the INTERACTIVE Hunger Games and stood idle for 5 minutes which was just enough time for a Grampz to come by and smack them with his cane. (-{_typeValue}HP)", ScenarioType.Damaging, 5),
+                new Scenario ("{@P1} swam through a pond filled with Blubbler's acidic waste to pursue their journey. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} stubbed their toe on a Hypershard. (-100000000HP)", ScenarioType.Lethal, 100000000),
+                new Scenario ("{@P1} forgot that this was the INTERACTIVE Hunger Games and stood idle for 5 minutes, which was just enough time for a Grampz to wander by and smack them with his cane. (-{_typeValue}HP)", ScenarioType.Damaging, 5),
                 new Scenario ("{@P1} saw a Booty fly and tried to catch it. It noticed and, unhappy about that, decided to boop {@P1} on the head.  (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-                new Scenario ("{@P1} encounters Ragnar in his quest for Loot. Ragnar will only let them pass if {@P1} beats them at a game of chess. Sadly, {@P1} forgot  Ragnar was an avid chess player... (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("'Lets play hangman' said Zorul. Sadly Zorul never really understood that game. {@P1} got hanged and died.", ScenarioType.Lethal, 100),
-                new Scenario ("{@P1} got caught staring at Kov'Alg's cleavage... (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                //new Scenario ("{@P1} entered R3 and saw Woodbeard talk to Beido, his long distance brother he hasn't seen for months who got addicted to meth. Being an intimate moment, Woodbeard kicked you out of the dungeon. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} encounters Ragnar in his quest for Loot. Ragnar will only let them pass if {@P1} beats them at a game of chess. Sadly, {@P1} forgot Ragnar was an avid chess player... (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("'Let’s play hangman” declared Zorul. Sadly Zorul never really understood that game. {@P1} got hanged and died.", ScenarioType.Lethal, 100),
+                new Scenario ("{@P1} got caught staring at Kov'alg's cleavage... (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                //new Scenario ("{@P1} entered R3 and overheard Woodbeard talking to Beido, his long distance brother with a meth addiction, who he hasn't seen for months. Being an intimate moment, Woodbeard kicked {@P1} out of the dungeon. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} encountered the legendary Wemmbo in the woods while searching for cover! 'Heal me please!' - 'Get lost kiddo, I'm just a mantis *bzzt bzzt*' (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 new Scenario ("While adventuring out into the wilderness {@P1} found a horde of Zirg. Attempting to back away {@P1} steps on a twig and causes the Zirg to zerg them. (-{_typeValue}HP) ", ScenarioType.Damaging, 30),
-                new Scenario ("{@P1} finds several piles of bones from previous adventurers. While searching some of the bones starts to shake violently. {@P1} proceeds to get Jacked up. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
-                new Scenario ("{@P1} attempted to venture out in search of treasure. Sadly the treasure chest was actually Mimzy. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} finds several piles of bones from previous adventurers. While searching the bones, some of them start to shake violently. {@P1} proceeds to get Jacked up. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
+                new Scenario ("{@P1} found a treasure chest. Sadly the treasure chest was actually Mimzy. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1} went in search of his old friend Bob whom they had heard lived in a small cottage deep inside the forest. Wait... wrong Bob. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
-                new Scenario ("While trekking across a mountain range in an attempt to get a better view of the arena {@P1} slipped on a loose rock and tumbled back down to the base. Time to start over... (-{_typeValue}HP)", ScenarioType.Damaging, 5),
-                new Scenario ("While searching for shelter in the jungle {@P1} came across a roaming Trixie. {@P1} ran as fast as possible, but tripped on a log...oh shiieeeet. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
+                new Scenario ("While trekking up a mountain in an attempt to get a better view of the arena {@P1} slipped on a loose rock and tumbled back down to the base. Time to start over... (-{_typeValue}HP)", ScenarioType.Damaging, 5),
+                new Scenario ("While searching for shelter, {@P1} came across a roaming Trixie. {@P1} ran as fast as possible, but tripped on a log...oh shiieeeet. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 new Scenario ("{@P1} found a slightly damaged parachute. 'This will surely work'...it didn't. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
-                new Scenario ("{@P1} encountered the almighty Bobodom and tried slaying him for some loot. While fighting {@P1} could hear Bobodom hum 'Can't Touch This' by MC Hammer  (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} sees a dark figure in the horizon. It is the powerful SSS1. It is said that people who witness his existence see a bright light before their death. {@P1} isn't an exception (-10000HP)", ScenarioType.Lethal, 10000), //to be edited
+                new Scenario ("{@P1} encountered a Bobodom and tried to slay him for loot. While fighting {@P1} could hear Bobodom hum 'Can't Touch This' by MC Hammer.  (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} sees a dark figure in the horizon. It is the powerful SSS1. It is said that people who encounter him witness a bright light before their death. {@P1} isn't an exception (-10000HP)", ScenarioType.Lethal, 10000), //to be edited
                 //new Scenario ("{@P1} bumped into Tarri in his journey to slay Grimz. Tarri didn't like that and cock slapped him with her well endowed penis (-{_typeValue}HP)", ScenarioType.Lethal, 696969),
                 new Scenario ("{@P1} ran into a battle with 4 Bargz on his way to slay Woodbeard. They all bombarded them with dozens of cannon shots. (-{_typeValue}HP))", ScenarioType.Damaging, 35),
-                new Scenario ("{@P1} is walking in the woods. They sees Gobby, Olxa, Mimzy AND Bully swinging their sacks onto a poor defenceless Batty. {@P1} tried to interfere, but ended up getting sack-whacked. (-{_typeValue}HP)", ScenarioType.Damaging, 45),
+                new Scenario ("{@P1} is wandering through the woods. They encounter Gobby, Olxa, Mimzy AND Bully swinging their sack at a poor defenceless Batty. {@P1} tried to interfere, but ended up getting sack-whacked. (-{_typeValue}HP)", ScenarioType.Damaging, 45),
                 new Scenario ("{@P1} was standing on the pier, waiting for a fishing minigame to be implemented. The wood broke under their feet, and they fell into the water. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
-                new Scenario ("{@P1} mistook Capt. Woodbeard for Jack Sparrow and asked him for an autograph. Woodbeard signed whith his cutlass and slapped {@P1} with the book (-{_typeValue}HP)", ScenarioType.Damaging, 5),
-                new Scenario ("{@P1}, while hiding in a tree woke up a group of Batties that startled them. {@P1} fell off the tree (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} hurt their back carrying all the unnecessary common and rare mats in his bag. (-{_typeValue}HP)", ScenarioType.Damaging, 5),
+                new Scenario ("{@P1} mistook Capt. Woodbeard for Jack Sparrow and asked him for an autograph. Woodbeard signed wiith his cutlass and slapped {@P1} with the book (-{_typeValue}HP)", ScenarioType.Damaging, 5),
+                new Scenario ("{@P1}, while hiding in a tree woke up a colony of Batty that startled them. {@P1} fell off the tree (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} hurt their back carrying all the unnecessary common and rare materials in their bag. (-{_typeValue}HP)", ScenarioType.Damaging, 5),
                 new Scenario ("{@P1} attacked Mimzy while he was sleeping! Inside his chest they found a minor healing potion! (+{_typeValue}HP)", ScenarioType.Healing, 25),
                 new Scenario ("{@P1} challenged Krackers to a tickle fight! They didn't realised Krackers had eight legs... (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 new Scenario ("{@P1} tried to beat Conan in an arm wrestle. 'Tried' (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} is exhausted... They were on the verge of dying. But wait! A wild HP shrine appears! (+{_typeValue})", ScenarioType.Healing, 100),
-                new Scenario ("{@P1} equipped Epic Speed Kick to reach loot faster! Sadly they didn't tie his laces properly, tripped and fell on his face *ouch* (-{_typeValue}hP)", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1} sees a Shrump and tried to bribe him. tsk tsk tsk... Shrump can't be bribed! {@P1} got bribed instead and forced to serve Shrump. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("Feeling thirsty, {@P1} ventured in Quirell's fortress for water. They found Juice instead who promptly attempted to empale them. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
-                new Scenario ("In his quest, {@P1} found a sad Trixie sat on a rock. {@P1} tried to give it a hug but Trixie couldn't hug back due to its small arms. Filled with rage, Trixie chomped {@P1}'s arm off (-{_typeValue}HP)", ScenarioType.Damaging, 65),
+                new Scenario ("{@P1} is exhausted... They were on the verge of dying, but wait! A wild HP shrine appears! (+{_typeValue})", ScenarioType.Healing, 100),
+                new Scenario ("{@P1} used Epic Speed Kick to reach loot faster! Sadly they didn't tie their laces properly, tripped and fell on their face. (-{_typeValue}hP)", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1} saw a Shrump and tried to bribe him. tsk tsk tsk... Shrump can't be bribed! {@P1} got bribed instead and forced to serve Shrump. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("Feeling thirsty, {@P1} ventured in Quirrel's fortress for water. They found Juice instead who promptly attempted to impale them. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
+                new Scenario ("In his quest, {@P1} found a sad Trixie sitting on a rock. {@P1} tried to give it a hug but Trixie couldn't hug back due to its small arms. Filled with rage, Trixie chomped {@P1}'s arm off (-{_typeValue}HP)", ScenarioType.Damaging, 65),
                 new Scenario ("{@P1} found Zayu cheating on his body pillow with an actual woman! Zayu made sure {@P1} couldn't see anything anymore. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
                 new Scenario ("'Nice legs you got there, Woodbea-errr... legendaries, nice legendaries' said {@P1}. Woodbeard proceeded to plunder {@P1}'s booty (-{_typeValue}HP)", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1} sneaked into Warty's dungeon looking for the Wemmbo schematic. Sadly {@P1} encountered a fleet of Zammies haeding towards them (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                new Scenario ("{@P1} sneaked into Warty's dungeon looking for the Wemmbo schematic. Sadly {@P1} encountered a flock of Zammy heading towards them (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 new Scenario ("While avoiding the other survivors, {@P1} unknowingly entered Remruade's hunting grounds. Remruade shot an arrow towards {@P1}. *Thunk*. {@P1} takes an arrow to the knee!  (-{_typeValue}HP)\" _typeValue = 15} (-{_typeValue}hP)", ScenarioType.Damaging, 10),
-                new Scenario ("{@P1} found Blubber's mating grounds. Many Blubbies (baby Blubbers) started rushing towards {@P1} and nearly suffocated them to death (-{_typeValue}HP)", ScenarioType.Damaging, 65),
-                new Scenario ("{@P1} imagined a fusion in between Gemm and Conan. In his deep thinking, a wild Tubbo appeared and kicked them in the groin. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} found Blubber's mating grounds. Many Blubbies (baby Blubbers) started swarming towards {@P1} and nearly suffocated them to death (-{_typeValue}HP)", ScenarioType.Damaging, 65),
+                new Scenario ("{@P1} imagined a fusion in between Gemm and Conan. Distracted by their deep thinking, a wild Tubbo walked up and kicked them in the groin. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("A rock fell onto {@P1}'s head. Wait~ what? But it already happened before! HG is rigged!! (-100HP)", ScenarioType.Lethal, 100),
-                new Scenario ("{@P1} is on his way to defeat the mighty King Dina. HP shrine available, familiars not potted, what could go wrong? Dina got slain but at the cost of {@P1} left arm (-{_typeValue}HP)", ScenarioType.Damaging, 80),
-                new Scenario ("{@P1} found the Legendary B.I.T. Chain! It is guarded by the mighty Kaleido. On his attempt it to steal it, {@P1} bumped into a Rolace that tried slaying them (-{_typeValue}HP)", ScenarioType.Damaging, 30),
+                new Scenario ("{@P1} is on his way to defeat the mighty King Dina. HP shrine available, potions unused, what could go wrong? Dina was slain but at the cost of {@P1}’s left arm (-{_typeValue}HP)", ScenarioType.Damaging, 80),
+                new Scenario ("{@P1} found the Legendary B.I.T. Chain! It was guarded by the mighty Kaleido. On his attempt it to steal it, {@P1} bumped into a Violace that tried slaying them (-{_typeValue}HP)", ScenarioType.Damaging, 30),
                
                
                
                
                
                 //pet related
-                new Scenario ("{@P1} sees a flock of legendary Nemos feasting on a Rexxie carcass. Those things look deadly. *crack* {@P1} stepped on a twig. All Nemos started flying towards the sound. {@P1} managed to escape  with minor bruises. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} encounters a flock of legendary Nemo feasting on a Rexxie carcass. Those things look deadly. *crack* {@P1} stepped on a twig. All the Nemo started swarming towards the sound. {@P1} managed to escape, but with minor bruises. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} found a Legendary Nerder. It is said no one likes them, that they're too selfish. But this Nerder looked different. Argh, {@P1}, how can they be fooled like this. Nerder proceeded to rob {@P1}  (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1} is blessed with Gemmi's great healing! (+{_typeValue}HP)", ScenarioType.Healing, 15),
-                new Scenario ("{@P1} was heading back towards B.I.T. Town when they bumped into a lone Sudz. They spent the evening together. Drunk, {@P1} tripped on stairs a hurt his head (-{_typeValue}HP)", ScenarioType.Damaging, 20),
-                new Scenario ("Even in the darkest of times, light can be seen if you look well enough. {@P1} sees a dim orange light in the horizon. It is the Legendary Crem! {@P1} is granted an immense revitalising heal. (+{_typeValue}HP)", ScenarioType.Healing, 40),
-                new Scenario ("{@P1} encounters the Legendary Nelson! A majestic creature. His bite is eve moreso majestic and painful(-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} was heading back towards B.I.T. Town when they bumped into a lone Sudz. They spent the evening together. Drunk, {@P1} tripped walking down stairs and bumped his head (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("Even in the darkest of times, light shines if you look closely enough. {@P1} sees a dim orange light in the horizon. It is the Legendary Crem! {@P1} is granted an immense revitalising heal. (+{_typeValue}HP)", ScenarioType.Healing, 40),
+                new Scenario ("{@P1} encounters the Legendary Nelson! A majestic creature. His bite is even moreso majestic and painful(-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} was about to eat a BITburger when they realised it was in fact Boiguh. Unhappy, Boiguh headbutted them. No one eats Boiguh. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1}'s melvin champ slipped off their stick and double kicked {@P1} in the face (-{_typeValue}HP)", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1}'s Melvin Champ slipped off their stand and double kicked {@P1} in the face (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 //new Scenario ("{@P1} (-{_typeValue})", ScenarioType.Damaging, 10),
                 //new Scenario ("{@P1} (-{_typeValue})", ScenarioType.Damaging, 10),
                 //new Scenario ("{@P1} (-{_typeValue})", ScenarioType.Damaging, 10),
@@ -166,26 +193,26 @@ namespace BHungerGaemsBot
            
 
                 //material related
-                new Scenario ("{@P1} found a Doubloon on the floor! But Bully saw this and knocked out {@P1} to steal it. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
-                new Scenario ("After many miles travelled, {@P1} encounters his first Hypershard. Tears start dripping on the rare crystal as {@P1} is filled with relief. But wait! They forgot Hypershards dissolved in water. Filled with anger, {@P1} slammed himself on a tree. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1} didn't realise they used all his rare mats on rare enchants reroll. {@P1} facepalmed themself so hard, they lost {_typeValue}HP", ScenarioType.Damaging, 10),
-                new Scenario ("{@P1} was lookin' for dem leg sneks in Z5D3. Sadly, {@P1} only found dust and a Brute charging at them. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
-                new Scenario ("{@P1}, after a long search of riches, found a Harmony Orb! A valuable ressource. It would be his if there wasn't a Bluz guarding it. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} picked a Doubloon up off the floor! However, Bully saw this and knocked out {@P1} to steal it. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
+                new Scenario ("After many miles travelled, {@P1} found his first Hypershard. Tears start dripping on the rare crystal as {@P1} is filled with joy. But wait! They forgot Hypershards dissolved in water. Filled with anger, {@P1} slammed his head against a tree. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1} didn't realise they used all their rare materials on rare enchantment rerollsl. {@P1} facepalmed themself so hard, they lost {_typeValue}HP", ScenarioType.Damaging, 10),
+                new Scenario ("{@P1} was looking for leg sneks in Z5D3. Sadly, {@P1} only found common materials and a Brute charging at them. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1}, after a long search for treasure, found a Harmony Orb! A valuable resource. It would have been theirs, if there wasn't a Bluz guarding it. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1}, while pausing briefly to catch their breath, saw movement in the bushes. An enchanted snek! {@P1} sprung headlong into the brambles, seizing the alarmed serpent, before quickly discovering that it was just a regular (but incredibly venomous and now angry) one.  (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 new Scenario ("{@P1} was running through a forest glade when they tripped over a rock, sending their knee 10% more painfully into the ground thanks to their Bushido set. (-{_typeValue}HP)", ScenarioType.Damaging, 22),
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 
                 //Notorious players related
-                new Scenario ("{@P1}, on his journey to become the best BIT Hero, thought about all the past legends. Blasian, Zim, Leg0Lars.. how they wished they were like them. They also ended up wishing they had paid more attention, but instead ended up walking right towards a raging Tubbo. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} laughed at Shadown88's build. Shadown88 laughed too when he Dual crit-empower striked {@P1} for 30386 damage. (-30386HP)", ScenarioType.Lethal, 10),
+                new Scenario ("{@P1}, on his journey to become the best BIT Hero, thought about all the past legends. Blasian, Zim, Leg0Lars.. how they wished they were like them. They also ended up wishing they had paid more attention, as they ended up walking right into a raging Tubbo. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} laughed at Shadown88's build. Shadown88 laughed too when he dual crit empower striked {@P1} for 30386 damage. (-30386HP)", ScenarioType.Lethal, 10),
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
 
                 //fam related
                 new Scenario ("{@P1} encountered Prof. Oak. 'Don't come back here until you've completed your Juppiodex!' *kicks {@P1} out of his lab*. (-{_typeValue}HP)", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} went to walk around the beach to fish when an Ives attacked them unexpectedly (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} sees a doubloon in the corner of the cabin! {@P1} walks right in front of Woodbeard who was waiting for them. 'You arrrr mine!'. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
+                new Scenario ("{@P1} sees a Doubloon in the corner of the cabin! {@P1} walks right in front of Woodbeard who was waiting for them. 'You arrrr mine!'. (-{_typeValue}HP)", ScenarioType.Damaging, 40),
                 new Scenario ("{@P1} walked through the Hyper Dimension and got ran over by a herd of Oevor. (-{_typeValue}HP)", ScenarioType.Damaging, 35),
                 new Scenario ("{@P1} lost their mind eating some psychedelic Shrump offsprings. They attempted to ride a wild Trixxie while shouting 'Toga! Toga!'.  (-{_typeValue}HP)", ScenarioType.Damaging, 35),
                 new Scenario ("{@P1} was apprehensively moving through shadowy woods when they were suddenly startled by the sound of heavy footsteps behind them. Out of desperation, and perhaps a dash of curiosity, {@P1} tried mounting their Driffin like a horse to gallop to a hasty getaway. The Driffin made its displeasure known. Painfully. (-{_typeValue}HP)", ScenarioType.Damaging, 45),
@@ -198,10 +225,10 @@ namespace BHungerGaemsBot
 
                 //HG related
                 new Scenario ("{@P1} stepped on a mine. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1} died\n.\n.\n.\njk. The did lose -{_typeValue}HP though.", ScenarioType.Damaging, 10),
-                new Scenario ("{@P1} died\n.\n.\n.\njk. The did lose -{_typeValue}HP though.", ScenarioType.Damaging, 25),
-                new Scenario ("{@P1} died\n.\n.\n.\njk. The did lose -{_typeValue}HP though.", ScenarioType.Damaging, 15),
-                new Scenario ("{@P1} died\n.\n.\n.\njk. The did lose -{_typeValue}HP though.", ScenarioType.Damaging, 20),
+                new Scenario ("{@P1} died\n.\n.\n.\njk. They did lose -{_typeValue}HP though.", ScenarioType.Damaging, 10),
+                new Scenario ("{@P1} died\n.\n.\n.\njk. They did lose -{_typeValue}HP though.", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1} died\n.\n.\n.\njk. They did lose -{_typeValue}HP though.", ScenarioType.Damaging, 15),
+                new Scenario ("{@P1} died\n.\n.\n.\njk. They did lose -{_typeValue}HP though.", ScenarioType.Damaging, 20),
 
 
                // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
@@ -213,13 +240,14 @@ namespace BHungerGaemsBot
 
 
             };
+
         }
 
         public BHungerGamesV2()
         {
             _random = new Random();
-            _enhancedIndexList = new List<int>();
-            _duelImmune = new List<InteractivePlayer>();
+            _enchancedPlayers = new HashSet<InteractivePlayer>();
+            _duelImmune = new HashSet<InteractivePlayer>();
             _ignoreReactions = true;
         }
 
@@ -242,8 +270,6 @@ namespace BHungerGaemsBot
             int night = 0;
             int showPlayersWhenCountEqualIndex = 0;
             int duelCooldown = 4;
-
-
 
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
@@ -276,7 +302,6 @@ namespace BHungerGaemsBot
 
             while (_contestants.Count > numWinners)
             {
-
                 // day cycle
                 day++;
                 List<int> scenarioImmune = new List<int>();
@@ -296,15 +321,8 @@ namespace BHungerGaemsBot
                     playerToEnhance = 1;
                 }
 
-                int dangerIndex = _random.Next(4);
-
-                _commonChance = DangerToLoot.ElementAt(dangerIndex).Value.ElementAt(1);
-                _rareChance = DangerToLoot.ElementAt(dangerIndex).Value.ElementAt(2);
-                _epicChance = DangerToLoot.ElementAt(dangerIndex).Value.ElementAt(3);
-                _legendaryChance = DangerToLoot.ElementAt(dangerIndex).Value.ElementAt(4);
-                //SetChance = DangerToLoot.ElementAt(danger).Value.ElementAt(5);
-                _failToLoot = DangerToLoot.ElementAt(dangerIndex).Value.ElementAt(0);
-                sb.Append($"\nDanger level to look for loot = * {DangerToLoot.ElementAt(dangerIndex).Key} *");
+                _currentDangerLevel = LootDangerLevels[_random.Next(LootDangerLevels.Count)];
+                sb.Append($"\nDanger level to look for loot = * {_currentDangerLevel.Name} *");
                 // Select Enhanced players
 
                 _ignoreReactions = false;
@@ -312,9 +330,9 @@ namespace BHungerGaemsBot
                     + "You may select <:moneybag:> to Loot, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, EmojiListOptions);
                 sb.Clear();
                 Thread.Sleep(DelayAfterOptions);
+                _ignoreReactions = true;
                 if (cannelGame())
                     return;
-                _ignoreReactions = true;
 
                 //sbLoot.Append("People that successfully dropped loot: \n\n");
                 foreach (InteractivePlayer contestant in _contestants)
@@ -341,20 +359,15 @@ namespace BHungerGaemsBot
                 //enhanced
                 _enhancedOptions = true;
                 sb.Append("Enhanced Decisions have been attributed to:\n");
-                _enhancedIndexList.Add(_random.Next(_contestants.Count));
-                playerToEnhance--;
-                while (playerToEnhance != 0)
+                _enchancedPlayers.Add(_contestants[_random.Next(_contestants.Count)]);
+                while (_enchancedPlayers.Count < playerToEnhance)
                 {
-                    int enhancedIndexCheck = _random.Next(_contestants.Count);
-                    if (_enhancedIndexList.Contains(enhancedIndexCheck) == false)
-                    {
-                        _enhancedIndexList.Add(enhancedIndexCheck);
-                        playerToEnhance--;
-                    }
+                    InteractivePlayer player = _contestants[_random.Next(_contestants.Count)];
+                    _enchancedPlayers.Add(player);
                 }
-                foreach (int enhanced in _enhancedIndexList)
+                foreach (InteractivePlayer player in _enchancedPlayers)
                 {
-                    sb.Append($"<{_contestants[enhanced].NickName}>\n");
+                    sb.Append($"<{player.NickName}>\n");
                 }
 
                 _ignoreReactions = false;
@@ -363,10 +376,9 @@ namespace BHungerGaemsBot
                 //make bot react to prevent players from searching emojis
                 sb.Clear();
                 Thread.Sleep(DelayAfterOptions);
+                _ignoreReactions = true;
                 if (cannelGame())
                     return;
-                _ignoreReactions = true;
-
 
                 foreach (InteractivePlayer contestant in _contestants)
                 {
@@ -469,7 +481,7 @@ namespace BHungerGaemsBot
                 {
                     duelCooldown--;
                 }
-                else if (_contestants.Count >= 2 && _contestants.Count - _duelImmune.Count >= 2)
+                else if (_contestants.Count - _duelImmune.Count >= 2)
                 {
                     Duel(sb);
                 }
@@ -487,7 +499,7 @@ namespace BHungerGaemsBot
                 }
                 showMessageDelegate($"\nNight**{night}** <{startingContestantCount}> players remaining\n\n" + sb);
                 scenarioImmune.Clear();
-                _enhancedIndexList.Clear();
+                _enchancedPlayers.Clear();
                 trapsToBeRemoved.Clear();
                 playersToBeRemoved.Clear();
                 _duelImmune.Clear();
@@ -526,8 +538,80 @@ namespace BHungerGaemsBot
             showMessageDelegate(sb.ToString(), sbP.ToString());
         }
 
+        private int GetDuelChance(Rarity itemRarity)
+        {
+            switch (itemRarity)
+            {
+                case Rarity.Common:
+                    return 5;
+                case Rarity.Rare:
+                    return 10;
+                case Rarity.Epic:
+                    return 15;
+                case Rarity.Legendary:
+                    return 25;
+                case Rarity.Set:
+                    return 35;
+            }
+            return 0;
+        }
+
+        private int GetContestantDuelChance(InteractivePlayer player)
+        {
+            int duelChance = 0;
+            if (player.WeaponLife > 0)
+            {
+                player.WeaponLife--;
+                duelChance += GetDuelChance(player.WeaponRarity);
+                if (player.WeaponLife == 0)
+                {
+                    player.WeaponRarity = Rarity.None;
+                }
+            }
+            if (player.ArmourLife > 0)
+            {
+                player.ArmourLife--;
+                duelChance += GetDuelChance(player.ArmourRarity);
+                if (player.ArmourLife == 0)
+                {
+                    player.ArmourRarity = Rarity.None;
+                }
+            }
+            if (player.HelmetLife > 0)
+            {
+                player.HelmetLife--;
+                duelChance += GetDuelChance(player.HelmetRarity);
+                if (player.HelmetLife == 0)
+                {
+                    player.HelmetRarity = Rarity.None;
+                }
+            }
+            if (player.OffhandLife > 0)
+            {
+                player.OffhandLife--;
+                duelChance += GetDuelChance(player.OffhandRarity);
+                if (player.OffhandLife == 0)
+                {
+                    player.OffhandRarity = Rarity.None;
+                }
+            }
+
+            if (player.Debuff == Debuff.DecreasedDuelChance && player.DebuffTimer > 0)
+            {
+                duelChance -= 5;
+                player.DebuffTimer--;
+            }
+            else if (player.Debuff == Debuff.SeverlyDecreasedDuelChance && player.DebuffTimer > 0)
+            {
+                duelChance -= 10;
+                player.DebuffTimer--;
+            }
+
+            return duelChance;
+        }
+
         //duel method
-        void Duel(StringBuilder sb)
+        private void Duel(StringBuilder sb)
         {
             int duelChance = 50;
             int duelist1 = _random.Next(_contestants.Count);
@@ -541,246 +625,10 @@ namespace BHungerGaemsBot
                 duelist2 = _random.Next(_contestants.Count);
             }
             sb.Append($"A Duel started in between <{_contestants[duelist1].NickName}> and <{_contestants[duelist2].NickName}>\n\n");
-            if (_contestants[duelist1].WeaponLife > 0)
-            {
-                _contestants[duelist1].WeaponLife--;
-                switch (_contestants[duelist1].WeaponRarity)
-                {
-                    case Rarity.Common:
-                        duelChance += 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance += 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance += 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance += 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance += 35;
-                        break;
 
-                }
-                if (_contestants[duelist1].WeaponLife == 0)
-                {
-                    _contestants[duelist1].WeaponRarity = Rarity.None;
-                }
-            }
-            if (_contestants[duelist1].ArmourLife > 0)
-            {
-                _contestants[duelist1].ArmourLife--;
-                switch (_contestants[duelist1].ArmourRarity)
-                {
-                    case Rarity.Common:
-                        duelChance += 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance += 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance += 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance += 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance += 35;
-                        break;
+            duelChance += GetContestantDuelChance(_contestants[duelist1]);
+            duelChance += GetContestantDuelChance(_contestants[duelist2]);
 
-                }
-                if (_contestants[duelist1].ArmourLife == 0)
-                {
-                    _contestants[duelist1].ArmourRarity = Rarity.None;
-                }
-            }
-            if (_contestants[duelist1].HelmetLife > 0)
-            {
-                _contestants[duelist1].HelmetLife--;
-                switch (_contestants[duelist1].HelmetRarity)
-                {
-                    case Rarity.Common:
-                        duelChance += 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance += 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance += 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance += 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance += 35;
-                        break;
-
-                }
-                if (_contestants[duelist1].HelmetLife == 0)
-                {
-                    _contestants[duelist1].HelmetRarity = Rarity.None;
-                }
-            }
-            if (_contestants[duelist1].OffhandLife > 0)
-            {
-                _contestants[duelist1].OffhandLife--;
-                switch (_contestants[duelist1].OffhandRarity)
-                {
-                    case Rarity.Common:
-                        duelChance += 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance += 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance += 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance += 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance += 35;
-                        break;
-
-                }
-                if (_contestants[duelist1].OffhandLife == 0)
-                {
-                    _contestants[duelist1].OffhandRarity = Rarity.None;
-                }
-            }
-
-
-            switch (_contestants[duelist1].Debuff)
-            {
-                case Debuff.DecreasedDuelChance when _contestants[duelist1].DebuffTimer > 0:
-                    duelChance -= 5;
-                    _contestants[duelist1].DebuffTimer--;
-                    break;
-                case Debuff.SeverlyDecreasedDuelChance when _contestants[duelist1].DebuffTimer > 0:
-                    duelChance -= 10;
-                    _contestants[duelist1].DebuffTimer--;
-                    break;
-            }
-            if (_contestants[duelist2].WeaponLife > 0)
-            {
-                _contestants[duelist2].WeaponLife--;
-                switch (_contestants[duelist2].WeaponRarity)
-                {
-                    case Rarity.Common:
-                        duelChance -= 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance -= 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance -= 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance -= 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance -= 35;
-                        break;
-
-                }
-                if (_contestants[duelist2].WeaponLife == 0)
-                {
-                    _contestants[duelist2].WeaponRarity = Rarity.None;
-                }
-            }
-            if (_contestants[duelist2].ArmourLife > 0)
-            {
-                _contestants[duelist2].ArmourLife--;
-                switch (_contestants[duelist2].ArmourRarity)
-                {
-                    case Rarity.Common:
-                        duelChance -= 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance -= 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance -= 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance -= 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance -= 35;
-                        break;
-
-                }
-                if (_contestants[duelist2].ArmourLife == 0)
-                {
-                    _contestants[duelist2].ArmourRarity = Rarity.None;
-                }
-            }
-            if (_contestants[duelist2].HelmetLife > 0)
-            {
-                _contestants[duelist2].HelmetLife--;
-                switch (_contestants[duelist2].HelmetRarity)
-                {
-                    case Rarity.Common:
-                        duelChance -= 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance -= 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance -= 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance -= 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance -= 35;
-                        break;
-
-                }
-                if (_contestants[duelist2].HelmetLife == 0)
-                {
-                    _contestants[duelist2].HelmetRarity = Rarity.None;
-                }
-            }
-            if (_contestants[duelist2].OffhandLife > 0)
-            {
-                _contestants[duelist2].OffhandLife--;
-                switch (_contestants[duelist2].OffhandRarity)
-                {
-                    case Rarity.Common:
-                        duelChance -= 5;
-                        break;
-                    case Rarity.Rare:
-                        duelChance -= 10;
-                        break;
-                    case Rarity.Epic:
-                        duelChance -= 15;
-                        break;
-                    case Rarity.Legendary:
-                        duelChance -= 25;
-                        break;
-                    case Rarity.Set:
-                        duelChance -= 35;
-                        break;
-
-                }
-                if (_contestants[duelist2].OffhandLife == 0)
-                {
-                    _contestants[duelist2].OffhandRarity = Rarity.None;
-                }
-            }
-            switch (_contestants[duelist2].Debuff)
-            {
-                case Debuff.DecreasedDuelChance when _contestants[duelist2].DebuffTimer > 0:
-                    duelChance += 5;
-                    _contestants[duelist2].DebuffTimer--;
-                    break;
-                case Debuff.SeverlyDecreasedDuelChance when _contestants[duelist2].DebuffTimer > 0:
-                    duelChance += 10;
-                    _contestants[duelist2].DebuffTimer--;
-                    break;
-            }
             if (RngRoll(duelChance))
             {
                 sb.Append($"<{_contestants[duelist1].NickName}> won the duel and slew <{_contestants[duelist2].NickName}>\n\n");
@@ -810,7 +658,7 @@ namespace BHungerGaemsBot
         private void Loot(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved)
         {
             contestant.ScenarioLikelihood += 10;
-            int lootChance = 100 - _failToLoot;
+            int lootChance = 100 - _currentDangerLevel.FailChance;
             if (contestant.Debuff == Debuff.DecreasedItemFind && contestant.DebuffTimer > 0)
             {
                 lootChance -= 5;
@@ -824,302 +672,89 @@ namespace BHungerGaemsBot
             if (RngRoll(lootChance)) // chance to loot item
             {
                 int lootType = _random.Next(4); // armour or weapon
-                /*
+                int lootRarity = _random.Next(100);
+                //lootRarity = 55;
+                Rarity itemRarity = _currentDangerLevel.GetRarity(lootRarity);
+                bool tookItem = false;
+                string itemTypeName = null;
                 switch (lootType)
                 {
                     case 0:
-                        contestant.WeaponLife = 5;
+                        itemTypeName = "weapon";
+                        if ((int)contestant.WeaponRarity < (int)itemRarity)
+                        {
+                            contestant.WeaponLife = 5;
+                            contestant.WeaponRarity = itemRarity;
+                            tookItem = true;
+                        }
                         break;
                     case 1:
-                        contestant.ArmourLife = 5;
+                        itemTypeName = "armour";
+                        if ((int)contestant.ArmourRarity < (int)itemRarity)
+                        {
+                            contestant.ArmourLife = 5;
+                            contestant.ArmourRarity = itemRarity;
+                            tookItem = true;
+                        }
                         break;
                     case 2:
-                        contestant.HelmetLife = 5;
+                        itemTypeName = "helmet";
+                        if ((int)contestant.HelmetRarity < (int)itemRarity)
+                        {
+                            contestant.HelmetLife = 5;
+                            contestant.HelmetRarity = itemRarity;
+                            tookItem = true;
+                        }
                         break;
                     default:
-                        contestant.OffhandLife = 5;
+                        itemTypeName = "offhand";
+                        if ((int)contestant.OffhandRarity < (int)itemRarity)
+                        {
+                            contestant.OffhandLife = 5;
+                            contestant.OffhandRarity = itemRarity;
+                            tookItem = true;
+                        }
                         break;
                 }
-                */
-                int lootRarity = _random.Next(100);
-                //lootRarity = 55;
-                switch (lootType)
+                if (itemRarity != Rarity.Common)
                 {
-                    case 0 when lootRarity < _commonChance:
-                        if ((int)contestant.WeaponRarity <= 0)
-                        {
-                            contestant.WeaponRarity = Rarity.Common;
-                            contestant.WeaponLife = 5;
-                            //sbLoot.Append($"<{contestant.NickName}> has obtained a * Common * weapon!\n");
-                        }
-                        else
-                        {
-                            //sbLoot.Append($"<{contestant.NickName}> has obtained an inferior weapon and decided to throw it away\n");
-                        }
-                        break;
-                    case 0 when lootRarity < _rareChance:
-                        if ((int)contestant.WeaponRarity <= 1)
-                        {
-                            contestant.WeaponRarity = Rarity.Rare;
-                            contestant.WeaponLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Rare * weapon!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior weapon and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 0 when lootRarity < _epicChance:
-                        if ((int)contestant.WeaponRarity <= 2)
-                        {
-                            contestant.WeaponRarity = Rarity.Epic;
-                            contestant.WeaponLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Epic * weapon!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior weapon and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 0 when lootRarity < _legendaryChance:
-                        if ((int)contestant.WeaponRarity <= 3)
-                        {
-                            contestant.WeaponRarity = Rarity.Legendary;
-                            contestant.WeaponLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Legendary * weapon!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior weapon and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 0 when lootRarity < SetChance:
-                        if ((int)contestant.WeaponRarity <= 4)
-                        {
-                            contestant.WeaponRarity = Rarity.Set;
-                            contestant.WeaponLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Set * weapon!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior weapon and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 1 when lootRarity < _commonChance:
-                        if ((int)contestant.ArmourRarity <= 0)
-                        {
-                            contestant.ArmourRarity = Rarity.Common;
-                            contestant.ArmourLife = 5;
-
-                            //sbLoot.Append($"<{contestant.NickName}> has obtained a * Common * body!\n");
-                        }
-                        else
-                        {
-                            //sbLoot.Append($"<{contestant.NickName}> has obtained an inferior armour and decided to throw it away\n");
-                        }
-                        break;
-                    case 1 when lootRarity < _rareChance:
-                        if ((int)contestant.ArmourRarity <= 1)
-                        {
-                            contestant.ArmourRarity = Rarity.Rare;
-                            contestant.ArmourLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Rare * body!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior armour and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 1 when lootRarity < _epicChance:
-                        if ((int)contestant.ArmourRarity <= 2)
-                        {
-                            contestant.ArmourRarity = Rarity.Epic;
-                            contestant.ArmourLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Epic * body!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior armour and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 1 when lootRarity < _legendaryChance:
-                        if ((int)contestant.ArmourRarity <= 3)
-                        {
-                            contestant.ArmourRarity = Rarity.Legendary;
-                            contestant.ArmourLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Legendary * body!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior armour and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 1 when lootRarity < SetChance:
-                        if ((int)contestant.ArmourRarity <= 4)
-                        {
-                            contestant.ArmourRarity = Rarity.Set;
-                            contestant.ArmourLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Set * body!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior armour and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 2 when lootRarity < _commonChance:
-                        if ((int)contestant.HelmetRarity <= 0)
-                        {
-                            contestant.HelmetRarity = Rarity.Common;
-                            contestant.HelmetLife = 5;
-                            //sbLoot.Append($"<{contestant.NickName}> has obtained a * Common * body!\n");
-                        }
-                        else
-                        {
-                            //ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior armour and decided to throw it away\n", sbl);
-                        }
-                        break;
-                    case 2 when lootRarity < _rareChance:
-                        if ((int)contestant.HelmetRarity <= 1)
-                        {
-                            contestant.HelmetRarity = Rarity.Rare;
-                            contestant.HelmetLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Rare * helmet!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior helmet and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 2 when lootRarity < _epicChance:
-                        if ((int)contestant.HelmetRarity <= 2)
-                        {
-                            contestant.HelmetRarity = Rarity.Epic;
-                            contestant.HelmetLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Epic * helmet!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior helmet and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 2 when lootRarity < _legendaryChance:
-                        if ((int)contestant.HelmetRarity <= 3)
-                        {
-                            contestant.HelmetRarity = Rarity.Legendary;
-                            contestant.HelmetLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Legendary * helmet!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior armour and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 2 when lootRarity < SetChance:
-                        if ((int)contestant.HelmetRarity <= 4)
-                        {
-                            contestant.HelmetRarity = Rarity.Set;
-                            contestant.HelmetLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Set * helmet!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior helmet and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 3 when lootRarity < _commonChance:
-                        if ((int)contestant.OffhandRarity <= 0)
-                        {
-                            contestant.OffhandRarity = Rarity.Common;
-                            contestant.OffhandLife = 5;
-                            //sbLoot.Append($"<{contestant.NickName}> has obtained a * Common * offhand!\n");
-                        }
-                        else
-                        {
-                            //ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior offhand and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 3 when lootRarity < _rareChance:
-                        if ((int)contestant.OffhandRarity <= 1)
-                        {
-                            contestant.OffhandRarity = Rarity.Rare;
-                            contestant.OffhandLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Rare * offhand!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior offhand and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 3 when lootRarity < _epicChance:
-                        if ((int)contestant.OffhandRarity <= 2)
-                        {
-                            contestant.OffhandRarity = Rarity.Epic;
-                            contestant.OffhandLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Epic * offhand!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior offhand and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 3 when lootRarity < _legendaryChance:
-                        if ((int)contestant.OffhandRarity <= 3)
-                        {
-                            contestant.OffhandRarity = Rarity.Legendary;
-                            contestant.OffhandLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Legendary * offhand!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior offhand and decided to throw it away\n", sbLoot);
-                        }
-                        break;
-                    case 3 when lootRarity < SetChance:
-                        if ((int)contestant.OffhandRarity <= 4)
-                        {
-                            contestant.OffhandRarity = Rarity.Set;
-                            contestant.OffhandLife = 5;
-                            sbLoot.Append($"<{contestant.NickName}> has obtained a * Set * offhand!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior offhand and decided to throw it away\n", sbLoot);
-                        }
-                        break;
+                    if (tookItem)
+                    {
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a * {itemRarity} * {itemTypeName}!\n");
+                    }
+                    else
+                    {
+                        ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior {itemTypeName} and decided to throw it away\n", sbLoot);
+                    }
                 }
             }
             else
             {
-                int failureDamage;
-                switch (_failToLoot)
+                int failureDamage = 0;
+                string failureDescription = null;
+                switch (_currentDangerLevel.FailChance)
                 {
                     case 10:
-                        failureDamage = (_random.Next(2) + 2) * 5;
-                        contestant.Hp -= failureDamage;
-                        sbLoot.Append($"<{contestant.NickName}> got ambushed while looking for loot and got injured for {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
-                        if (contestant.Hp <= 0)
-                        {
-                            playersToBeRemoved.Add(contestant);
-                        }
+                        failureDamage = (_random.Next(2) + 2) * 5; // 10 - 15
+                        failureDescription = "got ambushed while looking for loot and got injured for";
                         break;
                     case 25:
-                        failureDamage = (_random.Next(2) + 6) * 5;
-                        contestant.Hp -= failureDamage;
-                        sbLoot.Append($"<{contestant.NickName}> encountered a mini boss while looking for loot and got injured for {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
-                        if (contestant.Hp <= 0)
-                        {
-                            playersToBeRemoved.Add(contestant);
-                        }
+                        failureDamage = (_random.Next(2) + 6) * 5; // 30 - 35
+                        failureDescription = "encountered a mini boss while looking for loot and got injured for";
                         break;
                     case 50:
-                        failureDamage = (_random.Next(4) + 10) * 5;
-                        contestant.Hp -= failureDamage;
-                        sbLoot.Append($"<{contestant.NickName}> recieved a nearly life taking blow by a powerful beast while looking for loot and got injured for {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
-                        if (contestant.Hp <= 0)
-                        {
-                            playersToBeRemoved.Add(contestant);
-                        }
+                        failureDamage = (_random.Next(4) + 10) * 5; // 50 - 65
+                        failureDescription = "recieved a nearly life taking blow by a powerful beast while looking for loot and got injured for";
                         break;
+                }
+                if (string.IsNullOrEmpty(failureDescription) == false)
+                {
+                    contestant.Hp -= failureDamage;
+                    sbLoot.Append($"<{contestant.NickName}> {failureDescription} {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
+                    if (contestant.Hp <= 0)
+                    {
+                        playersToBeRemoved.Add(contestant);
+                    }
                 }
             }
         }
@@ -1241,7 +876,7 @@ namespace BHungerGaemsBot
                             contestant.WeaponLife = 5;
                             _contestants[index].WeaponLife = 0;
 
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s {_contestants[index].WeaponRarity} Weapon!\n");
+                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Weapon!\n");
                         }
                         else
                         {
@@ -1254,7 +889,7 @@ namespace BHungerGaemsBot
                             contestant.ArmourRarity = _contestants[index].ArmourRarity;
                             contestant.ArmourLife = 5;
                             _contestants[index].ArmourLife = 0;
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s {_contestants[index].ArmourRarity} Armour!\n");
+                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Armour!\n");
                         }
                         else
                         {
@@ -1267,7 +902,7 @@ namespace BHungerGaemsBot
                             contestant.OffhandRarity = _contestants[index].OffhandRarity;
                             contestant.OffhandLife = 5;
                             _contestants[index].OffhandLife = 0;
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s {_contestants[index].OffhandRarity} Offhand!\n");
+                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].OffhandRarity} * Offhand!\n");
                         }
                         else
                         {
@@ -1280,7 +915,7 @@ namespace BHungerGaemsBot
                             contestant.HelmetRarity = _contestants[index].HelmetRarity;
                             contestant.HelmetLife = 5;
                             _contestants[index].HelmetLife = 0;
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s {_contestants[index].HelmetRarity} Helmet!\n");
+                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].HelmetRarity} * Helmet!\n");
                         }
                         else
                         {
@@ -1316,20 +951,20 @@ namespace BHungerGaemsBot
 
             if (_enhancedOptions)
             {
-                foreach (int enhanceCheck in _enhancedIndexList)
+                foreach (InteractivePlayer player in _enchancedPlayers)
                 {
-                    if (_contestants[enhanceCheck].UserId == userId)
+                    if (player.UserId == userId)
                     {
                         switch (reactionName)
                         {
                             case "💣":
-                                _contestants[enhanceCheck].EnhancedDecision = EnhancedDecision.MakeATrap;
+                                player.EnhancedDecision = EnhancedDecision.MakeATrap;
                                 break;
                             case "🔫":
-                                _contestants[enhanceCheck].EnhancedDecision = EnhancedDecision.Steal;
+                                player.EnhancedDecision = EnhancedDecision.Steal;
                                 break;
                             case "🔧":
-                                _contestants[enhanceCheck].EnhancedDecision = EnhancedDecision.Sabotage;
+                                player.EnhancedDecision = EnhancedDecision.Sabotage;
                                 break;
                         }
                     }
