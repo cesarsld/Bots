@@ -282,6 +282,10 @@ namespace BHungerGaemsBot
                 List<int> scenarioImmune = new List<int>();
                 int startingContestantCount = _contestants.Count;
                 var scenarioToBeExecuted = startingContestantCount / 4;
+                if (day > 11)
+                {
+                    scenarioToBeExecuted = startingContestantCount / 2;
+                }
                 if (scenarioToBeExecuted < 1)
                 {
                     scenarioToBeExecuted = 1;
@@ -418,7 +422,7 @@ namespace BHungerGaemsBot
                         {
                             case ScenarioType.Damaging:
                                 _contestants[index].Hp -= currentScenario.TypeValue;
-                                sb.Append($"Current HP = {_contestants[index].Hp}\n\n");
+                                sb.Append($" * Current HP = {_contestants[index].Hp} *\n\n");
                                 if (_contestants[index].Hp <= 0)
                                 {
                                     _contestants.RemoveAt(index);
@@ -434,7 +438,7 @@ namespace BHungerGaemsBot
                                 {
                                     _contestants[index].Hp = 100;
                                 }
-                                sb.Append($"Current HP = {_contestants[index].Hp}\n\n");
+                                sb.Append($" * Current HP = {_contestants[index].Hp} *\n\n");
                                 break;
                         }
                     }
@@ -449,7 +453,7 @@ namespace BHungerGaemsBot
                             index = _random.Next(_contestants.Count);
                         }
                         _contestants[index].Hp -= trap.Damage;
-                        sb.Append($"<{_contestants[index].NickName}> fell into a trap damaging them for {trap.Damage}HP. Current HP = {_contestants[index].Hp}\n\n");
+                        sb.Append($"<{_contestants[index].NickName}> fell into a trap damaging them for {trap.Damage}HP. * Current HP = {_contestants[index].Hp} *\n\n");
 
 
                         if (_contestants[index].Hp <= 0)
