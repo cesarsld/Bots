@@ -11,7 +11,7 @@ namespace BHungerGaemsBot
 {
     public class BotGameInstance
     {
-        public delegate void ShowMessageDelegate(string msg, string logMsgOnly = null, List<IEmote> emotes = null);
+        public delegate void ShowMessageDelegate(string msg, string logMsgOnly = null, IReadOnlyList<IEmote> emotes = null);
 
         public const string Smiley = "😃"; // :smiley:
         public const string Smile = "😄"; // :smile:
@@ -442,7 +442,7 @@ namespace BHungerGaemsBot
             return startingSize;
         }
 
-        protected void LogToChannel(string msg, string logMsgOnly = null, List<IEmote> emotes = null)
+        protected void LogToChannel(string msg, string logMsgOnly = null, IReadOnlyList<IEmote> emotes = null)
         {
             const int maxMessageSize = 1930; // 2000 minus markdown used below.
             if (string.IsNullOrEmpty(logMsgOnly) == false)
