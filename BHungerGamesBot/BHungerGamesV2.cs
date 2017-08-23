@@ -504,6 +504,11 @@ namespace BHungerGaemsBot
                     sb.Clear();
                 }
 
+                if (night == 11)
+                {
+                    showMessageDelegate("Next day until the end of the game, scenario number will be increased\n=====================================================================");
+                }
+
                 Thread.Sleep(DelayBetweenCycles);
 
                 if (cannelGame())
@@ -1091,7 +1096,7 @@ namespace BHungerGaemsBot
                     case 10:
                         failureDamage = (_random.Next(2) + 2) * 5;
                         contestant.Hp -= failureDamage;
-                        sbLoot.Append($"<{contestant.NickName}> got ambushed while looking for loot and got injured for {failureDamage}HP. Current HP = {contestant.Hp}\n ");
+                        sbLoot.Append($"<{contestant.NickName}> got ambushed while looking for loot and got injured for {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
                         if (contestant.Hp <= 0)
                         {
                             playersToBeRemoved.Add(contestant);
@@ -1100,7 +1105,7 @@ namespace BHungerGaemsBot
                     case 25:
                         failureDamage = (_random.Next(2) + 6) * 5;
                         contestant.Hp -= failureDamage;
-                        sbLoot.Append($"<{contestant.NickName}> encountered a mini boss while looking for loot and got injured for {failureDamage}HP. Current HP = {contestant.Hp}\n ");
+                        sbLoot.Append($"<{contestant.NickName}> encountered a mini boss while looking for loot and got injured for {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
                         if (contestant.Hp <= 0)
                         {
                             playersToBeRemoved.Add(contestant);
@@ -1109,7 +1114,7 @@ namespace BHungerGaemsBot
                     case 50:
                         failureDamage = (_random.Next(4) + 10) * 5;
                         contestant.Hp -= failureDamage;
-                        sbLoot.Append($"<{contestant.NickName}> recieved a nearly life taking blow by a powerful beast while looking for loot and got injured for {failureDamage}HP. Current HP = {contestant.Hp}\n ");
+                        sbLoot.Append($"<{contestant.NickName}> recieved a nearly life taking blow by a powerful beast while looking for loot and got injured for {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
                         if (contestant.Hp <= 0)
                         {
                             playersToBeRemoved.Add(contestant);
