@@ -328,6 +328,7 @@ namespace BHungerGaemsBot
                 await ShowGameHelp();
             }
         }
+        
 
         [Command("startv2"), Summary("input")]
         public async Task PvP()
@@ -335,11 +336,11 @@ namespace BHungerGaemsBot
             if (CheckAccess())
             {
                 Thread.Sleep(5000);
-                await ReplyAsync("FATAL ERROR CODE:\n ```cs\nBHungerGames2 code could not be found.```");
+                await ReplyAsync("```md\n * FATAL ERROR CODE 104 *:\nBHungerGamesV2.cs could not be found.```");
                 Thread.Sleep(5000);
-                await ReplyAsync("```Has SSS1 and Shadown88 bamboozled all of you? Could they have pretended to create a great game but only brought memes?```");
+                await ReplyAsync("```Have SSS1 and Shadown88 bamboozled all of you? Could they have pretended to create a great game but only brought memes?```");
                 Thread.Sleep(8000);
-                await ReplyAsync("```jk.... it's the wrong command bros... hehe\n\nBot humour, get it? skrubs.```");
+                await ReplyAsync("```jk.... it's the wrong command bros... hehe\n\nBot humour, get it? alright, alright, enjoy the event. *beep boop*```");
                
             }
         }
