@@ -67,6 +67,55 @@ namespace BHungerGaemsBot
             await ReplyAsync(message);
         }
 
+        private bool CheckAccessForBitHeroesGuildOnly(bool checkCancelAccess = false)
+        {
+            HashSet<ulong> rolesWithAccess = new HashSet<ulong>();
+            var roles = Context.Guild.Roles;
+            if (Context.Guild.Name.Equals("Bit Heroes"))
+            {
+                foreach (IRole role in roles)
+                {
+                    if ((checkCancelAccess == false && role.Name.Contains("Level 2"))
+                        || role.Name.Contains("300+") || role.Name.Contains("400") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod "))
+                    {
+                        rolesWithAccess.Add(role.Id);
+                    }
+                }
+            }
+            else
+            { // default
+                return false;
+            }
+
+            var authorRoles = ((IGuildUser)Context.Message.Author).RoleIds;
+            foreach (ulong roleId in authorRoles)
+            {
+                if (rolesWithAccess.Contains(roleId))
+                    return true;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            if (checkCancelAccess)
+                sb.AppendLine($"Guild: '{Context.Guild.Name}' User: '{Context.Message.Author.Username}' does not have Access to run Cancel Command");
+            else
+                sb.AppendLine($"Guild: '{Context.Guild.Name}' User: '{Context.Message.Author.Username}' does not have Access to run Command");
+
+            sb.AppendLine("Guild Roles:");
+            foreach (IRole role in roles)
+            {
+                sb.AppendLine($"{role.Name} -- {role.Id}");
+            }
+
+            sb.Append("User Roles: ");
+            foreach (ulong id in authorRoles)
+            {
+                sb.AppendLine(id + ",");
+            }
+
+            Logger.LogInternal(sb.ToString());
+            return false;
+        }
+
         private bool CheckAccessByGuild(bool checkCancelAccess = false)
         {
             HashSet<ulong> rolesWithAccess = new HashSet<ulong>();
@@ -371,8 +420,11 @@ namespace BHungerGaemsBot
             [Summary("Number of Winners")]string strNumWinners = null
         )
         {
-            BotV2GameInstance gameInstance = new BotV2GameInstance();
-            await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, "1", strNumWinners, 0);
+            if (CheckAccessForBitHeroesGuildOnly())
+            {
+                BotV2GameInstance gameInstance = new BotV2GameInstance();
+                await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, "1", strNumWinners, 0);
+            }
         }
 
         private async Task StartGameInternal(BotGameInstance gameInstance, string strMaxUsers, string strMaxMinutesToWait, string strSecondsDelayBetweenDays, string strNumWinners, int testUsers)

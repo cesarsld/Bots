@@ -77,6 +77,9 @@ namespace BHungerGaemsBot
 
         public async Task HandleCommandAsync(SocketMessage messageParam)
         {
+            string userName = "";
+            string channelName = "";
+            string guildName = "";
             try
             {
                 var msg = messageParam as SocketUserMessage;
@@ -86,12 +89,14 @@ namespace BHungerGaemsBot
 
                 if (msg.HasCharPrefix(CommandPrefix, ref argPos)) /* || msg.HasMentionPrefix(_client.CurrentUser, ref pos) */
                 {
-                    string userName = GetUserName(msg.Author);
-                    string channelName = msg.Channel?.Name ?? "NULL";
-                    Logger.LogInternal($"HandleCommandAsync ChannelName: {channelName} User: {userName}  Msg: {msg}");
+                    userName = GetUserName(msg.Author);
+                    channelName = msg.Channel?.Name ?? "NULL";
 
                     //var context = new SocketCommandContext(DiscordClient, msg);
                     var context = new CommandContext(DiscordClient, msg);
+                    guildName = context.Guild?.Name ?? "NULL";
+                    Logger.LogInternal($"HandleCommandAsync G: {guildName} C: {channelName} User: {userName}  Msg: {msg}");
+
                     var result = await _commands.ExecuteAsync(context, argPos);
 
                     if (!result.IsSuccess) // If execution failed, reply with the error message.
@@ -104,7 +109,13 @@ namespace BHungerGaemsBot
             }
             catch (Exception ex)
             {
-                await Logger.Log(new LogMessage(LogSeverity.Error, "HandleCommandAsync", "Unexpected Exception", ex));
+                try
+                {
+                    await Logger.Log(new LogMessage(LogSeverity.Error, "HandleCommandAsync", $"G:{guildName} C:{channelName} U:{userName} Unexpected Exception", ex));
+                }
+                catch
+                {
+                }
             }
         }
 

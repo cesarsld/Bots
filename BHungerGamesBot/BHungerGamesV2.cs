@@ -10,7 +10,7 @@ namespace BHungerGaemsBot
 {
     public class BHungerGamesV2
     {
-        private const int DelayValue = 7;
+        private const int DelayValue = 3;
 
         private static readonly TimeSpan DelayBetweenCycles;
         private static readonly TimeSpan DelayAfterOptions;
@@ -18,6 +18,7 @@ namespace BHungerGaemsBot
         private static readonly int[] ShowPlayersWhenCountEqual;
         private static readonly ReadOnlyCollection<IEmote> EmojiListOptions;
         private static readonly ReadOnlyCollection<IEmote> EmojiListEnhancedOptions;
+        private static readonly ReadOnlyCollection<IEmote> EmojiListCrowdDecision;
         private static readonly Scenario[] Scenarios;
 
         private readonly Random _random;
@@ -27,6 +28,11 @@ namespace BHungerGaemsBot
         private List<Trap> _traps;
         private List<InteractivePlayer> _contestants;
         private bool _enhancedOptions;
+        private bool _crowdOptions;
+        private TerraForm Location;
+
+        private int _reactionA = 0;
+        private int _reactionB = 0;
 
         private DangerLevel _currentDangerLevel;
 
@@ -39,6 +45,11 @@ namespace BHungerGaemsBot
             {
                 Damage = 5 * random.Next(2, 9);
                 TrapUserID = contestant.UserId;
+            }
+            public Trap(ulong number, Random random)
+            {
+                Damage = 5 * random.Next(2, 9);
+                TrapUserID = number;
             }
         }
 
@@ -118,9 +129,10 @@ namespace BHungerGaemsBot
                 new DangerLevel("Deadly", 50,  0, 40, 70, 90, 100)
             });
 
-            ShowPlayersWhenCountEqual = new[] {20, 10, 5, 2, 0 };
+            ShowPlayersWhenCountEqual = new[] { 20, 10, 5, 2, 0 };
             EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💰"), new Emoji("❗"), new Emoji("⚔") });
             EmojiListEnhancedOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji("🔧") });
+            EmojiListCrowdDecision = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🅰"), new Emoji("🅱") });
 
             Scenarios = new[]
             {
@@ -220,7 +232,7 @@ namespace BHungerGaemsBot
                 new Scenario ("{@P1} observed in the distance a rare creature... It's a blubbicorn! They tried to capture it but the Blubbicorn didn't appreciae it and started charging at them. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-               // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
 
                 //cosmetic related
                 new Scenario ("{@P1} was hiding in the bushes when they overheard other players making fun of their choice in cosmetics. Sometimes, the trauma of the arena leaves no physical mark, but hurts just the same. (-{_typeValue}HP)", ScenarioType.Damaging, 10),
@@ -234,17 +246,14 @@ namespace BHungerGaemsBot
                 new Scenario ("{@P1} died\n.\n.\n.\njk. They did lose -{_typeValue}HP though.", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1} decided to go hunt for food. {@P1} shoots his arrow - but whats this? the arrow ricochets and unfortunately hits {@P1} in the knee... Damn RNG!", ScenarioType.Damaging,25),
                 new Scenario ("{@P1} walked slowly inside a cave. They have been told that many riches resided inside. They haven't told him it guarded by a Lardoz. {P@1} managed to defeat it at the cost of empowered bruises.(-{_typeValue}HP)", ScenarioType.Damaging, 55),
-               // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-               // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-              //  new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-             //   new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-              //  new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-               // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-               // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
-
-
+                // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                //  new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                //   new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                //  new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
+                // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
             };
-
         }
 
         public BHungerGamesV2()
@@ -274,12 +283,20 @@ namespace BHungerGaemsBot
             int night = 0;
             int showPlayersWhenCountEqualIndex = 0;
             int duelCooldown = 4;
-
+            bool crowdExtraDuel = false;
+            int crowdScenarios = 0;
+            bool bonusItemFind = false;
+            bool R2Bonus = false;
+            int ScenarioMod = 0;
+            
+            
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
             _traps = new List<Trap>();
             List<Trap> trapsToBeRemoved = new List<Trap>();
             List<InteractivePlayer> playersToBeRemoved = new List<InteractivePlayer>();
+
+            Logger.LogInternal("V2 Game started, total ppl: " + contestantsTransfer.Count);
 
             if (maxPlayers > 0 && contestantsTransfer.Count > maxPlayers)
             {
@@ -287,11 +304,11 @@ namespace BHungerGaemsBot
                 for (int i = 0; i < numToRemove; i++)
                 {
                     int randIndex = _random.Next(contestantsTransfer.Count);
-                    sb.Append($"<{contestantsTransfer[randIndex].ContestantName}>\t");
+                    //sb.Append($"<{contestantsTransfer[randIndex].ContestantName}>\t");
                     contestantsTransfer.RemoveAt(randIndex);
                 }
-                showMessageDelegate("Players killed in the stampede trying to get to the arena:\r\n" + sb);
-                sb.Clear();
+                //showMessageDelegate("Players killed in the stampede trying to get to the arena:\r\n" + sb);
+                //sb.Clear();
             }
 
             _contestants = new List<InteractivePlayer>();
@@ -301,19 +318,118 @@ namespace BHungerGaemsBot
                 if (interactivePlayer != null)
                 {
                     _contestants.Add(interactivePlayer);
+                    sb.Append($"<{player.ContestantName}>\t");
                 }
             }
+            showMessageDelegate("Players that successfully entered the arena:\r\n" + sb);
+            sb.Clear();
 
             while (_contestants.Count > numWinners)
             {
                 // day cycle
                 day++;
+                
                 List<int> scenarioImmune = new List<int>();
                 int startingContestantCount = _contestants.Count;
-                var scenarioToBeExecuted = startingContestantCount / 4;
+
+                if (day == 1 || day % 4 == 0)
+                {
+                    TerraTransformation(sb);
+                }
+                showMessageDelegate("" + sb);
+                sb.Clear();
+
+                switch (Location)
+                {
+                    case TerraForm.Astaroth_Hell:
+                        foreach (InteractivePlayer contestant in _contestants)
+                        {
+                            contestant.Hp -= 3;
+                            if (contestant.Hp <= 0)
+                            {
+                                playersToBeRemoved.Add(contestant);
+                            }
+                        }
+                        ScenarioMod = -5;
+                        break;
+                    case TerraForm.Hyper_Dimension:
+                        foreach (InteractivePlayer contestant in _contestants)
+                        {
+                            contestant.Hp += 3;
+                            if (contestant.Hp >= 100)
+                            {
+                                contestant.Hp = 100;
+                            }
+                        }
+                        ScenarioMod = 5;
+                        break;
+                    case TerraForm.Pirate_Cove:
+                        for (int i = 0; i < 2; i++)
+                        {
+                            _traps.Add(new Trap(0, _random));
+                            R2Bonus = true;
+                        }
+                        break;
+
+                }
+
+                if (day % 3 == 0) //crowd decision
+                {
+                    _crowdOptions = true;
+                    _ignoreReactions = false;
+                    int crowdOption = CrowdOption(sb, day);
+                    showMessageDelegate(sb + "", null, EmojiListCrowdDecision);
+                    Thread.Sleep(DelayAfterOptions);
+                    _ignoreReactions = true;
+                    _crowdOptions = false;
+                    sb.Clear();
+                    CrowdVoteCheck();
+                    switch (crowdOption)
+                    {
+                        case 0 when _reactionA > _reactionB:
+                            for (int i = 0; i < 5; i++)
+                            {
+                                _traps.Add(new Trap( 0, _random));
+                            }
+                            showMessageDelegate("5 Tarps have been added. Wait.... It's... It's a trap! ");
+                            break;
+                        case 0 when _reactionA < _reactionB:
+                            showMessageDelegate("A hurricane sweeps through and blows everyone's clothes off. They each lose 5 HP from shame.");
+                            foreach (InteractivePlayer contestant in _contestants)
+                            {
+                                contestant.Hp -= 5;
+                                if (contestant.Hp <= 0)
+                                {
+                                    playersToBeRemoved.Add(contestant);
+                                }
+                            }
+                            break;
+                        case 1 when _reactionA > _reactionB:
+                            showMessageDelegate("The crowd can be merciful sometimes... +5% item find for everyone!");
+                            bonusItemFind = true;
+                            break;
+                        case 1 when _reactionA < _reactionB:
+                            showMessageDelegate("The sun's bright rays shine through the clouds illuminating safe paths. -2 Scenarios");
+                            crowdScenarios = -2;
+                            break;
+                        case 2 when _reactionA > _reactionB:
+                            showMessageDelegate("Are you not entertained!? Well, here's one extra duel for you guys");
+                            crowdExtraDuel = true;
+                            break;
+                        case 2 when _reactionA < _reactionB:
+                            showMessageDelegate("A thick layer of rolling fogs fills the ground. +3 Scenarios");
+                            crowdScenarios = 3;
+                            break;
+
+
+                    }
+
+                }
+
+                var scenarioToBeExecuted = startingContestantCount / 4 + crowdScenarios;
                 if (day > 11)
                 {
-                    scenarioToBeExecuted = startingContestantCount / 2;
+                    scenarioToBeExecuted = startingContestantCount / 2 + crowdScenarios;
                 }
                 if (scenarioToBeExecuted < 1)
                 {
@@ -331,7 +447,7 @@ namespace BHungerGaemsBot
 
                 _ignoreReactions = false;
                 showMessageDelegate($"\n Day**{day}**\nYou have {DelayAfterOptions.Seconds} seconds to input your decision\n"
-                    + "You may select <:moneybag:> to Loot, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, EmojiListOptions);
+                    + " You may select <:moneybag:> to Loot, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, EmojiListOptions);
                 sb.Clear();
                 Thread.Sleep(DelayAfterOptions);
                 _ignoreReactions = true;
@@ -344,7 +460,7 @@ namespace BHungerGaemsBot
                     switch (contestant.InteractiveDecision)
                     {
                         case InteractiveDecision.Loot:
-                            Loot(contestant, sbLoot, playersToBeRemoved);
+                            Loot(contestant, sbLoot, playersToBeRemoved, bonusItemFind, R2Bonus);
                             break;
                         case InteractiveDecision.StayOnAlert:
                             StayOnAlert(contestant, sb);
@@ -425,7 +541,7 @@ namespace BHungerGaemsBot
                             _contestants[index].DebuffTimer--;
                             break;
                     }
-                    if (RngRoll(_contestants[index].ScenarioLikelihood))
+                    if (RngRoll(_contestants[index].ScenarioLikelihood + ScenarioMod))
                     {
                         scenarioImmune.Add(index);
                         scenarioToBeExecuted--;
@@ -488,11 +604,20 @@ namespace BHungerGaemsBot
                 else if (_contestants.Count - _duelImmune.Count >= 2)
                 {
                     Duel(sb);
+                    if (crowdExtraDuel && _contestants.Count - _duelImmune.Count >= 2)
+                    {
+                        Duel(sb);
+                    }
+                    else if (crowdExtraDuel && _contestants.Count - _duelImmune.Count < 2)
+                    {
+                        sb.Append("#No Duel occured due to lack of available players.\n\n");
+                    }
                 }
                 else
                 {
                     sb.Append("#No Duel occured due to lack of available players.\n\n");
                 }
+                
                 foreach (InteractivePlayer contestant in _contestants)
                 {
                     contestant.Reset(); //resets value of scenariolikelihood and interactive options
@@ -502,6 +627,13 @@ namespace BHungerGaemsBot
                     scenario.ReduceDelay();
                 }
                 showMessageDelegate($"\nNight**{night}** <{startingContestantCount}> players remaining\n\n" + sb);
+                _reactionA = 0;
+                _reactionB = 0;
+                crowdExtraDuel = false;
+                bonusItemFind = false;
+                R2Bonus = false;
+                crowdScenarios = 0;
+                ScenarioMod = 0;
                 scenarioImmune.Clear();
                 _enchancedPlayers.Clear();
                 trapsToBeRemoved.Clear();
@@ -631,7 +763,7 @@ namespace BHungerGaemsBot
             sb.Append($"A Duel started in between <{_contestants[duelist1].NickName}> and <{_contestants[duelist2].NickName}>\n\n");
 
             duelChance += GetContestantDuelChance(_contestants[duelist1]);
-            duelChance += GetContestantDuelChance(_contestants[duelist2]);
+            duelChance -= GetContestantDuelChance(_contestants[duelist2]);
 
             if (RngRoll(duelChance))
             {
@@ -659,10 +791,19 @@ namespace BHungerGaemsBot
             }
         }
         //interactive options
-        private void Loot(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved)
+        private void Loot(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved, bool bonusItemFind, bool R2Bonus)
         {
+            int itemFind = 0;
+            if (bonusItemFind)
+            {
+                itemFind = 5;
+            }
+            if (R2Bonus)
+            {
+                itemFind += 5;
+            }
             contestant.ScenarioLikelihood += 10;
-            int lootChance = 100 - _currentDangerLevel.FailChance;
+            int lootChance = 100 - _currentDangerLevel.FailChance + itemFind;
             if (contestant.Debuff == Debuff.DecreasedItemFind && contestant.DebuffTimer > 0)
             {
                 lootChance -= 5;
@@ -680,7 +821,7 @@ namespace BHungerGaemsBot
                 //lootRarity = 55;
                 Rarity itemRarity = _currentDangerLevel.GetRarity(lootRarity);
                 bool tookItem = false;
-                string itemTypeName = null;
+                string itemTypeName;
                 switch (lootType)
                 {
                     case 0:
@@ -949,6 +1090,75 @@ namespace BHungerGaemsBot
             }
         }
 
+        private int CrowdOption(StringBuilder sb, int day)
+        {
+            int optionIndex = _random.Next(3);
+            if (day < 5 && optionIndex == 2)
+            {
+                optionIndex = _random.Next(2);
+
+            }
+            switch (optionIndex)
+            {
+                case 0:
+                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may selects <:a:> for Option A and <:b:> for Option B.\n\n"+
+                        "Option A : * Add 5 traps in the game *\n" +
+                        "Option B : * Cast a Hurricane that deals 5 HP to all players *");
+                    return optionIndex;
+                case 1:
+                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may selects <:a:> for Option A and <:b:> for Option B.\n\n" +
+                        "Option A : * +5% bonus Item Find Today *\n" +
+                        "Option B : * -2 scenarios Today *");
+                    return optionIndex;
+                case 2:
+                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may selects <:a:> for Option A and <:b:> for Option B.\n\n" +
+                        "Option A : * +1 Duel *\n" +
+                        "Option B : * +3 Scenarios *");
+                    return optionIndex;
+                default:
+                    return optionIndex;
+            }
+        }
+
+        private void CrowdVoteCheck()
+        {
+            if (_reactionA == _reactionB)
+            {
+                switch (_random.Next(2))
+                {
+                    case 0:
+                        _reactionA++;
+                        break;
+                    case 1:
+                        _reactionB++;
+                        break;
+                }
+            }
+        }
+
+        private void TerraTransformation(StringBuilder sb)
+        {
+            int terraFormLocation = _random.Next(3);
+            switch (terraFormLocation)
+            {
+                case 0:
+                    Location = TerraForm.Astaroth_Hell;
+                    sb.Append($"The arena Terra-transformed into * {Location} *\n" +
+                        "Effects:\n * -3HP per day *\n * -5% Scenario likelihood *");
+                    break;
+                case 1:
+                    Location = TerraForm.Hyper_Dimension;
+                    sb.Append($"The arena Terra-transformed into * {Location} *\n" +
+                        "Effects:\n * +3HP per day *\n * +5% Scenario likelihood *");
+                    break;
+                case 2:
+                    Location = TerraForm.Pirate_Cove;
+                    sb.Append($"The arena Terra-transformed into * {Location} *\n" +
+                        "Effects:\n * +5% Item Find *\n * +2 Traps per day *");
+                    break;
+            }
+        }
+
         public void HandlePlayerInput(ulong userId, string reactionName)
         {
             if (_ignoreReactions) return;
@@ -972,6 +1182,18 @@ namespace BHungerGaemsBot
                                 break;
                         }
                     }
+                }
+            }
+            else if (_crowdOptions)
+            {
+                switch (reactionName)
+                { 
+                    case "🅰":
+                        _reactionA++;
+                        break;
+                    case "🅱":
+                        _reactionB++;
+                        break;
                 }
             }
             else
