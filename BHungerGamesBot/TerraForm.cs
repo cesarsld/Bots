@@ -4,6 +4,7 @@
     {
         Astaroth_Hell,
         Hyper_Dimension, 
-        Pirate_Cove
+        Pirate_Cove,
+        None
     }
 }

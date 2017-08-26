@@ -288,7 +288,7 @@ namespace BHungerGaemsBot
             bool bonusItemFind = false;
             bool R2Bonus = false;
             int ScenarioMod = 0;
-            
+            Location = TerraForm.None;
             
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
@@ -335,8 +335,8 @@ namespace BHungerGaemsBot
                 if (day == 1 || day % 4 == 0)
                 {
                     TerraTransformation(sb);
+                    showMessageDelegate("" + sb);
                 }
-                showMessageDelegate("" + sb);
                 sb.Clear();
 
                 switch (Location)
@@ -1139,6 +1139,10 @@ namespace BHungerGaemsBot
         private void TerraTransformation(StringBuilder sb)
         {
             int terraFormLocation = _random.Next(3);
+            while ((int)Location == terraFormLocation)
+            {
+                terraFormLocation = _random.Next(3);
+            }
             switch (terraFormLocation)
             {
                 case 0:
