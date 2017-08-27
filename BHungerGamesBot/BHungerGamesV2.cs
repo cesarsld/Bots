@@ -289,7 +289,7 @@ namespace BHungerGaemsBot
             bool R2Bonus = false;
             int ScenarioMod = 0;
             Location = TerraForm.None;
-            
+
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
             _traps = new List<Trap>();
@@ -328,7 +328,7 @@ namespace BHungerGaemsBot
             {
                 // day cycle
                 day++;
-                
+
                 List<int> scenarioImmune = new List<int>();
                 int startingContestantCount = _contestants.Count;
 
@@ -336,42 +336,10 @@ namespace BHungerGaemsBot
                 {
                     TerraTransformation(sb);
                     showMessageDelegate("" + sb);
+                    sb.Clear();
                 }
-                sb.Clear();
 
-                switch (Location)
-                {
-                    case TerraForm.Astaroth_Hell:
-                        foreach (InteractivePlayer contestant in _contestants)
-                        {
-                            contestant.Hp -= 3;
-                            if (contestant.Hp <= 0)
-                            {
-                                playersToBeRemoved.Add(contestant);
-                            }
-                        }
-                        ScenarioMod = -5;
-                        break;
-                    case TerraForm.Hyper_Dimension:
-                        foreach (InteractivePlayer contestant in _contestants)
-                        {
-                            contestant.Hp += 3;
-                            if (contestant.Hp >= 100)
-                            {
-                                contestant.Hp = 100;
-                            }
-                        }
-                        ScenarioMod = 5;
-                        break;
-                    case TerraForm.Pirate_Cove:
-                        for (int i = 0; i < 2; i++)
-                        {
-                            _traps.Add(new Trap(0, _random));
-                            R2Bonus = true;
-                        }
-                        break;
-
-                }
+                LocationEffect(playersToBeRemoved, ref ScenarioMod, ref R2Bonus);
 
                 if (day % 3 == 0) //crowd decision
                 {
@@ -384,46 +352,7 @@ namespace BHungerGaemsBot
                     _crowdOptions = false;
                     sb.Clear();
                     CrowdVoteCheck();
-                    switch (crowdOption)
-                    {
-                        case 0 when _reactionA > _reactionB:
-                            for (int i = 0; i < 5; i++)
-                            {
-                                _traps.Add(new Trap( 0, _random));
-                            }
-                            showMessageDelegate("5 Tarps have been added. Wait.... It's... It's a trap! ");
-                            break;
-                        case 0 when _reactionA < _reactionB:
-                            int hurricaneDamage = _random.Next(5, 16);
-                            showMessageDelegate($"A hurricane sweeps through and blows everyone's clothes off. They each lose {hurricaneDamage} HP from shame.");
-                            foreach (InteractivePlayer contestant in _contestants)
-                            {
-                                contestant.Hp -= hurricaneDamage;
-                                if (contestant.Hp <= 0)
-                                {
-                                    playersToBeRemoved.Add(contestant);
-                                }
-                            }
-                            break;
-                        case 1 when _reactionA > _reactionB:
-                            showMessageDelegate("The crowd can be merciful sometimes... +5% item find for everyone!");
-                            bonusItemFind = true;
-                            break;
-                        case 1 when _reactionA < _reactionB:
-                            showMessageDelegate("The sun's bright rays shine through the clouds illuminating safe paths. -2 Scenarios");
-                            crowdScenarios = -2;
-                            break;
-                        case 2 when _reactionA > _reactionB:
-                            showMessageDelegate("Are you not entertained!? Well, here's one extra duel for you guys");
-                            crowdExtraDuel = true;
-                            break;
-                        case 2 when _reactionA < _reactionB:
-                            showMessageDelegate("A thick layer of rolling fogs fills the ground. +3 Scenarios");
-                            crowdScenarios = 3;
-                            break;
-
-
-                    }
+                    CrowdExe(crowdOption, playersToBeRemoved, ref bonusItemFind, ref crowdExtraDuel, ref crowdScenarios, showMessageDelegate);
 
                 }
 
@@ -618,7 +547,7 @@ namespace BHungerGaemsBot
                 {
                     sb.Append("#No Duel occured due to lack of available players.\n\n");
                 }
-                
+
                 foreach (InteractivePlayer contestant in _contestants)
                 {
                     contestant.Reset(); //resets value of scenariolikelihood and interactive options
@@ -1005,69 +934,108 @@ namespace BHungerGaemsBot
 
         private void Steal(InteractivePlayer contestant, StringBuilder sb)
         {
-            if (RngRoll(35))
+            if (RngRoll(45))
             {
+                int stealAttempts = 4;
                 int index = _random.Next(_contestants.Count);
                 while (_contestants[index].UserId == contestant.UserId)
                 {
                     index = _random.Next(_contestants.Count);
                 }
                 int stealType = _random.Next(4);
-                switch (stealType)
+                while (stealAttempts != 0)
                 {
-                    case 0:
-                        if (_contestants[index].WeaponLife > 0 && (int)contestant.WeaponRarity < (int)_contestants[index].WeaponRarity)
-                        {
-                            contestant.WeaponRarity = _contestants[index].WeaponRarity;
-                            contestant.WeaponLife = 5;
-                            _contestants[index].WeaponLife = 0;
-
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Weapon!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that his Weapon was worse than theirs. \n", sb);
-                        }
-                        break;
-                    case 1:
-                        if (_contestants[index].ArmourLife > 0 && (int)contestant.ArmourRarity < (int)_contestants[index].ArmourRarity)
-                        {
-                            contestant.ArmourRarity = _contestants[index].ArmourRarity;
-                            contestant.ArmourLife = 5;
-                            _contestants[index].ArmourLife = 0;
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Armour!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that his armour was worse than theirs. \n", sb);
-                        }
-                        break;
-                    case 2:
-                        if (_contestants[index].OffhandLife > 0 && (int)contestant.OffhandRarity < (int)_contestants[index].OffhandRarity)
-                        {
-                            contestant.OffhandRarity = _contestants[index].OffhandRarity;
-                            contestant.OffhandLife = 5;
-                            _contestants[index].OffhandLife = 0;
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].OffhandRarity} * Offhand!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that his Offhand was worse than theirs. \n", sb);
-                        }
-                        break;
-                    case 3:
-                        if (_contestants[index].HelmetLife > 0 && (int)contestant.HelmetRarity < (int)_contestants[index].HelmetRarity)
-                        {
-                            contestant.HelmetRarity = _contestants[index].HelmetRarity;
-                            contestant.HelmetLife = 5;
-                            _contestants[index].HelmetLife = 0;
-                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].HelmetRarity} * Helmet!\n");
-                        }
-                        else
-                        {
-                            ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that his Helmet was worse than theirs. \n", sb);
-                        }
-                        break;
+                    switch (stealType)
+                    {
+                        case 0:
+                            if (_contestants[index].WeaponLife > 0 && (int)contestant.WeaponRarity < (int)_contestants[index].WeaponRarity)
+                            {
+                                contestant.WeaponRarity = _contestants[index].WeaponRarity;
+                                contestant.WeaponLife = 5;
+                                _contestants[index].WeaponLife = 0;
+                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Weapon!\n");
+                                _contestants[index].WeaponRarity = Rarity.None;
+                                stealAttempts = 0;
+                            }
+                            else if (_contestants[index].WeaponLife == 0 && stealAttempts > 0)
+                            {
+                                stealType = _random.Next(4);
+                                stealAttempts--;
+                                continue;
+                            }
+                            else
+                            {
+                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their Weapon was worse than theirs. \n", sb);
+                                stealAttempts = 0;
+                            }
+                            break;
+                        case 1:
+                            if (_contestants[index].ArmourLife > 0 && (int)contestant.ArmourRarity < (int)_contestants[index].ArmourRarity)
+                            {
+                                contestant.ArmourRarity = _contestants[index].ArmourRarity;
+                                contestant.ArmourLife = 5;
+                                _contestants[index].ArmourLife = 0;
+                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Armour!\n");
+                                _contestants[index].ArmourRarity = Rarity.None;
+                                stealAttempts = 0;
+                            }
+                            else if (_contestants[index].ArmourLife == 0 && stealAttempts > 0)
+                            {
+                                stealType = _random.Next(4);
+                                stealAttempts--;
+                                continue;
+                            }
+                            else
+                            {
+                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their armour was worse than theirs. \n", sb);
+                                stealAttempts = 0;
+                            }
+                            break;
+                        case 2:
+                            if (_contestants[index].OffhandLife > 0 && (int)contestant.OffhandRarity < (int)_contestants[index].OffhandRarity)
+                            {
+                                contestant.OffhandRarity = _contestants[index].OffhandRarity;
+                                contestant.OffhandLife = 5;
+                                _contestants[index].OffhandLife = 0;
+                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].OffhandRarity} * Offhand!\n");
+                                _contestants[index].OffhandRarity = Rarity.None;
+                                stealAttempts = 0;
+                            }
+                            else if (_contestants[index].OffhandLife == 0 && stealAttempts > 0)
+                            {
+                                stealType = _random.Next(4);
+                                stealAttempts--;
+                                continue;
+                            }
+                            else
+                            {
+                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their Offhand was worse than theirs. \n", sb);
+                                stealAttempts = 0;
+                            }
+                            break;
+                        case 3:
+                            if (_contestants[index].HelmetLife > 0 && (int)contestant.HelmetRarity < (int)_contestants[index].HelmetRarity)
+                            {
+                                contestant.HelmetRarity = _contestants[index].HelmetRarity;
+                                contestant.HelmetLife = 5;
+                                _contestants[index].HelmetLife = 0;
+                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].HelmetRarity} * Helmet!\n");
+                                _contestants[index].HelmetRarity = Rarity.None;
+                                stealAttempts = 0;
+                            }
+                            else if (_contestants[index].HelmetLife == 0 && stealAttempts > 0)
+                            {
+                                stealType = _random.Next(4);
+                                stealAttempts--;
+                                continue;
+                            }
+                            else
+                            {
+                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their Helmet was worse than theirs. \n", sb);
+                                stealAttempts = 0;
+                            }
+                            break;
+                    }
                 }
             }
             else
@@ -1102,7 +1070,7 @@ namespace BHungerGaemsBot
             switch (optionIndex)
             {
                 case 0:
-                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may select <:a:> for Option A and <:b:> for Option B.\n\n"+
+                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may select <:a:> for Option A and <:b:> for Option B.\n\n" +
                         "Option A : * Add 5 traps in the game *\n" +
                         "Option B : * Cast a Hurricane that deals 5-15 HP to all players *");
                     return optionIndex;
@@ -1160,6 +1128,83 @@ namespace BHungerGaemsBot
                     Location = TerraForm.Pirate_Cove;
                     sb.Append($"The arena Terra-transformed into * {Location} *\n" +
                         "Effects:\n * +5% Item Find *\n * +2 Traps per day *");
+                    break;
+            }
+        }
+
+        private void LocationEffect(List<InteractivePlayer> playersToBeRemoved, ref int ScenarioMod, ref bool R2Bonus)        {
+            switch (Location)
+            {
+                case TerraForm.Astaroth_Hell:
+                    foreach (InteractivePlayer contestant in _contestants)
+                    {
+                        contestant.Hp -= 3;
+                        if (contestant.Hp <= 0)
+                        {
+                            playersToBeRemoved.Add(contestant);
+                        }
+                    }
+                    ScenarioMod = -5;
+                    break;
+                case TerraForm.Hyper_Dimension:
+                    foreach (InteractivePlayer contestant in _contestants)
+                    {
+                        contestant.Hp += 3;
+                        if (contestant.Hp >= 100)
+                        {
+                            contestant.Hp = 100;
+                        }
+                    }
+                    ScenarioMod = 5;
+                    break;
+                case TerraForm.Pirate_Cove:
+                    for (int i = 0; i < 2; i++)
+                    {
+                        _traps.Add(new Trap(0, _random));
+                        R2Bonus = true;
+                    }
+                    break;
+            }
+        }
+
+        private void CrowdExe( int crowdOption, List<InteractivePlayer> playersToBeRemoved, ref bool bonusItemFind, ref bool crowdExtraDuel, ref int crowdScenarios, BotGameInstance.ShowMessageDelegate showMessageDelegate)
+        {
+            switch (crowdOption)
+            {
+                case 0 when _reactionA > _reactionB:
+                    for (int i = 0; i < 5; i++)
+                    {
+                        _traps.Add(new Trap(0, _random));
+                    }
+                    showMessageDelegate("5 Tarps have been added. Wait.... It's... It's a trap! ");
+                    break;
+                case 0 when _reactionA < _reactionB:
+                    int hurricaneDamage = _random.Next(5, 16);
+                    showMessageDelegate($"A hurricane sweeps through and blows everyone's clothes off. They each lose {hurricaneDamage} HP from shame.");
+                    foreach (InteractivePlayer contestant in _contestants)
+                    {
+                        contestant.Hp -= hurricaneDamage;
+                        if (contestant.Hp <= 0)
+                        {
+                            playersToBeRemoved.Add(contestant);
+                        }
+                    }
+                    break;
+                case 1 when _reactionA > _reactionB:
+                    showMessageDelegate("The crowd can be merciful sometimes... +5% item find for everyone!");
+                    bonusItemFind = true;
+                    break;
+                case 1 when _reactionA < _reactionB:
+                    showMessageDelegate("The sun's bright rays shine through the clouds illuminating safe paths. -2 Scenarios");
+                    crowdScenarios = -2;
+                    break;
+                case 2 when _reactionA > _reactionB:
+                    showMessageDelegate("Are you not entertained!? Well, here's one extra duel for you guys");
+                    crowdExtraDuel = true;
+                    break;
+                case 2 when _reactionA < _reactionB:
+                    showMessageDelegate("A thick layer of rolling fogs fills the ground. +3 Scenarios");
+                    crowdScenarios = 3;
                     break;
             }
         }
