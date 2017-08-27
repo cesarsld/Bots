@@ -394,10 +394,11 @@ namespace BHungerGaemsBot
                             showMessageDelegate("5 Tarps have been added. Wait.... It's... It's a trap! ");
                             break;
                         case 0 when _reactionA < _reactionB:
-                            showMessageDelegate("A hurricane sweeps through and blows everyone's clothes off. They each lose 5 HP from shame.");
+                            int hurricaneDamage = _random.Next(5, 16);
+                            showMessageDelegate($"A hurricane sweeps through and blows everyone's clothes off. They each lose {hurricaneDamage} HP from shame.");
                             foreach (InteractivePlayer contestant in _contestants)
                             {
-                                contestant.Hp -= 5;
+                                contestant.Hp -= hurricaneDamage;
                                 if (contestant.Hp <= 0)
                                 {
                                     playersToBeRemoved.Add(contestant);
@@ -1103,7 +1104,7 @@ namespace BHungerGaemsBot
                 case 0:
                     sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may select <:a:> for Option A and <:b:> for Option B.\n\n"+
                         "Option A : * Add 5 traps in the game *\n" +
-                        "Option B : * Cast a Hurricane that deals 5 HP to all players *");
+                        "Option B : * Cast a Hurricane that deals 5-15 HP to all players *");
                     return optionIndex;
                 case 1:
                     sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may select <:a:> for Option A and <:b:> for Option B.\n\n" +
