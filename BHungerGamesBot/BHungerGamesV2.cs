@@ -10,6 +10,8 @@ namespace BHungerGaemsBot
 {
     public class BHungerGamesV2
     {
+        public const int NumItemTypes = 4;
+
         private const int DelayValue = 3;
 
         private static readonly TimeSpan DelayBetweenCycles;
@@ -29,10 +31,10 @@ namespace BHungerGaemsBot
         private List<InteractivePlayer> _contestants;
         private bool _enhancedOptions;
         private bool _crowdOptions;
-        private TerraForm Location;
+        private TerraForm _location;
 
-        private int _reactionA = 0;
-        private int _reactionB = 0;
+        private int _reactionA;
+        private int _reactionB;
 
         private DangerLevel _currentDangerLevel;
 
@@ -129,7 +131,7 @@ namespace BHungerGaemsBot
                 new DangerLevel("Deadly", 50,  0, 40, 70, 90, 100)
             });
 
-            ShowPlayersWhenCountEqual = new[] { 20, 10, 5, 2, 0 };
+            ShowPlayersWhenCountEqual = new[] {20, 10, 5, 2, 0 };
             EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💰"), new Emoji("❗"), new Emoji("⚔") });
             EmojiListEnhancedOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji("🔧") });
             EmojiListCrowdDecision = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🅰"), new Emoji("🅱") });
@@ -286,9 +288,9 @@ namespace BHungerGaemsBot
             bool crowdExtraDuel = false;
             int crowdScenarios = 0;
             bool bonusItemFind = false;
-            bool R2Bonus = false;
-            int ScenarioMod = 0;
-            Location = TerraForm.None;
+            bool r2Bonus = false;
+            int scenarioMod = 0;
+            _location = TerraForm.None;
 
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
@@ -328,8 +330,6 @@ namespace BHungerGaemsBot
             {
                 // day cycle
                 day++;
-
-                List<int> scenarioImmune = new List<int>();
                 int startingContestantCount = _contestants.Count;
 
                 if (day == 1 || day % 4 == 0)
@@ -339,7 +339,7 @@ namespace BHungerGaemsBot
                     sb.Clear();
                 }
 
-                LocationEffect(playersToBeRemoved, ref ScenarioMod, ref R2Bonus);
+                LocationEffect(playersToBeRemoved, ref scenarioMod, ref r2Bonus);
 
                 if (day % 3 == 0) //crowd decision
                 {
@@ -390,7 +390,7 @@ namespace BHungerGaemsBot
                     switch (contestant.InteractiveDecision)
                     {
                         case InteractiveDecision.Loot:
-                            Loot(contestant, sbLoot, playersToBeRemoved, bonusItemFind, R2Bonus);
+                            Loot(contestant, sbLoot, playersToBeRemoved, bonusItemFind, r2Bonus);
                             break;
                         case InteractiveDecision.StayOnAlert:
                             StayOnAlert(contestant, sb);
@@ -453,29 +453,32 @@ namespace BHungerGaemsBot
                 night++;
                 int index;
 
-                while (scenarioToBeExecuted != 0 && _contestants.Count > numWinners) //scenarios
+                HashSet<InteractivePlayer> scenarioImmune = new HashSet<InteractivePlayer>();
+                while (scenarioToBeExecuted != 0 && _contestants.Count - scenarioImmune.Count > numWinners) //scenarios
                 {
                     index = _random.Next(_contestants.Count);
-                    if (scenarioImmune.Contains(index))
+                    InteractivePlayer currentPlayer = _contestants[index];
+                    if (scenarioImmune.Contains(currentPlayer))
                     {
                         continue;
                     }
-                    switch (_contestants[index].Debuff)
+                    if (currentPlayer.DebuffTimer > 0)
                     {
-                        case Debuff.IncreasedScenarioLikelihood when _contestants[index].DebuffTimer > 0:
-                            _contestants[index].ScenarioLikelihood += 10;
-                            _contestants[index].DebuffTimer--;
-                            break;
-                        case Debuff.SeverlyIncreasedScenarioLikelihood when _contestants[index].DebuffTimer > 0:
-                            _contestants[index].ScenarioLikelihood += 10;
-                            _contestants[index].DebuffTimer--;
-                            break;
+                        if (currentPlayer.Debuff == Debuff.IncreasedScenarioLikelihood)
+                        {
+                            currentPlayer.ScenarioLikelihood += 10;
+                            currentPlayer.DebuffTimer--;
+                        }
+                        else if (currentPlayer.Debuff == Debuff.SeverlyIncreasedScenarioLikelihood)
+                        {
+                            currentPlayer.ScenarioLikelihood += 10;
+                            currentPlayer.DebuffTimer--;
+                        }
                     }
-                    if (RngRoll(_contestants[index].ScenarioLikelihood + ScenarioMod))
+                    if (RngRoll(currentPlayer.ScenarioLikelihood + scenarioMod))
                     {
-                        scenarioImmune.Add(index);
                         scenarioToBeExecuted--;
-                        var selectedPlayer = "<" + _contestants[index].NickName + ">";
+                        var selectedPlayer = "<" + currentPlayer.NickName + ">";
 
                         //scenario method
                         Scenario currentScenario = GetScenario();
@@ -483,11 +486,15 @@ namespace BHungerGaemsBot
                         switch (currentScenario.Type)
                         {
                             case ScenarioType.Damaging:
-                                _contestants[index].Hp -= currentScenario.TypeValue;
-                                sb.Append($" * Current HP = {_contestants[index].Hp} *\n\n");
-                                if (_contestants[index].Hp <= 0)
+                                currentPlayer.Hp -= currentScenario.TypeValue;
+                                sb.Append($" * Current HP = {currentPlayer.Hp} *\n\n");
+                                if (currentPlayer.Hp <= 0)
                                 {
                                     _contestants.RemoveAt(index);
+                                }
+                                else
+                                {
+                                    scenarioImmune.Add(currentPlayer);
                                 }
                                 break;
                             case ScenarioType.Lethal:
@@ -495,16 +502,19 @@ namespace BHungerGaemsBot
                                 sb.Append("\n\n");
                                 break;
                             case ScenarioType.Healing:
-                                _contestants[index].Hp += currentScenario.TypeValue;
-                                if (_contestants[index].Hp > 100)
+                                currentPlayer.Hp += currentScenario.TypeValue;
+                                if (currentPlayer.Hp > 100)
                                 {
-                                    _contestants[index].Hp = 100;
+                                    currentPlayer.Hp = 100;
                                 }
-                                sb.Append($" * Current HP = {_contestants[index].Hp} *\n\n");
+                                sb.Append($" * Current HP = {currentPlayer.Hp} *\n\n");
+                                scenarioImmune.Add(currentPlayer);
                                 break;
                         }
                     }
                 }
+                scenarioImmune.Clear();
+
                 foreach (Trap trap in _traps)
                 {
                     if (RngRoll(15) && _contestants.Count > numWinners)
@@ -516,7 +526,7 @@ namespace BHungerGaemsBot
                         }
                         _contestants[index].Hp -= trap.Damage;
                         sb.Append($"<{_contestants[index].NickName}> fell into a trap damaging them for {trap.Damage}HP. * Current HP = {_contestants[index].Hp} *\n\n");
-
+                       
 
                         if (_contestants[index].Hp <= 0)
                         {
@@ -534,20 +544,22 @@ namespace BHungerGaemsBot
                 else if (_contestants.Count - _duelImmune.Count > numWinners)
                 {
                     Duel(sb);
-                    if (crowdExtraDuel && _contestants.Count - _duelImmune.Count > numWinners)
+                    if (crowdExtraDuel)
                     {
-                        Duel(sb);
-                    }
-                    else if (crowdExtraDuel && _contestants.Count - _duelImmune.Count < 2)
-                    {
-                        sb.Append("#No Duel occured due to lack of available players.\n\n");
+                        if (_contestants.Count - _duelImmune.Count > numWinners)
+                        {
+                            Duel(sb);
+                        }
+                        else
+                        {
+                            sb.Append("#No Extra Duel occured due to lack of available players.\n\n");
+                        }
                     }
                 }
                 else
                 {
                     sb.Append("#No Duel occured due to lack of available players.\n\n");
                 }
-
                 foreach (InteractivePlayer contestant in _contestants)
                 {
                     contestant.Reset(); //resets value of scenariolikelihood and interactive options
@@ -561,10 +573,9 @@ namespace BHungerGaemsBot
                 _reactionB = 0;
                 crowdExtraDuel = false;
                 bonusItemFind = false;
-                R2Bonus = false;
+                r2Bonus = false;
                 crowdScenarios = 0;
-                ScenarioMod = 0;
-                scenarioImmune.Clear();
+                scenarioMod = 0;
                 _enchancedPlayers.Clear();
                 trapsToBeRemoved.Clear();
                 playersToBeRemoved.Clear();
@@ -604,78 +615,6 @@ namespace BHungerGaemsBot
             showMessageDelegate(sb.ToString(), sbP.ToString());
         }
 
-        private int GetDuelChance(Rarity itemRarity)
-        {
-            switch (itemRarity)
-            {
-                case Rarity.Common:
-                    return 5;
-                case Rarity.Rare:
-                    return 10;
-                case Rarity.Epic:
-                    return 15;
-                case Rarity.Legendary:
-                    return 25;
-                case Rarity.Set:
-                    return 35;
-            }
-            return 0;
-        }
-
-        private int GetContestantDuelChance(InteractivePlayer player)
-        {
-            int duelChance = 0;
-            if (player.WeaponLife > 0)
-            {
-                player.WeaponLife--;
-                duelChance += GetDuelChance(player.WeaponRarity);
-                if (player.WeaponLife == 0)
-                {
-                    player.WeaponRarity = Rarity.None;
-                }
-            }
-            if (player.ArmourLife > 0)
-            {
-                player.ArmourLife--;
-                duelChance += GetDuelChance(player.ArmourRarity);
-                if (player.ArmourLife == 0)
-                {
-                    player.ArmourRarity = Rarity.None;
-                }
-            }
-            if (player.HelmetLife > 0)
-            {
-                player.HelmetLife--;
-                duelChance += GetDuelChance(player.HelmetRarity);
-                if (player.HelmetLife == 0)
-                {
-                    player.HelmetRarity = Rarity.None;
-                }
-            }
-            if (player.OffhandLife > 0)
-            {
-                player.OffhandLife--;
-                duelChance += GetDuelChance(player.OffhandRarity);
-                if (player.OffhandLife == 0)
-                {
-                    player.OffhandRarity = Rarity.None;
-                }
-            }
-
-            if (player.Debuff == Debuff.DecreasedDuelChance && player.DebuffTimer > 0)
-            {
-                duelChance -= 5;
-                player.DebuffTimer--;
-            }
-            else if (player.Debuff == Debuff.SeverlyDecreasedDuelChance && player.DebuffTimer > 0)
-            {
-                duelChance -= 10;
-                player.DebuffTimer--;
-            }
-
-            return duelChance;
-        }
-
         //duel method
         private void Duel(StringBuilder sb)
         {
@@ -692,8 +631,8 @@ namespace BHungerGaemsBot
             }
             sb.Append($"A Duel started in between <{_contestants[duelist1].NickName}> and <{_contestants[duelist2].NickName}>\n\n");
 
-            duelChance += GetContestantDuelChance(_contestants[duelist1]);
-            duelChance -= GetContestantDuelChance(_contestants[duelist2]);
+            duelChance += _contestants[duelist1].GetDuelChance();
+            duelChance -= _contestants[duelist2].GetDuelChance();
 
             if (RngRoll(duelChance))
             {
@@ -720,15 +659,16 @@ namespace BHungerGaemsBot
                 sb.Append($"<{contestant.NickName}> has already used that option less than 5 days ago. They will instead Do Nothing today.\n\n");
             }
         }
+
         //interactive options
-        private void Loot(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved, bool bonusItemFind, bool R2Bonus)
+        private void Loot(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved, bool bonusItemFind, bool r2Bonus)
         {
             int itemFind = 0;
             if (bonusItemFind)
             {
                 itemFind = 5;
             }
-            if (R2Bonus)
+            if (r2Bonus)
             {
                 itemFind += 5;
             }
@@ -746,60 +686,28 @@ namespace BHungerGaemsBot
             }
             if (RngRoll(lootChance)) // chance to loot item
             {
-                int lootType = _random.Next(4); // armour or weapon
+                ItemType itemType = (ItemType)_random.Next(NumItemTypes); // armour or weapon
                 int lootRarity = _random.Next(100);
                 //lootRarity = 55;
                 Rarity itemRarity = _currentDangerLevel.GetRarity(lootRarity);
                 bool tookItem = false;
-                string itemTypeName;
-                switch (lootType)
+
+                Item item = contestant.GetItem(itemType);
+                if ((int)item.ItemRarity < (int)itemRarity)
                 {
-                    case 0:
-                        itemTypeName = "weapon";
-                        if ((int)contestant.WeaponRarity < (int)itemRarity)
-                        {
-                            contestant.WeaponLife = 5;
-                            contestant.WeaponRarity = itemRarity;
-                            tookItem = true;
-                        }
-                        break;
-                    case 1:
-                        itemTypeName = "armour";
-                        if ((int)contestant.ArmourRarity < (int)itemRarity)
-                        {
-                            contestant.ArmourLife = 5;
-                            contestant.ArmourRarity = itemRarity;
-                            tookItem = true;
-                        }
-                        break;
-                    case 2:
-                        itemTypeName = "helmet";
-                        if ((int)contestant.HelmetRarity < (int)itemRarity)
-                        {
-                            contestant.HelmetLife = 5;
-                            contestant.HelmetRarity = itemRarity;
-                            tookItem = true;
-                        }
-                        break;
-                    default:
-                        itemTypeName = "offhand";
-                        if ((int)contestant.OffhandRarity < (int)itemRarity)
-                        {
-                            contestant.OffhandLife = 5;
-                            contestant.OffhandRarity = itemRarity;
-                            tookItem = true;
-                        }
-                        break;
+                    item.ItemLife = 5;
+                    item.ItemRarity = itemRarity;
+                    tookItem = true;
                 }
                 if (itemRarity != Rarity.Common)
                 {
                     if (tookItem)
                     {
-                        sbLoot.Append($"<{contestant.NickName}> has obtained a * {itemRarity} * {itemTypeName}!\n");
+                        sbLoot.Append($"<{contestant.NickName}> has obtained a * {itemRarity} * {itemType}!\n");
                     }
                     else
                     {
-                        ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior {itemTypeName} and decided to throw it away\n", sbLoot);
+                        ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior {itemType} and decided to throw it away\n", sbLoot);
                     }
                 }
             }
@@ -834,31 +742,28 @@ namespace BHungerGaemsBot
             }
         }
 
-        private void StayOnAlert(InteractivePlayer contestant, StringBuilder sb)
+        private void StayOnAlert(InteractivePlayer contestant,  StringBuilder sb)
         {
             if (contestant.AlertCooldown == 0)
             {
-                contestant.AlertCooldown = 4;
                 contestant.ScenarioLikelihood -= 10;
                 ReduceTextCongestion($"<{contestant.NickName}> successfully stayed On Alert. -10% Scenario likelihood. \n", sb);
             }
             else
             {
-                int failureChance = _random.Next(10);
-                if (failureChance < 6)
+                if (_random.Next(10) < 6)
                 {
-                    contestant.AlertCooldown = 4;
                     contestant.ScenarioLikelihood += 40;
                     sb.Append($"<{contestant.NickName}> tried to Stay On Alert but fell in a deep sleep. +40% Scenario likelihood. \n");
                 }
                 else
                 {
-                    contestant.AlertCooldown = 4;
                     contestant.ScenarioLikelihood -= 10;
                     ReduceTextCongestion($"<{contestant.NickName}> successfully stayed On Alert. -10% Scenario likelihood. \n", sb);
 
                 }
             }
+            contestant.AlertCooldown = 4;
         }
 
         private Debuff ConvertToDebuff(int id, bool severityFactor)
@@ -883,7 +788,7 @@ namespace BHungerGaemsBot
                 case 0:
                     return Debuff.SeverlyDecreasedItemFind;
                 //case 1:
-                //   return Debuff.SeverlyIncreasedDamageTaken;
+                 //   return Debuff.SeverlyIncreasedDamageTaken;
                 case 1:
                     return Debuff.SeverlyDecreasedDuelChance;
                 case 2:
@@ -936,105 +841,31 @@ namespace BHungerGaemsBot
         {
             if (RngRoll(45))
             {
-                int stealAttempts = 4;
                 int index = _random.Next(_contestants.Count);
                 while (_contestants[index].UserId == contestant.UserId)
                 {
                     index = _random.Next(_contestants.Count);
                 }
-                int stealType = _random.Next(4);
-                while (stealAttempts != 0)
+                for (int i = 0; i < 4; i++)
                 {
-                    switch (stealType)
+                    ItemType stealItemType = (ItemType)_random.Next(NumItemTypes);
+                    Item player1Item = contestant.GetItem(stealItemType);
+                    Item player2Item = _contestants[index].GetItem(stealItemType);
+
+                    if (player2Item.ItemLife > 0)
                     {
-                        case 0:
-                            if (_contestants[index].WeaponLife > 0 && (int)contestant.WeaponRarity < (int)_contestants[index].WeaponRarity)
-                            {
-                                contestant.WeaponRarity = _contestants[index].WeaponRarity;
-                                contestant.WeaponLife = 5;
-                                _contestants[index].WeaponLife = 0;
-                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Weapon!\n");
-                                _contestants[index].WeaponRarity = Rarity.None;
-                                stealAttempts = 0;
-                            }
-                            else if (_contestants[index].WeaponLife == 0 && stealAttempts > 0)
-                            {
-                                stealType = _random.Next(4);
-                                stealAttempts--;
-                                continue;
-                            }
-                            else
-                            {
-                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their Weapon was worse than theirs. \n", sb);
-                                stealAttempts = 0;
-                            }
-                            break;
-                        case 1:
-                            if (_contestants[index].ArmourLife > 0 && (int)contestant.ArmourRarity < (int)_contestants[index].ArmourRarity)
-                            {
-                                contestant.ArmourRarity = _contestants[index].ArmourRarity;
-                                contestant.ArmourLife = 5;
-                                _contestants[index].ArmourLife = 0;
-                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].ArmourRarity} * Armour!\n");
-                                _contestants[index].ArmourRarity = Rarity.None;
-                                stealAttempts = 0;
-                            }
-                            else if (_contestants[index].ArmourLife == 0 && stealAttempts > 0)
-                            {
-                                stealType = _random.Next(4);
-                                stealAttempts--;
-                                continue;
-                            }
-                            else
-                            {
-                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their armour was worse than theirs. \n", sb);
-                                stealAttempts = 0;
-                            }
-                            break;
-                        case 2:
-                            if (_contestants[index].OffhandLife > 0 && (int)contestant.OffhandRarity < (int)_contestants[index].OffhandRarity)
-                            {
-                                contestant.OffhandRarity = _contestants[index].OffhandRarity;
-                                contestant.OffhandLife = 5;
-                                _contestants[index].OffhandLife = 0;
-                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].OffhandRarity} * Offhand!\n");
-                                _contestants[index].OffhandRarity = Rarity.None;
-                                stealAttempts = 0;
-                            }
-                            else if (_contestants[index].OffhandLife == 0 && stealAttempts > 0)
-                            {
-                                stealType = _random.Next(4);
-                                stealAttempts--;
-                                continue;
-                            }
-                            else
-                            {
-                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their Offhand was worse than theirs. \n", sb);
-                                stealAttempts = 0;
-                            }
-                            break;
-                        case 3:
-                            if (_contestants[index].HelmetLife > 0 && (int)contestant.HelmetRarity < (int)_contestants[index].HelmetRarity)
-                            {
-                                contestant.HelmetRarity = _contestants[index].HelmetRarity;
-                                contestant.HelmetLife = 5;
-                                _contestants[index].HelmetLife = 0;
-                                sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {_contestants[index].HelmetRarity} * Helmet!\n");
-                                _contestants[index].HelmetRarity = Rarity.None;
-                                stealAttempts = 0;
-                            }
-                            else if (_contestants[index].HelmetLife == 0 && stealAttempts > 0)
-                            {
-                                stealType = _random.Next(4);
-                                stealAttempts--;
-                                continue;
-                            }
-                            else
-                            {
-                                ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their Helmet was worse than theirs. \n", sb);
-                                stealAttempts = 0;
-                            }
-                            break;
+                        if ((int)player1Item.ItemRarity < (int)player2Item.ItemRarity)
+                        {
+                            sb.Append($"<{contestant.NickName}> stole <{_contestants[index].NickName}>'s * {player2Item.ItemRarity} * {stealItemType}!\n");
+                            player1Item.ItemRarity = player2Item.ItemRarity;
+                            player1Item.ItemLife = 5;
+                            player2Item.ClearItem();
+                        }
+                        else
+                        {
+                            ReduceTextCongestion($"<{contestant.NickName}> tried to steal from <{_contestants[index].NickName}> but realised that their {stealItemType} was worse than theirs. \n", sb);
+                        }
+                        break;
                     }
                 }
             }
@@ -1044,7 +875,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        private bool RngRoll(int a)
+        private  bool RngRoll(int a)
         {
             int chance = a * 10;
             int roll = _random.Next(0, 1000);
@@ -1108,32 +939,33 @@ namespace BHungerGaemsBot
         private void TerraTransformation(StringBuilder sb)
         {
             int terraFormLocation = _random.Next(3);
-            while ((int)Location == terraFormLocation)
+            while ((int)_location == terraFormLocation)
             {
                 terraFormLocation = _random.Next(3);
             }
             switch (terraFormLocation)
             {
                 case 0:
-                    Location = TerraForm.Astaroth_Hell;
-                    sb.Append($"The arena Terra-transformed into * {Location} *\n" +
+                    _location = TerraForm.Astaroth_Hell;
+                    sb.Append($"The arena Terra-transformed into * {_location} *\n" +
                         "Effects:\n * -3HP per day *\n * -5% Scenario likelihood *");
                     break;
                 case 1:
-                    Location = TerraForm.Hyper_Dimension;
-                    sb.Append($"The arena Terra-transformed into * {Location} *\n" +
+                    _location = TerraForm.Hyper_Dimension;
+                    sb.Append($"The arena Terra-transformed into * {_location} *\n" +
                         "Effects:\n * +3HP per day *\n * +5% Scenario likelihood *");
                     break;
                 case 2:
-                    Location = TerraForm.Pirate_Cove;
-                    sb.Append($"The arena Terra-transformed into * {Location} *\n" +
+                    _location = TerraForm.Pirate_Cove;
+                    sb.Append($"The arena Terra-transformed into * {_location} *\n" +
                         "Effects:\n * +5% Item Find *\n * +2 Traps per day *");
                     break;
             }
         }
 
-        private void LocationEffect(List<InteractivePlayer> playersToBeRemoved, ref int ScenarioMod, ref bool R2Bonus)        {
-            switch (Location)
+        private void LocationEffect(List<InteractivePlayer> playersToBeRemoved, ref int scenarioMod, ref bool r2Bonus)
+        {
+            switch (_location)
             {
                 case TerraForm.Astaroth_Hell:
                     foreach (InteractivePlayer contestant in _contestants)
@@ -1144,7 +976,7 @@ namespace BHungerGaemsBot
                             playersToBeRemoved.Add(contestant);
                         }
                     }
-                    ScenarioMod = -5;
+                    scenarioMod = -5;
                     break;
                 case TerraForm.Hyper_Dimension:
                     foreach (InteractivePlayer contestant in _contestants)
@@ -1155,13 +987,13 @@ namespace BHungerGaemsBot
                             contestant.Hp = 100;
                         }
                     }
-                    ScenarioMod = 5;
+                    scenarioMod = 5;
                     break;
                 case TerraForm.Pirate_Cove:
                     for (int i = 0; i < 2; i++)
                     {
                         _traps.Add(new Trap(0, _random));
-                        R2Bonus = true;
+                        r2Bonus = true;
                     }
                     break;
             }

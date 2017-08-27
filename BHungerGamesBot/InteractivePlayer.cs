@@ -9,18 +9,11 @@ namespace BHungerGaemsBot
         public int AlertCooldown { get; set; }
         public int DuelCooldown { get; set; }
         public int DebuffTimer { get; set; }
-        public int WeaponLife { get; set; }
-        public int ArmourLife { get; set; }
-        public int OffhandLife { get; set; }
-        public int HelmetLife { get; set; }
         public int ScenarioItemFindBonus { get; set; }
         public InteractiveDecision InteractiveDecision { get; set; }
         public EnhancedDecision EnhancedDecision { get; set; }
-        public Rarity WeaponRarity { get; set; }
-        public Rarity ArmourRarity { get; set; }
-        public Rarity HelmetRarity { get; set; }
-        public Rarity OffhandRarity { get; set; }
         public Debuff Debuff { get; set; }
+        public Item[] Items { get; set; }
 
         public InteractivePlayer(IUser userParm) : base(userParm)
         {
@@ -29,9 +22,36 @@ namespace BHungerGaemsBot
             AlertCooldown = 0;
             DuelCooldown = 0;
             DebuffTimer = 0;
-            WeaponLife = 0;
-            ArmourLife = 0;
             ScenarioItemFindBonus = 0;
+            Items = new Item[BHungerGamesV2.NumItemTypes];
+            for (var index = 0; index < Items.Length; index++)
+            {
+                Items[index] = new Item();
+            }
+        }
+
+        public Item GetItem(ItemType itemType) => Items[(int) itemType];
+
+        public int GetDuelChance()
+        {
+            int duelChance = 0;
+            foreach (var item in Items)
+            {
+                duelChance = item.GetDuelChance();
+            }
+
+            if (Debuff == Debuff.DecreasedDuelChance && DebuffTimer > 0)
+            {
+                duelChance -= 5;
+                DebuffTimer--;
+            }
+            else if (Debuff == Debuff.SeverlyDecreasedDuelChance && DebuffTimer > 0)
+            {
+                duelChance -= 10;
+                DebuffTimer--;
+            }
+
+            return duelChance;
         }
 
         public void Reset()
