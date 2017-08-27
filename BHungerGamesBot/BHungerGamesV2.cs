@@ -524,7 +524,7 @@ namespace BHungerGaemsBot
                 night++;
                 int index;
 
-                while (scenarioToBeExecuted != 0 && _contestants.Count > 2) //scenarios
+                while (scenarioToBeExecuted != 0 && _contestants.Count > numWinners) //scenarios
                 {
                     index = _random.Next(_contestants.Count);
                     if (scenarioImmune.Contains(index))
@@ -578,7 +578,7 @@ namespace BHungerGaemsBot
                 }
                 foreach (Trap trap in _traps)
                 {
-                    if (RngRoll(15) && _contestants.Count >=2)
+                    if (RngRoll(15) && _contestants.Count > numWinners)
                     {
                         index = _random.Next(_contestants.Count);
                         while (trap.TrapUserID == _contestants[index].UserId)
@@ -602,10 +602,10 @@ namespace BHungerGaemsBot
                 {
                     duelCooldown--;
                 }
-                else if (_contestants.Count - _duelImmune.Count >= 2)
+                else if (_contestants.Count - _duelImmune.Count > numWinners)
                 {
                     Duel(sb);
-                    if (crowdExtraDuel && _contestants.Count - _duelImmune.Count >= 2)
+                    if (crowdExtraDuel && _contestants.Count - _duelImmune.Count > numWinners)
                     {
                         Duel(sb);
                     }
