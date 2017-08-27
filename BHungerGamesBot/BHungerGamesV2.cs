@@ -577,7 +577,7 @@ namespace BHungerGaemsBot
                 }
                 foreach (Trap trap in _traps)
                 {
-                    if (RngRoll(15))
+                    if (RngRoll(15) && _contestants.Count >=2)
                     {
                         index = _random.Next(_contestants.Count);
                         while (trap.TrapUserID == _contestants[index].UserId)
@@ -1101,17 +1101,17 @@ namespace BHungerGaemsBot
             switch (optionIndex)
             {
                 case 0:
-                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may selects <:a:> for Option A and <:b:> for Option B.\n\n"+
+                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may select <:a:> for Option A and <:b:> for Option B.\n\n"+
                         "Option A : * Add 5 traps in the game *\n" +
                         "Option B : * Cast a Hurricane that deals 5 HP to all players *");
                     return optionIndex;
                 case 1:
-                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may selects <:a:> for Option A and <:b:> for Option B.\n\n" +
+                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may select <:a:> for Option A and <:b:> for Option B.\n\n" +
                         "Option A : * +5% bonus Item Find Today *\n" +
                         "Option B : * -2 scenarios Today *");
                     return optionIndex;
                 case 2:
-                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may selects <:a:> for Option A and <:b:> for Option B.\n\n" +
+                    sb.Append("CROWD DECISION\n==============\nYou have 15 seconds to enter your vote to affect the game!\nYou may select <:a:> for Option A and <:b:> for Option B.\n\n" +
                         "Option A : * +1 Duel *\n" +
                         "Option B : * +3 Scenarios *");
                     return optionIndex;
