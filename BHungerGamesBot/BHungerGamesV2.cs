@@ -751,7 +751,7 @@ namespace BHungerGaemsBot
             }
             else
             {
-                if (_random.Next(10) < 6)
+                if (_random.Next(10) < 7)
                 {
                     contestant.ScenarioLikelihood += 40;
                     sb.Append($"<{contestant.NickName}> tried to Stay On Alert but fell in a deep sleep. +40% Scenario likelihood. \n");
