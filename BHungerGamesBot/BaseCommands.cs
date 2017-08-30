@@ -420,11 +420,11 @@ namespace BHungerGaemsBot
             [Summary("Number of Winners")]string strNumWinners = null
         )
         {
-            if (CheckAccessForBitHeroesGuildOnly())
-            {
+           // if (CheckAccessForBitHeroesGuildOnly())
+           // {
                 BotV2GameInstance gameInstance = new BotV2GameInstance();
                 await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, "1", strNumWinners, 0);
-            }
+            //}
         }
 
         private async Task StartGameInternal(BotGameInstance gameInstance, string strMaxUsers, string strMaxMinutesToWait, string strSecondsDelayBetweenDays, string strNumWinners, int testUsers)

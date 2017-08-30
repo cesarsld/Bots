@@ -17,6 +17,7 @@ namespace BHungerGaemsBot
         private static readonly TimeSpan DelayBetweenCycles;
         private static readonly TimeSpan DelayAfterOptions;
         private static readonly ReadOnlyCollection<DangerLevel> LootDangerLevels;
+        private static readonly ReadOnlyCollection<DangerLevel> FamDangerLevels;
         private static readonly int[] ShowPlayersWhenCountEqual;
         private static readonly ReadOnlyCollection<IEmote> EmojiListOptions;
         private static readonly ReadOnlyCollection<IEmote> EmojiListEnhancedOptions;
@@ -32,11 +33,13 @@ namespace BHungerGaemsBot
         private bool _enhancedOptions;
         private bool _crowdOptions;
         private TerraForm _location;
+        
 
         private int _reactionA;
         private int _reactionB;
 
-        private DangerLevel _currentDangerLevel;
+        private DangerLevel _currentLootDangerLevel;
+        private DangerLevel _currentFamDangerLevel;
 
         public class Trap
         {
@@ -131,8 +134,17 @@ namespace BHungerGaemsBot
                 new DangerLevel("Deadly", 50,  0, 40, 70, 90, 100)
             });
 
+            FamDangerLevels = new ReadOnlyCollection<DangerLevel>(new List<DangerLevel>()
+            {
+                new DangerLevel("Safe"     ,  0, 50, 80, 95, 100, 1010),
+                new DangerLevel("Unsafe"   ,  5, 45, 75, 93, 100, 1010),
+                new DangerLevel("Dangerous", 10, 30, 60, 90, 100, 1010),
+                new DangerLevel("Deadly"   , 25,  0, 50, 85, 100, 1010)
+            });
+
             ShowPlayersWhenCountEqual = new[] {20, 10, 5, 2, 0 };
-            EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💰"), new Emoji("❗"), new Emoji("⚔") });
+            //EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> {Emote.Parse ("<:blubber:244666398738087936>")});
+            EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💰"), Emote.Parse("<:blubber:244666398738087936>"), new Emoji("❗"), new Emoji("⚔") });
             EmojiListEnhancedOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji("🔧") });
             EmojiListCrowdDecision = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🅰"), new Emoji("🅱") });
 
@@ -180,7 +192,7 @@ namespace BHungerGaemsBot
                 new Scenario ("{@P1} found Zayu cheating on his body pillow with an actual woman! Zayu made sure {@P1} couldn't see anything anymore. (-{_typeValue}HP)", ScenarioType.Damaging, 30),
                 new Scenario ("'Nice legs you got there, Woodbea-errr... legendaries, nice legendaries' said {@P1}. Woodbeard proceeded to plunder {@P1}'s booty (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 new Scenario ("{@P1} sneaked into Warty's dungeon looking for the Wemmbo schematic. Sadly {@P1} encountered a flock of Zammy heading towards them (-{_typeValue}HP)", ScenarioType.Damaging, 15),
-                new Scenario ("While avoiding the other survivors, {@P1} unknowingly entered Remruade's hunting grounds. Remruade shot an arrow towards {@P1}. *Thunk*. {@P1} takes an arrow to the knee!  (-{_typeValue}HP)\" _typeValue = 15} (-{_typeValue}hP)", ScenarioType.Damaging, 10),
+                new Scenario ("While avoiding the other survivors, {@P1} unknowingly entered Remruade's hunting grounds. Remruade shot an arrow towards {@P1}. *Thunk*. {@P1} takes an arrow to the knee! (-{_typeValue}hP)", ScenarioType.Damaging, 10),
                 new Scenario ("{@P1} found Blubber's mating grounds. Many Blubbies (baby Blubbers) started swarming towards {@P1} and nearly suffocated them to death (-{_typeValue}HP)", ScenarioType.Damaging, 65),
                 new Scenario ("{@P1} imagined a fusion in between Gemm and Conan. Distracted by their deep thinking, a wild Tubbo walked up and kicked them in the groin. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                 new Scenario ("A rock fell onto {@P1}'s head. Wait~ what? But it already happened before! HG is rigged!! (-100HP)", ScenarioType.Lethal, 100),
@@ -299,7 +311,7 @@ namespace BHungerGaemsBot
             List<InteractivePlayer> playersToBeRemoved = new List<InteractivePlayer>();
 
             Logger.LogInternal("V2 Game started, total ppl: " + contestantsTransfer.Count);
-
+            
             if (maxPlayers > 0 && contestantsTransfer.Count > maxPlayers)
             {
                 int numToRemove = contestantsTransfer.Count - maxPlayers;
@@ -370,14 +382,17 @@ namespace BHungerGaemsBot
                 {
                     playerToEnhance = 1;
                 }
+                int dangerIndex = _random.Next(LootDangerLevels.Count);
+                _currentLootDangerLevel = LootDangerLevels[dangerIndex];
+                _currentFamDangerLevel = FamDangerLevels[dangerIndex];
+                sb.Append($"\nDanger level to look for loot = * {_currentLootDangerLevel.Name} *");
+                sb.Append($"\nDanger level to look for familiars = * {_currentFamDangerLevel.Name} *");
 
-                _currentDangerLevel = LootDangerLevels[_random.Next(LootDangerLevels.Count)];
-                sb.Append($"\nDanger level to look for loot = * {_currentDangerLevel.Name} *");
                 // Select Enhanced players
 
                 _ignoreReactions = false;
                 showMessageDelegate($"\n Day**{day}**\nYou have {DelayAfterOptions.Seconds} seconds to input your decision\n"
-                    + " You may select <:moneybag:> to Loot, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, EmojiListOptions);
+                    + " You may select <:moneybag:> to Loot, <:blubber:> to capture Familiars, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, EmojiListOptions);
                 sb.Clear();
                 Thread.Sleep(DelayAfterOptions);
                 _ignoreReactions = true;
@@ -392,6 +407,9 @@ namespace BHungerGaemsBot
                         case InteractiveDecision.Loot:
                             Loot(contestant, sbLoot, playersToBeRemoved, bonusItemFind, r2Bonus);
                             break;
+                        case InteractiveDecision.CaptureFamiliar:
+                            CaptureFamiliar(contestant, sbLoot, playersToBeRemoved);
+                            break;
                         case InteractiveDecision.StayOnAlert:
                             StayOnAlert(contestant, sb);
                             break;
@@ -403,7 +421,7 @@ namespace BHungerGaemsBot
                 showMessageDelegate("" + sbLoot + sb);
                 sbLoot.Clear();
                 sb.Clear();
-
+               
                 _contestants = _contestants.Except(playersToBeRemoved).ToList();
 
                 //enhanced
@@ -515,6 +533,29 @@ namespace BHungerGaemsBot
                 }
                 scenarioImmune.Clear();
 
+                foreach (InteractivePlayer contestant in _contestants)
+                {
+                    if (contestant.Familiar.FamiliarRarity != Rarity.None && RngRoll(_random.Next(100)))
+                    {
+                        int familiarDamage = _random.Next(1, 6) * (int)(contestant.Familiar.FamiliarRarity);
+                        int playerIndex = _random.Next(_contestants.Count);
+                        while (contestant.UserId == _contestants[playerIndex].UserId)
+                        {
+                            playerIndex = _random.Next(_contestants.Count);
+                        }
+                        _contestants[playerIndex].Hp -= familiarDamage;
+                        if (_contestants[playerIndex].Hp <= 0)
+                        {
+                            sb.Append($"<{_contestants[playerIndex].NickName}> died from <{contestant.NickName}>'s {contestant.Familiar.FamiliarName}.\n\n");
+                            _contestants.RemoveAt(playerIndex);
+                        }
+                        else
+                        {
+                            sb.Append($"<{_contestants[playerIndex].NickName}> got attacked by <{contestant.NickName}>'s {contestant.Familiar.FamiliarName} for {familiarDamage}HP. * Current HP = {_contestants[playerIndex].Hp} *\n\n");
+                        }
+                    }
+                }
+
                 foreach (Trap trap in _traps)
                 {
                     if (RngRoll(15) && _contestants.Count > numWinners)
@@ -525,13 +566,14 @@ namespace BHungerGaemsBot
                             index = _random.Next(_contestants.Count);
                         }
                         _contestants[index].Hp -= trap.Damage;
-                        sb.Append($"<{_contestants[index].NickName}> fell into a trap damaging them for {trap.Damage}HP. * Current HP = {_contestants[index].Hp} *\n\n");
-                       
-
                         if (_contestants[index].Hp <= 0)
                         {
                             sb.Append($"<{_contestants[index].NickName}> died from the trap.\n\n");
                             _contestants.RemoveAt(index);
+                        }
+                        else
+                        {
+                            sb.Append($"<{_contestants[index].NickName}> fell into a trap damaging them for {trap.Damage}HP. * Current HP = {_contestants[index].Hp} *\n\n");
                         }
                         trapsToBeRemoved.Add(trap);
                     }
@@ -673,7 +715,7 @@ namespace BHungerGaemsBot
                 itemFind += 5;
             }
             contestant.ScenarioLikelihood += 10;
-            int lootChance = 100 - _currentDangerLevel.FailChance + itemFind;
+            int lootChance = 100 - _currentLootDangerLevel.FailChance + itemFind;
             if (contestant.Debuff == Debuff.DecreasedItemFind && contestant.DebuffTimer > 0)
             {
                 lootChance -= 5;
@@ -689,7 +731,7 @@ namespace BHungerGaemsBot
                 ItemType itemType = (ItemType)_random.Next(NumItemTypes); // armour or weapon
                 int lootRarity = _random.Next(100);
                 //lootRarity = 55;
-                Rarity itemRarity = _currentDangerLevel.GetRarity(lootRarity);
+                Rarity itemRarity = _currentLootDangerLevel.GetRarity(lootRarity);
                 bool tookItem = false;
 
                 Item item = contestant.GetItem(itemType);
@@ -715,7 +757,7 @@ namespace BHungerGaemsBot
             {
                 int failureDamage = 0;
                 string failureDescription = null;
-                switch (_currentDangerLevel.FailChance)
+                switch (_currentLootDangerLevel.FailChance)
                 {
                     case 10:
                         failureDamage = (_random.Next(2) + 2) * 5; // 10 - 15
@@ -728,6 +770,57 @@ namespace BHungerGaemsBot
                     case 50:
                         failureDamage = (_random.Next(4) + 10) * 5; // 50 - 65
                         failureDescription = "recieved a nearly life taking blow by a powerful beast while looking for loot and got injured for";
+                        break;
+                }
+                if (string.IsNullOrEmpty(failureDescription) == false)
+                {
+                    contestant.Hp -= failureDamage;
+                    sbLoot.Append($"<{contestant.NickName}> {failureDescription} {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
+                    if (contestant.Hp <= 0)
+                    {
+                        playersToBeRemoved.Add(contestant);
+                    }
+                }
+            }
+        }
+
+        private void CaptureFamiliar(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved)
+        {
+            int captureChance = 100 - _currentFamDangerLevel.FailChance;
+            int famRarityIndex = _random.Next(100);
+            int famNameIndex = _random.Next(10);
+            Rarity familiarRarity = _currentFamDangerLevel.GetRarity(famRarityIndex);
+            if (RngRoll(captureChance))
+            {
+                if ((int)familiarRarity > (int)contestant.Familiar.FamiliarRarity)
+                {
+                    contestant.Familiar.FamiliarRarity = familiarRarity;
+                    contestant.Familiar.GetFamiliarName(familiarRarity, famNameIndex);
+                    sbLoot.Append($"<{contestant.NickName}> has captured a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} !\n");
+                }
+                else
+                {
+                    ReduceTextCongestion($"<{contestant.NickName}> politely declined a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} as they were too cool for it.\n", sbLoot);
+                }
+
+            }
+            else
+            {
+                int failureDamage = 0;
+                string failureDescription = null;
+                switch (_currentFamDangerLevel.FailChance)
+                {
+                    case 5:
+                        failureDamage = (_random.Next(2) + 1) * 5; // 10 - 15
+                        failureDescription = $"tried to bribe a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} but failed and got headbutted for";
+                        break;
+                    case 10:
+                        failureDamage = (_random.Next(2) + 2) * 5; // 30 - 35
+                        failureDescription = $"got outsmarted by a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} and got injured for";
+                        break;
+                    case 25:
+                        failureDamage = (_random.Next(4) + 6) * 5; // 50 - 65
+                        failureDescription = $"tried to lure a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} into a trap but stepped in his own trap injuring him for";
                         break;
                 }
                 if (string.IsNullOrEmpty(failureDescription) == false)
@@ -1083,10 +1176,14 @@ namespace BHungerGaemsBot
                 var authenticPlayer = _contestants.FirstOrDefault(contestant => contestant.UserId == userId);
                 if (authenticPlayer != null)
                 {
+                    
                     switch (reactionName)
                     {
                         case "💰":
                             authenticPlayer.InteractiveDecision = InteractiveDecision.Loot;
+                            break;
+                        case "blubber":
+                            authenticPlayer.InteractiveDecision = InteractiveDecision.CaptureFamiliar;
                             break;
                         case "❗":
                             authenticPlayer.InteractiveDecision = InteractiveDecision.StayOnAlert;

@@ -4,6 +4,7 @@
     {
         DoNothing,
         Loot,
+        CaptureFamiliar,
         StayOnAlert,
         ImmuneToDuel
     }

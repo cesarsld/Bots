@@ -14,6 +14,7 @@ namespace BHungerGaemsBot
         public EnhancedDecision EnhancedDecision { get; set; }
         public Debuff Debuff { get; set; }
         public Item[] Items { get; set; }
+        public Familiar Familiar = new Familiar();
 
         public InteractivePlayer(IUser userParm) : base(userParm)
         {
