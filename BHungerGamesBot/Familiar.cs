@@ -15,7 +15,7 @@ namespace BHungerGaemsBot
             FamiliarName = null;
         }
 
-        public void GetFamiliarName(Rarity rarity, int famIndex)
+       /* public void GetFamiliarName(Rarity rarity, int famIndex)
         {
             switch (rarity)
             {
@@ -32,6 +32,6 @@ namespace BHungerGaemsBot
                     FamiliarName = ((FamiliarLegendaryNameList)famIndex).ToString();
                     break;
             }
-        }
+        }*/
     }
 }

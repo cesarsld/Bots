@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BHungerGaemsBot
 {
-    enum FamiliarCommonNameList
+    enum FamiliarNameList
     {
         Batty,
         Krusty,
@@ -15,11 +15,8 @@ namespace BHungerGaemsBot
         Sammy,
         Nock,
         Mummith,
-        Gak
-    }
+        Gak,
 
-    enum FamiliarRareNameList
-    {
         Grampz,
         Tubbo,
         Bob,
@@ -29,14 +26,10 @@ namespace BHungerGaemsBot
         Amby,
         Brute,
         Dina,
-        Melvins
+        Melvins,
 
-    }
-
-    enum FamiliarEpicNameList
-    {
         Gemm,
-        Jeb, 
+        Jeb,
         Yeti,
         Blubber,
         Nosdoodoo,
@@ -44,21 +37,19 @@ namespace BHungerGaemsBot
         Shade,
         Driffin,
         Oevor,
-        Zorul
+        Zorul,
 
-    }
-
-    enum FamiliarLegendaryNameList
-    {
-        Kaleido, 
+        Kaleido,
         Astaroth,
         Woodbeard,
         Gobby,
-        Olxa, 
-        Mimzy, 
+        Olxa,
+        Mimzy,
         Bully,
         Wemmbo,
         Bobodom,
         Korgz
+
     }
+
 }

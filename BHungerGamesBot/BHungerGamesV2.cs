@@ -23,6 +23,7 @@ namespace BHungerGaemsBot
         private static readonly ReadOnlyCollection<IEmote> EmojiListEnhancedOptions;
         private static readonly ReadOnlyCollection<IEmote> EmojiListCrowdDecision;
         private static readonly Scenario[] Scenarios;
+        private static readonly List<ulong> BannedPlayers;
 
         private readonly Random _random;
         private readonly HashSet<InteractivePlayer> _enchancedPlayers;
@@ -148,6 +149,18 @@ namespace BHungerGaemsBot
             EmojiListEnhancedOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji("🔧") });
             EmojiListCrowdDecision = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🅰"), new Emoji("🅱") });
 
+            BannedPlayers = new List<ulong>
+            {
+                329225166737506305,
+                258046391694131200,
+                236912554797039626,
+                335303396540284928,
+                245575579808563201,
+                279285504250347520,
+                350345331772227586,
+                
+            };
+
             Scenarios = new[]
             {
                 //new Scenario ("{@P1} has been dealt {_typeValue} HP", ScenarioType.Damaging, 20),
@@ -198,7 +211,7 @@ namespace BHungerGaemsBot
                 new Scenario ("A rock fell onto {@P1}'s head. Wait~ what? But it already happened before! HG is rigged!! (-100HP)", ScenarioType.Lethal, 100),
                 new Scenario ("{@P1} is on his way to defeat the mighty King Dina. HP shrine available, potions unused, what could go wrong? Dina was slain but at the cost of {@P1}’s left arm (-{_typeValue}HP)", ScenarioType.Damaging, 80),
                 new Scenario ("{@P1} found the Legendary B.I.T. Chain! It was guarded by the mighty Kaleido. On his attempt it to steal it, {@P1} bumped into a Violace that tried slaying them (-{_typeValue}HP)", ScenarioType.Damaging, 30),
-                new Scenario ("{@P1} ventured in a castle to find epic loot. In its journey, a random Mer'Lan appeared. It tried to disinegrate {P@1} but they managed to kill it before lethal damage was caused. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
+                new Scenario ("{@P1} ventured in a castle to find epic loot. In its journey, a random Mer'Lan appeared. It tried to disinegrate {@P1} but they managed to kill it before lethal damage was caused. (-{_typeValue}HP)", ScenarioType.Damaging, 25),
                
                
                
@@ -242,7 +255,7 @@ namespace BHungerGaemsBot
                 new Scenario ("{@P1} walked through the Hyper Dimension and got ran over by a herd of Oevor. (-{_typeValue}HP)", ScenarioType.Damaging, 35),
                 new Scenario ("{@P1} lost their mind eating some psychedelic Shrump offsprings. They attempted to ride a wild Trixxie while shouting 'Toga! Toga!'.  (-{_typeValue}HP)", ScenarioType.Damaging, 35),
                 new Scenario ("{@P1} was apprehensively moving through shadowy woods when they were suddenly startled by the sound of heavy footsteps behind them. Out of desperation, and perhaps a dash of curiosity, {@P1} tried mounting their Driffin like a horse to gallop to a hasty getaway. The Driffin made its displeasure known. Painfully. (-{_typeValue}HP)", ScenarioType.Damaging, 45),
-                new Scenario ("{@P1} entered a fight with Astally. They are extremely durable creatures. {P@1} got deflected countless times. (-{_typeValue}HP)", ScenarioType.Damaging, 35),
+                new Scenario ("{@P1} entered a fight with Astally. They are extremely durable creatures. {@P1} got deflected countless times. (-{_typeValue}HP)", ScenarioType.Damaging, 35),
                 new Scenario ("{@P1} observed in the distance a rare creature... It's a blubbicorn! They tried to capture it but the Blubbicorn didn't appreciae it and started charging at them. (-{_typeValue}HP)", ScenarioType.Damaging, 20),
                 
                 //new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
@@ -259,7 +272,7 @@ namespace BHungerGaemsBot
                 new Scenario ("{@P1} died\n.\n.\n.\njk. They did lose -{_typeValue}HP though.", ScenarioType.Damaging, 15),
                 new Scenario ("{@P1} died\n.\n.\n.\njk. They did lose -{_typeValue}HP though.", ScenarioType.Damaging, 20),
                 new Scenario ("{@P1} decided to go hunt for food. {@P1} shoots his arrow - but whats this? the arrow ricochets and unfortunately hits {@P1} in the knee... Damn RNG!", ScenarioType.Damaging,25),
-                new Scenario ("{@P1} walked slowly inside a cave. They have been told that many riches resided inside. They haven't told him it guarded by a Lardoz. {P@1} managed to defeat it at the cost of empowered bruises.(-{_typeValue}HP)", ScenarioType.Damaging, 55),
+                new Scenario ("{@P1} walked slowly inside a cave. They have been told that many riches resided inside. They haven't told him it guarded by a Lardoz. {@P1} managed to defeat it at the cost of empowered bruises.(-{_typeValue}HP)", ScenarioType.Damaging, 55),
                 // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 // new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
                 //  new Scenario ("{@P1} (-{_typeValue}HP)", ScenarioType.Damaging, 10),
@@ -306,12 +319,26 @@ namespace BHungerGaemsBot
 
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
+            StringBuilder sbFamLoot = new StringBuilder(2000);
             _traps = new List<Trap>();
             List<Trap> trapsToBeRemoved = new List<Trap>();
             List<InteractivePlayer> playersToBeRemoved = new List<InteractivePlayer>();
+            List<Player> bannedPlayersToRemove = new List<Player>();
 
             Logger.LogInternal("V2 Game started, total ppl: " + contestantsTransfer.Count);
-            
+
+            foreach (Player player in contestantsTransfer)
+            {
+                if (BannedPlayers.Contains(player.UserId))
+                {
+                    bannedPlayersToRemove.Add(player);
+                }
+            }
+            contestantsTransfer = contestantsTransfer.Except(bannedPlayersToRemove).ToList();
+            if (bannedPlayersToRemove.Count > 0)
+            {
+                showMessageDelegate($"Number of banned players attempting to join game:{bannedPlayersToRemove.Count}\r\n" );
+            }
             if (maxPlayers > 0 && contestantsTransfer.Count > maxPlayers)
             {
                 int numToRemove = contestantsTransfer.Count - maxPlayers;
@@ -383,8 +410,9 @@ namespace BHungerGaemsBot
                     playerToEnhance = 1;
                 }
                 int dangerIndex = _random.Next(LootDangerLevels.Count);
+                int famDangerIndex = _random.Next(FamDangerLevels.Count);
                 _currentLootDangerLevel = LootDangerLevels[dangerIndex];
-                _currentFamDangerLevel = FamDangerLevels[dangerIndex];
+                _currentFamDangerLevel = FamDangerLevels[famDangerIndex];
                 sb.Append($"\nDanger level to look for loot = * {_currentLootDangerLevel.Name} *");
                 sb.Append($"\nDanger level to look for familiars = * {_currentFamDangerLevel.Name} *");
 
@@ -392,7 +420,7 @@ namespace BHungerGaemsBot
 
                 _ignoreReactions = false;
                 showMessageDelegate($"\n Day**{day}**\nYou have {DelayAfterOptions.Seconds} seconds to input your decision\n"
-                    + " You may select <:moneybag:> to Loot, <:blubber:> to capture Familiars, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, EmojiListOptions);
+                    + "You may select <:moneybag:> to Loot, <:blubber:> to capture Familiars, <:exclamation:> to Stay On Alert or <:crossed_swords:> to be immuned to Duels! If you do NOT select a reaction, you will Do Nothing." + sb, null, EmojiListOptions);
                 sb.Clear();
                 Thread.Sleep(DelayAfterOptions);
                 _ignoreReactions = true;
@@ -408,7 +436,7 @@ namespace BHungerGaemsBot
                             Loot(contestant, sbLoot, playersToBeRemoved, bonusItemFind, r2Bonus);
                             break;
                         case InteractiveDecision.CaptureFamiliar:
-                            CaptureFamiliar(contestant, sbLoot, playersToBeRemoved);
+                            CaptureFamiliar(contestant, sbFamLoot, playersToBeRemoved);
                             break;
                         case InteractiveDecision.StayOnAlert:
                             StayOnAlert(contestant, sb);
@@ -418,7 +446,8 @@ namespace BHungerGaemsBot
                             break;
                     }
                 }
-                showMessageDelegate("" + sbLoot + sb);
+                showMessageDelegate("" + sbLoot + "\n" + sbFamLoot + sb);
+                sbFamLoot.Clear();
                 sbLoot.Clear();
                 sb.Clear();
                
@@ -540,7 +569,7 @@ namespace BHungerGaemsBot
                     {
                         if (contestant.Familiar.FamiliarRarity != Rarity.None && RngRoll(_random.Next(20)))
                         {
-                            int familiarDamage = _random.Next(1, 6) * (int)(contestant.Familiar.FamiliarRarity);
+                            int familiarDamage = _random.Next(1, 10) * (int)(contestant.Familiar.FamiliarRarity);
                             int playerIndex = _random.Next(_contestants.Count);
                             while (contestant.UserId == _contestants[playerIndex].UserId)
                             {
@@ -550,7 +579,7 @@ namespace BHungerGaemsBot
                             if (_contestants[playerIndex].Hp <= 0)
                             {
                                 sb.Append($"<{_contestants[playerIndex].NickName}> died from <{contestant.NickName}>'s {contestant.Familiar.FamiliarName}.\n\n");
-                                playersToBeRemoved.Add(contestant);
+                                playersToBeRemoved.Add(_contestants[playerIndex]);
                             }
                             else
                             {
@@ -615,7 +644,7 @@ namespace BHungerGaemsBot
                 {
                     scenario.ReduceDelay();
                 }
-                showMessageDelegate($"\nNight**{night}** <{startingContestantCount}> players remaining\n\n" + sb);
+                showMessageDelegate($"\nNight**{night}** <{_contestants.Count}> players remaining\n\n" + sb);
                 _reactionA = 0;
                 _reactionB = 0;
                 crowdExtraDuel = false;
@@ -789,23 +818,24 @@ namespace BHungerGaemsBot
             }
         }
 
-        private void CaptureFamiliar(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved)
+        private void CaptureFamiliar(InteractivePlayer contestant, StringBuilder sbFamLoot, List<InteractivePlayer> playersToBeRemoved)
         {
             int captureChance = 100 - _currentFamDangerLevel.FailChance;
             int famRarityIndex = _random.Next(100);
             int famNameIndex = _random.Next(10);
             Rarity familiarRarity = _currentFamDangerLevel.GetRarity(famRarityIndex);
+            FamiliarNameList familiarName = (FamiliarNameList)(famNameIndex + (((int)familiarRarity - 1) * 10));
             if (RngRoll(captureChance))
             {
                 if ((int)familiarRarity > (int)contestant.Familiar.FamiliarRarity)
                 {
                     contestant.Familiar.FamiliarRarity = familiarRarity;
-                    contestant.Familiar.GetFamiliarName(familiarRarity, famNameIndex);
-                    sbLoot.Append($"<{contestant.NickName}> has captured a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} !\n");
+                    contestant.Familiar.FamiliarName = familiarName.ToString();
+                    sbFamLoot.Append($"<{contestant.NickName}> has captured a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} !\n");
                 }
                 else
                 {
-                    ReduceTextCongestion($"<{contestant.NickName}> politely declined a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} as they were too cool for it.\n", sbLoot);
+                    ReduceTextCongestion($"<{contestant.NickName}> politely declined a * {familiarRarity} * {familiarName} as they were too cool for it.\n", sbFamLoot);
                 }
 
             }
@@ -816,22 +846,22 @@ namespace BHungerGaemsBot
                 switch (_currentFamDangerLevel.FailChance)
                 {
                     case 5:
-                        failureDamage = (_random.Next(2) + 1) * 5; // 10 - 15
-                        failureDescription = $"tried to bribe a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} but failed and got headbutted for";
+                        failureDamage = (_random.Next(2) + 1) * 5; // 5 - 15
+                        failureDescription = $"tried to bribe a * {familiarRarity} * {familiarName} but failed and got headbutted for";
                         break;
                     case 10:
-                        failureDamage = (_random.Next(2) + 2) * 5; // 30 - 35
-                        failureDescription = $"got outsmarted by a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} and got injured for";
+                        failureDamage = (_random.Next(2) + 2) * 5; // 10 - 20
+                        failureDescription = $"got outsmarted by a * {familiarRarity} * {familiarName} and got injured for";
                         break;
                     case 25:
-                        failureDamage = (_random.Next(4) + 6) * 5; // 50 - 65
-                        failureDescription = $"tried to lure a * {contestant.Familiar.FamiliarRarity} * {contestant.Familiar.FamiliarName} into a trap but stepped in his own trap injuring him for";
+                        failureDamage = (_random.Next(4) + 6) * 5; // 30 - 50
+                        failureDescription = $"tried to lure a * {familiarRarity} * {familiarName} into a trap but stepped in his own trap injuring him for";
                         break;
                 }
                 if (string.IsNullOrEmpty(failureDescription) == false)
                 {
                     contestant.Hp -= failureDamage;
-                    sbLoot.Append($"<{contestant.NickName}> {failureDescription} {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
+                    sbFamLoot.Append($"<{contestant.NickName}> {failureDescription} {failureDamage}HP. * Current HP = {contestant.Hp} *\n ");
                     if (contestant.Hp <= 0)
                     {
                         playersToBeRemoved.Add(contestant);

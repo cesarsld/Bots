@@ -38,7 +38,7 @@ namespace BHungerGaemsBot
             int duelChance = 0;
             foreach (var item in Items)
             {
-                duelChance = item.GetDuelChance();
+                duelChance += item.GetDuelChance();
             }
 
             if (Debuff == Debuff.DecreasedDuelChance && DebuffTimer > 0)
@@ -50,6 +50,21 @@ namespace BHungerGaemsBot
             {
                 duelChance -= 10;
                 DebuffTimer--;
+            }
+            switch (Familiar.FamiliarRarity)
+            {
+                case Rarity.Common:
+                    duelChance += 15;
+                    break;
+                case Rarity.Rare:
+                    duelChance += 30;
+                    break;
+                case Rarity.Epic:
+                    duelChance += 45;
+                    break;
+                case Rarity.Legendary:
+                    duelChance += 60;
+                    break;
             }
 
             return duelChance;
