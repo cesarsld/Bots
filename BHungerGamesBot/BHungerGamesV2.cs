@@ -423,6 +423,7 @@ namespace BHungerGaemsBot
                 sb.Clear();
                
                 _contestants = _contestants.Except(playersToBeRemoved).ToList();
+                playersToBeRemoved.Clear();
 
                 //enhanced
                 _enhancedOptions = true;
@@ -535,26 +536,30 @@ namespace BHungerGaemsBot
 
                 foreach (InteractivePlayer contestant in _contestants)
                 {
-                    if (contestant.Familiar.FamiliarRarity != Rarity.None && RngRoll(_random.Next(100)))
+                    if (!playersToBeRemoved.Contains(contestant))
                     {
-                        int familiarDamage = _random.Next(1, 6) * (int)(contestant.Familiar.FamiliarRarity);
-                        int playerIndex = _random.Next(_contestants.Count);
-                        while (contestant.UserId == _contestants[playerIndex].UserId)
+                        if (contestant.Familiar.FamiliarRarity != Rarity.None && RngRoll(_random.Next(20)))
                         {
-                            playerIndex = _random.Next(_contestants.Count);
-                        }
-                        _contestants[playerIndex].Hp -= familiarDamage;
-                        if (_contestants[playerIndex].Hp <= 0)
-                        {
-                            sb.Append($"<{_contestants[playerIndex].NickName}> died from <{contestant.NickName}>'s {contestant.Familiar.FamiliarName}.\n\n");
-                            _contestants.RemoveAt(playerIndex);
-                        }
-                        else
-                        {
-                            sb.Append($"<{_contestants[playerIndex].NickName}> got attacked by <{contestant.NickName}>'s {contestant.Familiar.FamiliarName} for {familiarDamage}HP. * Current HP = {_contestants[playerIndex].Hp} *\n\n");
+                            int familiarDamage = _random.Next(1, 6) * (int)(contestant.Familiar.FamiliarRarity);
+                            int playerIndex = _random.Next(_contestants.Count);
+                            while (contestant.UserId == _contestants[playerIndex].UserId)
+                            {
+                                playerIndex = _random.Next(_contestants.Count);
+                            }
+                            _contestants[playerIndex].Hp -= familiarDamage;
+                            if (_contestants[playerIndex].Hp <= 0)
+                            {
+                                sb.Append($"<{_contestants[playerIndex].NickName}> died from <{contestant.NickName}>'s {contestant.Familiar.FamiliarName}.\n\n");
+                                playersToBeRemoved.Add(contestant);
+                            }
+                            else
+                            {
+                                sb.Append($"<{_contestants[playerIndex].NickName}> got attacked by <{contestant.NickName}>'s {contestant.Familiar.FamiliarName} for {familiarDamage}HP. * Current HP = {_contestants[playerIndex].Hp} *\n\n");
+                            }
                         }
                     }
                 }
+                _contestants = _contestants.Except(playersToBeRemoved).ToList();
 
                 foreach (Trap trap in _traps)
                 {
