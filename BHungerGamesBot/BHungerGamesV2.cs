@@ -12,7 +12,7 @@ namespace BHungerGaemsBot
     {
         public const int NumItemTypes = 4;
 
-        private const int DelayValue = 3;
+        private const int DelayValue = 1;
 
         private static readonly TimeSpan DelayBetweenCycles;
         private static readonly TimeSpan DelayAfterOptions;
