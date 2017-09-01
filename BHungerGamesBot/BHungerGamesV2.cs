@@ -158,7 +158,12 @@ namespace BHungerGaemsBot
                 245575579808563201,
                 279285504250347520,
                 350345331772227586,
-                
+                344238799389327371,
+                350801474814476290,
+                325465337971736586,
+                335613761408860171,
+                249820262462128129
+
             };
 
             Scenarios = new[]
@@ -571,7 +576,7 @@ namespace BHungerGaemsBot
                         {
                             int familiarDamage = _random.Next(1, 10) * (int)(contestant.Familiar.FamiliarRarity);
                             int playerIndex = _random.Next(_contestants.Count);
-                            while (contestant.UserId == _contestants[playerIndex].UserId)
+                            while (contestant.UserId == _contestants[playerIndex].UserId || playersToBeRemoved.Contains(_contestants[playerIndex]))
                             {
                                 playerIndex = _random.Next(_contestants.Count);
                             }
@@ -941,7 +946,7 @@ namespace BHungerGaemsBot
 
                 _contestants[index].Debuff = ConvertToDebuff(debuffSelection, severityFactor);
                 _contestants[index].DebuffTimer = severityFactor ? 3 : 5;
-                sb.Append($"<{contestant.NickName}> has sabotaged <{_contestants[index].NickName}> by giving themm a {_contestants[index].Debuff} debuff for {_contestants[index].DebuffTimer} turns!\n");
+                sb.Append($"<{contestant.NickName}> has sabotaged <{_contestants[index].NickName}> by giving them a {_contestants[index].Debuff} debuff for {_contestants[index].DebuffTimer} turns!\n");
             }
             else
             {

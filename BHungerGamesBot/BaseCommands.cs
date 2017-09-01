@@ -124,8 +124,8 @@ namespace BHungerGaemsBot
             {
                 foreach (IRole role in roles)
                 {
-                    if ((checkCancelAccess == false && role.Name.Contains("Level 2"))
-                        || role.Name.Contains("300+") || role.Name.Contains("400") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod "))
+                    if ((checkCancelAccess == false && role.Name.Contains("Level 6"))
+                        || role.Name.Contains("300+") || role.Name.Contains("400") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod ") || Context.User.Username.Contains("Owl of") || role.Name.Contains("[K]"))
                     {
                         rolesWithAccess.Add(role.Id);
                     }
