@@ -236,6 +236,65 @@ namespace BHungerGaemsBot
                                 + "<Number of Winners (Default: 1)>```\r\n");
         }
 
+        public async Task ShowGameHelpV2()
+        {
+            await ReplyAsync("```Markdown\r\n<!StartV2> - Starts a new game if one is not already running.\n"
+                                + "You must provide the first parameter to run, all other parameters are optional, like so:\n"
+                                + "StartV2 100 5 2\n"
+                                + "Parameters are in order:\n"
+                                + "<Max User that can play>\n"
+                                + "<Max minutes to wait for players (Default: 5)>\n"
+                                + "<Number of Winners (Default: 1)>\n"
+                                + "For more information on how to play, type the command: <!V2Rules> ```\r\n");
+        }
+
+        [Command("V2Rules"), Summary("Show HG2 rules")]
+        public async Task Helpv2()
+        {
+            try
+            {
+                if (CheckAccess(true))
+                {
+                    await ReplyAsync("__**Interactive HGv2**__\n"
+                        + "__**Objective**__: Be the last survivor.\n" 
+                        + "__**Initial Options**__\n"
+                        + "__Loot__ ( :moneybag: ) = You have a chance to obtain gear (weapon/offhand/armor/helmet). Gear increases your chance to win duels. Weapon is destroyed after 5 duels.\n"
+                        + "  •    Safe = No Damage = Low Quality Loot\n"
+                        + "  •    Unsafe = Small chance for minor Damage = Medium Quality Loot\n"
+                        + "  •    Dangerous= Medium chance for heavy Damage = High Quality Loot\n"
+                        + "  •    Deadly = High chance for extreme Damage = Very High Quality Loot\n"
+                        + "__Capture Familiars__ ( " + Emote.Parse("<:blubber:244666398738087936>") + " you need an emote with the name : blubber :)= You have the chance to obtain a familiar that will increase your duel chance + small chance that it deals damage on another survivor. As for loot, you will have danger levels. Higher danger level = higher risk to fail = higher quality of familiar.\n"
+                        + "  •    Safe = No Damage = Low Quality Familiar\n"
+                        + "  •    Unsafe = Small chance for minor Damage = Medium Quality Familiar\n"
+                        + "  •    Dangerous_= Medium chance for heavy Damage = High Quality Familiar\n"
+                        + "  •    Deadly = High chance for extreme Damage = Very High Quality Familiar\n"
+                        + "__Stay Alert__ (:exclamation:) = +10% chance for avoiding scenario's. Less chance of success if used in succession.\n"
+                        + "__Duel Immunity__ (:crossed_swords:) = Prevents you from being targeted for a duel. Cannot be used in succession; has a 5 day cooldown.\n"
+                        + "__Do Nothing__ = Occurs when you do not input a command.\n"
+                        );
+                    await ReplyAsync("__**Enhanced Decisions**__\n"
+                        + "Players will be randomly selected to perform an additional action after each round.\n"
+                        + "  •    Sabotage  (:wrench:)  = Chance to apply a debuff to another player\n"
+                        + "  •    Steal (:gun:)  = Chance to steal an opponents item. Will only steal items greater than what you currently have\n"
+                        + "  •    Make a Trap (:bomb:) = Chance to create a trap that will target enemy players and apply immediate damage\n"
+                        + "__**Game Effects:**__\n"
+                        + "__Crowd Decisions__ = every 3 days a public crowd poll will be executed to modify the game\n"
+                        + "__Terra_forming__ = every 4 days the arena changes to obtain different advantages and disadvantages.\n"
+                        + "__Scenarios__ = Every day will have a chance for a scenario. Each scenario will either heal you (small chance), instantly kill you (small chance) or damage you (common)\n"
+                        + "__Duel__ = Start after 4 days. Every day a random duel between people will start. This is not influenced by Stay Alert\n"
+                        + "__Debuffs__ = Negative effects incurred by sabotage\n"
+                        + "  •    Reduced Item Find\n"
+                        + "  •    Increased Scenario Likelihood\n"
+                        + "  •    Increased Duel Chance\n"
+                        );
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.Log(new LogMessage(LogSeverity.Error, "CancelGame", "Unexpected Exception", ex));
+            }
+        }
+
         [Command("Help"), Summary("Shows Bot Help")]
         public async Task Help()
         {
@@ -248,6 +307,7 @@ namespace BHungerGaemsBot
                                      + "Only the user that started the game or an Admin/Mod can run this command.```\r\n");
                     await ReplyAsync("```Markdown\r\n<!CleanUp> - Deletes all the messages by this Bot in the last 100 messages.```\r\n");
                     await ShowGameHelp();
+                    await ShowGameHelpV2();
                 }
             }
             catch (Exception ex)
