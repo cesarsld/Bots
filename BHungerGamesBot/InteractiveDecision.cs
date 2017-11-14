@@ -8,4 +8,14 @@
         StayOnAlert,
         ImmuneToDuel
     }
+
+    public enum InteractiveRPGDecision
+    {
+        Nothing,
+        Train,
+        LookForLoot,
+        LookForExp,
+        LookForCompletion
+
+    }
 }

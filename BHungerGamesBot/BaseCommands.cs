@@ -453,6 +453,18 @@ namespace BHungerGaemsBot
                
             }
         }
+        [Command("StartV3", RunMode = RunMode.Async), Summary("STart the BitHeroes BattleGriund")]
+        public async Task BHBG([Summary("Max User that can play")]string strMaxUsers,
+            [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
+            [Summary("Number of Winners")]string strNumWinners = null
+        )
+        {
+            if (CheckAccess())
+            {
+                BotV3GameInstance gameInstance = new BotV3GameInstance();
+                await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, "1", strNumWinners, 0);
+            }
+        }
 
         [Command("startGame", RunMode = RunMode.Async), Summary("Starts the BHungerGames.")]
         public async Task StartGame([Summary("Max User that can play")]string strMaxUsers,

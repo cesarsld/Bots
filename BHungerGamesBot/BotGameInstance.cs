@@ -282,7 +282,7 @@ namespace BHungerGaemsBot
 
                     Thread.Sleep(1000);
                     secondCounter++;
-                    if ((DateTime.Now - now).TotalMinutes >= maxMinutesToWait)
+                    if ((DateTime.Now - now).TotalSeconds >= maxMinutesToWait)//changes to seconds for faster testing
                     {
                         lock (SyncObj)
                         {
