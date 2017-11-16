@@ -45,20 +45,21 @@ namespace BHungerGaemsBot
             public readonly int HeroicChance;
             public readonly int LegendaryChance;
             public readonly int AncientChance;
-            public readonly int ArtefactChance;
-            public readonly int UniqueChance;
+            public readonly int RelicChance;
+            //public readonly int UniqueChance;
 
-            public LootTable(int trashChance, int commonChance, int uncommonChance, int rareChance, int epicChance, int legendaryChance, int ancientChance, int artefactChance, int uniqueChance)
+            public LootTable(int trashChance, int commonChance, int uncommonChance, int rareChance, int epicChance, int heroicChance, int legendaryChance, int ancientChance, int relicChance)
             {
                 TrashChance = trashChance;
                 CommonChance = commonChance;
                 UncommonChance = uncommonChance;
                 RareChance = rareChance;
                 EpicChance = epicChance;
+                HeroicChance = heroicChance;
                 LegendaryChance = legendaryChance;
                 AncientChance = ancientChance;
-                ArtefactChance = artefactChance;
-                UniqueChance = uniqueChance;
+                RelicChance = relicChance;
+                //UniqueChance = uniqueChance;
             }
 
             public RarityRPG GetRarity(int value)
@@ -68,11 +69,12 @@ namespace BHungerGaemsBot
                 if (value < UncommonChance) return RarityRPG.Common;
                 if (value < RareChance) return RarityRPG.Rare;
                 if (value < EpicChance) return RarityRPG.Epic;
+                if (value < HeroicChance) return RarityRPG.Heroic;
                 if (value < LegendaryChance) return RarityRPG.Legendary;
                 if (value < AncientChance) return RarityRPG.Ancient;
-                if (value < ArtefactChance) return RarityRPG.Relic;
-                if (value < UniqueChance) return RarityRPG.Unique;
-                return RarityRPG.None;
+                if (value < RelicChance) return RarityRPG.Relic;
+                //if (value < UniqueChance) return RarityRPG.Unique;
+                return RarityRPG.Unique;
             }
         }
 
@@ -99,6 +101,9 @@ namespace BHungerGaemsBot
                 player.Notoriety++;
             }
             GetLoot(player);
+            GetExp(player);
+
+            
         }
 
         private bool TierTrial(int a, int b)
@@ -124,6 +129,7 @@ namespace BHungerGaemsBot
             {
                 RarityRPG itemRarity = LootTables[i].GetRarity(_random.Next(luckModifier, 1000));
                 player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, player.HeroClass, GetDistribution());
+                player.Points += Convert.ToInt32(Math.Pow((int)itemRarity,2));
             }
         }
 
@@ -135,5 +141,28 @@ namespace BHungerGaemsBot
             if (index < 100) return ItemDistribution.Extreme;
             return ItemDistribution.Average;
         }
+
+        private void GetExp(PlayerRPG player)
+        {
+            int totalExp = 0;
+            int exp = 10 + player.Level;
+            if (player.InteractiveRPGDecision == InteractiveRPGDecision.LookForExp)
+            {
+                exp = Convert.ToInt32(exp * 1.25);
+            }
+            
+            for (int i = 0; i < AdventureCompletion; i++)
+            {
+                totalExp += _random.Next(Convert.ToInt32(0.8 * exp), Convert.ToInt32(1.2 * exp));
+                exp = Convert.ToInt32(1.2 * exp);
+            }
+            player.AddExp(exp);
+            player.Points += Convert.ToInt32(exp / 4);
+        }
+        private void GetScore(PlayerRPG player)
+        {
+
+        }
+        
     }
 }

@@ -60,5 +60,10 @@ namespace BHungerGaemsBot
             }
         }
 
+        public void AddExp(int value)
+        {
+            Experience += value;
+        }
+
     }
 }

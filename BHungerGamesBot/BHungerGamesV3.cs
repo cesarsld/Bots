@@ -233,15 +233,12 @@ namespace BHungerGaemsBot
 
                 foreach (PlayerRPG player in _players)
                 {
-                    player.adventure.PerformAdventure(player, day, _adventureAffinity);
                 }
                 Console.WriteLine("reached adventure completion");
-                _players.OrderByDescending(player => player.Points);
 
                 sb.Append("LEADERBOARD\n\n");
                 for (int i = 0; i < playerNumberinLeaderboard; i++)
                 {
-                    sb.Append($"{i + 1}. {_players[i].NickName} - {_players[i].Points} - lvl = {_players[i].Level} - Combat power = {_players[i].EffectiveCombatStats}\n");
                 }
                 showMessageDelegate("" + sb, null);
                 sb.Clear();
