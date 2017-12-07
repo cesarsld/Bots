@@ -195,6 +195,10 @@ namespace BHungerGaemsBot
                     sb.Append($"<{player.ContestantName}>\t");
                 }
             }
+            for (int g = 1; g <= 10; g++)
+            {
+                _players.Add(new PlayerRPG(g));
+            }
             showMessageDelegate("Players that successfully entered the arena:\r\n" + sb);
             sb.Clear();
             _ignoreReactions = false;
@@ -233,12 +237,30 @@ namespace BHungerGaemsBot
 
                 foreach (PlayerRPG player in _players)
                 {
+                    player.InteractiveRPGDecision = (InteractiveRPGDecision)(_random.Next(3) + 2);
+                    Console.WriteLine(player.InteractiveRPGDecision);
                 }
+
+                    foreach (PlayerRPG player in _players)
+                {
+                    if (player.InteractiveRPGDecision != InteractiveRPGDecision.Train)
+                    {
+                        player.adventure.PerformAdventure(player, day, _adventureAffinity);
+                    }
+                    else
+                    {
+                        //train()
+                    }
+                }
+
                 Console.WriteLine("reached adventure completion");
+
+                List<PlayerRPG> descendingList = _players.OrderByDescending(player => player.Points).ToList();
 
                 sb.Append("LEADERBOARD\n\n");
                 for (int i = 0; i < playerNumberinLeaderboard; i++)
                 {
+                    sb.Append($"{i + 1}. {descendingList[i].NickName} || Score = {descendingList[i].Points} || Lvl = {descendingList[i].Level} || Combat power = {descendingList[i].EffectiveCombatStats}\n");
                 }
                 showMessageDelegate("" + sb, null);
                 sb.Clear();
@@ -263,6 +285,7 @@ namespace BHungerGaemsBot
                 {
                     duelCooldown--;
                 }
+                if (day == 35) break;
             }
 
             sb.Append("\n\n**Game Over**\r\n\r\n");

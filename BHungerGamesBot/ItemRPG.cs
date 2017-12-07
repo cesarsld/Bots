@@ -60,6 +60,8 @@ namespace BHungerGaemsBot
         {
             Random rand = new Random();
             int totalStats = (int)rarity * 5 + 50 + rand.Next((int)rarity * 2 + 20);
+            float levelMultiplier = 1f + level / 5f;
+            totalStats = Convert.ToInt32(totalStats * levelMultiplier);
             int[] newItemStats = new int[7];
             for (int i = 0; i < newItemStats.Length; i++)
             {

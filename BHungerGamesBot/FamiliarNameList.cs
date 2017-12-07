@@ -4,6 +4,14 @@ using System.Text;
 
 namespace BHungerGaemsBot
 {
+    enum GoblinList
+    {
+        Gobby,
+        Robby,
+        Olxa,
+        Mimzy,
+        Bully
+    }
     enum FamiliarNameList
     {
         Batty,

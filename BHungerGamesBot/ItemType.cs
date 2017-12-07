@@ -1,4 +1,7 @@
-﻿namespace BHungerGaemsBot
+﻿using System.Collections.Generic;
+using System;
+
+namespace BHungerGaemsBot
 {
     public enum ItemType
     {
@@ -7,4 +10,5 @@
         Offhand,
         Helmet
     }
+
 }

@@ -59,6 +59,17 @@ namespace BHungerGaemsBot
                 Items[index] = new ItemRPG();
             }
         }
+        public PlayerRPG(int index) : base(index)
+        {
+            adventure = new Adventure();
+            HeroClass = HeroClass.Mage;
+            IsInLeaderboard = false;
+            Items = new ItemRPG[BHungerGamesV3.NumItemTypes];
+            for (var i = 0; i < Items.Length; i++)
+            {
+                Items[i] = new ItemRPG();
+            }
+        }
 
         public void AddExp(int value)
         {

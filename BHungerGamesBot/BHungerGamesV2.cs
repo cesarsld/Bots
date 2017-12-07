@@ -22,22 +22,26 @@ namespace BHungerGaemsBot
         private static readonly ReadOnlyCollection<IEmote> EmojiListOptions;
         private static readonly ReadOnlyCollection<IEmote> EmojiListEnhancedOptions;
         private static readonly ReadOnlyCollection<IEmote> EmojiListCrowdDecision;
+        private static readonly ReadOnlyCollection<IEmote> EmojiGoblinOption;
         private static readonly Scenario[] Scenarios;
         private static readonly List<ulong> BannedPlayers;
 
         private readonly Random _random;
         private readonly HashSet<InteractivePlayer> _enchancedPlayers;
         private readonly HashSet<InteractivePlayer> _duelImmune;
+        private readonly List<InteractivePlayer> _successfulGoblinList;
         private volatile bool _ignoreReactions;
         private List<Trap> _traps;
         private List<InteractivePlayer> _contestants;
         private bool _enhancedOptions;
         private bool _crowdOptions;
+        private bool _goblinOption;
         private TerraForm _location;
-        
+
 
         private int _reactionA;
         private int _reactionB;
+        int _correcGoblintAnswer;
 
         private DangerLevel _currentLootDangerLevel;
         private DangerLevel _currentFamDangerLevel;
@@ -143,11 +147,12 @@ namespace BHungerGaemsBot
                 new DangerLevel("Deadly"   , 25,  0, 50, 85, 100, 1010)
             });
 
-            ShowPlayersWhenCountEqual = new[] {20, 10, 5, 2, 0 };
+            ShowPlayersWhenCountEqual = new[] { 20, 10, 5, 2, 0 };
             //EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> {Emote.Parse ("<:blubber:244666398738087936>")});
             EmojiListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💰"), Emote.Parse("<:blubber:244666398738087936>"), new Emoji("❗"), new Emoji("⚔") });
             EmojiListEnhancedOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💣"), new Emoji("🔫"), new Emoji("🔧") });
             EmojiListCrowdDecision = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🅰"), new Emoji("🅱") });
+            EmojiGoblinOption = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🇦"), new Emoji("🇧"), new Emoji("🇨"), new Emoji("🇩") });
 
             BannedPlayers = new List<ulong>
             {
@@ -293,7 +298,9 @@ namespace BHungerGaemsBot
             _random = new Random();
             _enchancedPlayers = new HashSet<InteractivePlayer>();
             _duelImmune = new HashSet<InteractivePlayer>();
+            _successfulGoblinList = new List<InteractivePlayer>();
             _ignoreReactions = true;
+            _goblinOption = false;
         }
 
         private Scenario GetScenario() //get a scenario
@@ -321,6 +328,7 @@ namespace BHungerGaemsBot
             bool r2Bonus = false;
             int scenarioMod = 0;
             _location = TerraForm.None;
+            int goblinChance = 5;
 
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
@@ -342,7 +350,7 @@ namespace BHungerGaemsBot
             contestantsTransfer = contestantsTransfer.Except(bannedPlayersToRemove).ToList();
             if (bannedPlayersToRemove.Count > 0)
             {
-                showMessageDelegate($"Number of banned players attempting to join game:{bannedPlayersToRemove.Count}\r\n" );
+                showMessageDelegate($"Number of banned players attempting to join game:{bannedPlayersToRemove.Count}\r\n");
             }
             if (maxPlayers > 0 && contestantsTransfer.Count > maxPlayers)
             {
@@ -372,6 +380,7 @@ namespace BHungerGaemsBot
 
             while (_contestants.Count > numWinners)
             {
+                //goblinChance = 100;
                 // day cycle
                 day++;
                 int startingContestantCount = _contestants.Count;
@@ -414,6 +423,36 @@ namespace BHungerGaemsBot
                 {
                     playerToEnhance = 1;
                 }
+
+                if (RngRoll(goblinChance))
+                {
+                    int correctAnswer = _random.Next(4);
+                    goblinChance = 10;
+                    _goblinOption = true;
+                    _ignoreReactions = false;
+                    showMessageDelegate($"GOBLIN ALERT\n============\nA * legendary * {(GoblinList)_random.Next(5)} is on the loose! Quick, catch him to get his excellent loot!\n"
+                        + "Select how you would like to try to capture him. * A * To Lure him with gold, * B * to use a trap, * C * to charge at him and * D * to use you Bub offhand to nomnom him.", null, EmojiGoblinOption);
+                    Thread.Sleep(DelayAfterOptions);
+                    _ignoreReactions = true;
+                    _goblinOption = false;
+                    if (cannelGame()) return;
+                    foreach (InteractivePlayer contestant in _contestants)
+                    {
+                        if (contestant.GoblinChoice == _correcGoblintAnswer)
+                        {
+                            _successfulGoblinList.Add(contestant);
+                        }
+                    }
+                    GoblinLoot(_successfulGoblinList[_random.Next(_successfulGoblinList.Count)], sbLoot, bonusItemFind, r2Bonus);
+                    showMessageDelegate("" + sbLoot);
+                    _successfulGoblinList.Clear();
+                    sbLoot.Clear();
+                }
+                else
+                {
+                    goblinChance += 5;
+                }
+
                 int dangerIndex = _random.Next(LootDangerLevels.Count);
                 int famDangerIndex = _random.Next(FamDangerLevels.Count);
                 _currentLootDangerLevel = LootDangerLevels[dangerIndex];
@@ -455,7 +494,7 @@ namespace BHungerGaemsBot
                 sbFamLoot.Clear();
                 sbLoot.Clear();
                 sb.Clear();
-               
+
                 _contestants = _contestants.Except(playersToBeRemoved).ToList();
                 playersToBeRemoved.Clear();
 
@@ -742,6 +781,33 @@ namespace BHungerGaemsBot
         }
 
         //interactive options
+        private void GoblinLoot(InteractivePlayer contestant, StringBuilder sbLoot, bool bonusItemFind, bool r2Bonus)
+        {
+            ItemType itemType = (ItemType)_random.Next(NumItemTypes); // armour or weapon
+            int lootRarity = _random.Next(100);
+            Rarity itemRarity = new DangerLevel("Goblin Chance", 0, 0, 60, 80, 95, 100).GetRarity(lootRarity);//_currentLootDangerLevel.GetRarity(lootRarity);
+            bool tookItem = false;
+
+            Item item = contestant.GetItem(itemType);
+            if ((int)item.ItemRarity < (int)itemRarity)
+            {
+                item.ItemLife = 5;
+                item.ItemRarity = itemRarity;
+                tookItem = true;
+            }
+            if (itemRarity != Rarity.Common)
+            {
+                if (tookItem)
+                {
+                    sbLoot.Append($"<{contestant.NickName}> has obtained a * {itemRarity} * {itemType} from the Loot Goblin!\n");
+                }
+                else
+                {
+                    ReduceTextCongestion($"<{contestant.NickName}> has obtained an inferior {itemType} and decided to throw it away\n", sbLoot);
+                }
+            }
+        }
+
         private void Loot(InteractivePlayer contestant, StringBuilder sbLoot, List<InteractivePlayer> playersToBeRemoved, bool bonusItemFind, bool r2Bonus)
         {
             int itemFind = 0;
@@ -821,6 +887,8 @@ namespace BHungerGaemsBot
                     }
                 }
             }
+            Console.WriteLine("loot accessed");
+            Console.WriteLine(sbLoot);
         }
 
         private void CaptureFamiliar(InteractivePlayer contestant, StringBuilder sbFamLoot, List<InteractivePlayer> playersToBeRemoved)
@@ -875,7 +943,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        private void StayOnAlert(InteractivePlayer contestant,  StringBuilder sb)
+        private void StayOnAlert(InteractivePlayer contestant, StringBuilder sb)
         {
             if (contestant.AlertCooldown == 0)
             {
@@ -921,7 +989,7 @@ namespace BHungerGaemsBot
                 case 0:
                     return Debuff.SeverlyDecreasedItemFind;
                 //case 1:
-                 //   return Debuff.SeverlyIncreasedDamageTaken;
+                //   return Debuff.SeverlyIncreasedDamageTaken;
                 case 1:
                     return Debuff.SeverlyDecreasedDuelChance;
                 case 2:
@@ -1008,7 +1076,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        private  bool RngRoll(int a)
+        private bool RngRoll(int a)
         {
             int chance = a * 10;
             int roll = _random.Next(0, 1000);
@@ -1132,7 +1200,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        private void CrowdExe( int crowdOption, List<InteractivePlayer> playersToBeRemoved, ref bool bonusItemFind, ref bool crowdExtraDuel, ref int crowdScenarios, BotGameInstance.ShowMessageDelegate showMessageDelegate)
+        private void CrowdExe(int crowdOption, List<InteractivePlayer> playersToBeRemoved, ref bool bonusItemFind, ref bool crowdExtraDuel, ref int crowdScenarios, BotGameInstance.ShowMessageDelegate showMessageDelegate)
         {
             switch (crowdOption)
             {
@@ -1199,10 +1267,34 @@ namespace BHungerGaemsBot
                     }
                 }
             }
+            else if (_goblinOption)
+            {
+                var authenticPlayerGoblin = _contestants.FirstOrDefault(contestant => contestant.UserId == userId);
+                if (authenticPlayerGoblin != null)
+                {
+                    int choice = 4;
+                    switch (reactionName)
+                    {
+                        case "🇦":
+                            authenticPlayerGoblin.GoblinChoice = 0;
+                            break;
+                        case "🇧":
+                            authenticPlayerGoblin.GoblinChoice = 1;
+                            break;
+                        case "🇨":
+                            authenticPlayerGoblin.GoblinChoice = 2;
+                            break;
+                        case "🇩":
+                            authenticPlayerGoblin.GoblinChoice = 3;
+                            break;
+                    }
+                }
+            }
+
             else if (_crowdOptions)
             {
                 switch (reactionName)
-                { 
+                {
                     case "🅰":
                         _reactionA++;
                         break;
@@ -1216,7 +1308,7 @@ namespace BHungerGaemsBot
                 var authenticPlayer = _contestants.FirstOrDefault(contestant => contestant.UserId == userId);
                 if (authenticPlayer != null)
                 {
-                    
+
                     switch (reactionName)
                     {
                         case "💰":
@@ -1234,6 +1326,7 @@ namespace BHungerGaemsBot
                     }
                 }
             }
+            
         }
     }
 }

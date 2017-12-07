@@ -10,6 +10,7 @@ namespace BHungerGaemsBot
         public int DuelCooldown { get; set; }
         public int DebuffTimer { get; set; }
         public int ScenarioItemFindBonus { get; set; }
+        public int GoblinChoice { get; set; }
         public InteractiveDecision InteractiveDecision { get; set; }
         public EnhancedDecision EnhancedDecision { get; set; }
         public Debuff Debuff { get; set; }
