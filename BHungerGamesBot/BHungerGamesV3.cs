@@ -256,15 +256,16 @@ namespace BHungerGaemsBot
                 Console.WriteLine("reached adventure completion");
 
                 List<PlayerRPG> descendingList = _players.OrderByDescending(player => player.Points).ToList();
-
-                sb.Append("LEADERBOARD\n\n");
-                for (int i = 0; i < playerNumberinLeaderboard; i++)
+                if (day > 2 && day % 4 == 0)
                 {
-                    sb.Append($"{i + 1}. {descendingList[i].NickName} || Score = {descendingList[i].Points} || Lvl = {descendingList[i].Level} || Combat power = {descendingList[i].EffectiveCombatStats}\n");
+                    sb.Append("LEADERBOARD\n\n");
+                    for (int i = 0; i < playerNumberinLeaderboard; i++)
+                    {
+                        sb.Append($"{i + 1}. {descendingList[i].NickName} || Score = {descendingList[i].Points} || Lvl = {descendingList[i].Level} || Combat power = {descendingList[i].EffectiveCombatStats}\n");
+                    }
+                    showMessageDelegate("" + sb, null);
+                    sb.Clear();
                 }
-                showMessageDelegate("" + sb, null);
-                sb.Clear();
-
                 if (_players.Count <= ShowPlayersWhenCountEqual[showPlayersWhenCountEqualIndex])
                 {
                     showPlayersWhenCountEqualIndex++;

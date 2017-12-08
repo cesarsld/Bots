@@ -78,8 +78,10 @@ namespace BHungerGaemsBot
             }
         }
 
-        public void PerformAdventure(PlayerRPG player, int turn, HeroClass adventureAffinity)
+        public StringBuilder PerformAdventure(PlayerRPG player, int turn, HeroClass adventureAffinity)
         {
+            StringBuilder returnStringBuilder = new StringBuilder(10000);
+
             AdventureCompletion = 0;
             HeroAffinity = adventureAffinity;
             int turnSCaling = 25;
@@ -100,11 +102,11 @@ namespace BHungerGaemsBot
             {
                 player.Notoriety++;
             }
-            GetLoot(player);
+            GetLoot(player, HeroAffinity);
             GetExp(player);
             GetScore(player, AdventureCompletion);
 
-            
+            return returnStringBuilder;
         }
 
         private bool TierTrial(int a, int b)
@@ -118,8 +120,9 @@ namespace BHungerGaemsBot
             }
             return false;
         }
-        private void GetLoot(PlayerRPG player)
+        private void GetLoot(PlayerRPG player, HeroClass adventureClass)
         {
+            //in the future add few line that prioritise adventureClass but also give out other classes 
             int luckModifier = Convert.ToInt32(75 * Math.Log(Math.Pow(player.HeroStats[6], 0.5) / 2));
             if (player.InteractiveRPGDecision == InteractiveRPGDecision.LookForLoot)
             {
@@ -128,9 +131,9 @@ namespace BHungerGaemsBot
             int itemsToLoot = AdventureCompletion / 2 + 1;
             for (int i = 0; i < itemsToLoot; i++)
             {
-                double lootMultiplier = 2 + player.Level / 7;
+                double lootMultiplier = 2 + player.Level / 4;
                 RarityRPG itemRarity = LootTables[i].GetRarity(_random.Next(luckModifier, 1000));
-                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, player.HeroClass, GetDistribution());
+                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, adventureClass, GetDistribution());
                 player.Points += Convert.ToInt32(Math.Pow((int)itemRarity,lootMultiplier));
             }
         }
@@ -163,7 +166,7 @@ namespace BHungerGaemsBot
         }
         private void GetScore(PlayerRPG player, int adventureCompletion)
         {
-            float scoreMultiplier = 1f + (player.Level / 2);
+            float scoreMultiplier = 1.5f + (player.Level * 1.5f);
             player.Points += Convert.ToInt32(adventureCompletion * scoreMultiplier);
         }
         
