@@ -1272,7 +1272,6 @@ namespace BHungerGaemsBot
                 var authenticPlayerGoblin = _contestants.FirstOrDefault(contestant => contestant.UserId == userId);
                 if (authenticPlayerGoblin != null)
                 {
-                    int choice = 4;
                     switch (reactionName)
                     {
                         case "🇦":
