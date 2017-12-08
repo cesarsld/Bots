@@ -426,7 +426,7 @@ namespace BHungerGaemsBot
 
                 if (RngRoll(goblinChance))
                 {
-                    int correctAnswer = _random.Next(4);
+                    _correcGoblintAnswer = _random.Next(4);
                     goblinChance = 10;
                     _goblinOption = true;
                     _ignoreReactions = false;
