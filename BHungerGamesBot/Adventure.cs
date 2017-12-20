@@ -13,13 +13,13 @@ namespace BHungerGaemsBot
         public int AdventureCompletion { get; set; }
         public HeroClass HeroAffinity { get; set; }
         //                                    Tr  Co   Uc   Ra   Ep   He   Le   An   Ar   Un 
-        private static int[] eee = new int[] {  50, 250, 500, 700, 845, 925, 965, 985, 995  };
+        //private static int[] eee = new int[] {  50, 250, 500, 700, 845, 925, 965, 985, 995  };
 
         private static readonly ReadOnlyCollection<LootTable> LootTables;
 
         public Adventure()
         {
-            _random = new Random();
+            _random = new Random(Guid.NewGuid().GetHashCode());
         }
 
         static Adventure()
@@ -78,15 +78,15 @@ namespace BHungerGaemsBot
             }
         }
 
-        public StringBuilder PerformAdventure(PlayerRPG player, int turn, HeroClass adventureAffinity)
+        public StringBuilder PerformAdventure(PlayerRPG player, int turn, HeroClass adventureAffinity, int playerNumber, ScenarioRPG[] scenarios)
         {
             StringBuilder returnStringBuilder = new StringBuilder(10000);
 
             AdventureCompletion = 0;
             HeroAffinity = adventureAffinity;
-            int turnSCaling = 25;
-            int levelScaling = 20;
-            float CPscaling = 0.25f;
+            int turnSCaling = 85;
+            int levelScaling = 120;
+            float CPscaling = 0.5f;
 
             int adventureCombatPower = 0;
             adventureCombatPower = turn * turnSCaling + player.Level * levelScaling + Convert.ToInt32(player.EffectiveCombatStats * CPscaling);
@@ -101,29 +101,30 @@ namespace BHungerGaemsBot
             if (AdventureCompletion == 10)
             {
                 player.Notoriety++;
+                returnStringBuilder.Append($"{player.NickName} has fully completed the adventure! Extra rewards and * notoriety * will be granted to them!\n\n");
             }
-            GetLoot(player, HeroAffinity);
-            GetExp(player);
-            GetScore(player, AdventureCompletion);
+            GetLoot(player, HeroAffinity, ref returnStringBuilder, playerNumber, scenarios);
+            player.GetExp(AdventureCompletion);
+            player.GetScore(AdventureCompletion);
 
             return returnStringBuilder;
         }
 
         private bool TierTrial(int a, int b)
         {
-            Random rnd = new Random();
-            float heroAdvantage = 3f;
+            float heroAdvantage = 2f;
             int totalChances = Convert.ToInt32(a * heroAdvantage);
-            if (rnd.Next(totalChances + b) < totalChances)
+            if (_random.Next(totalChances + b) < totalChances)
             {
                 return true;
             }
             return false;
         }
-        private void GetLoot(PlayerRPG player, HeroClass adventureClass)
+        private void GetLoot(PlayerRPG player, HeroClass adventureClass, ref StringBuilder sbLoot, int playerCount, ScenarioRPG[] scenarios)
         {
             //in the future add few line that prioritise adventureClass but also give out other classes 
             int luckModifier = Convert.ToInt32(75 * Math.Log(Math.Pow(player.HeroStats[6], 0.5) / 2));
+            RarityRPG bestRarity = RarityRPG.Trash;
             if (player.InteractiveRPGDecision == InteractiveRPGDecision.LookForLoot)
             {
                 luckModifier = Convert.ToInt32(luckModifier * 1.5);
@@ -132,10 +133,15 @@ namespace BHungerGaemsBot
             for (int i = 0; i < itemsToLoot; i++)
             {
                 double lootMultiplier = 2 + player.Level / 4;
-                RarityRPG itemRarity = LootTables[i].GetRarity(_random.Next(luckModifier, 1000));
+                int roll = _random.Next(luckModifier, 1000);
+                RarityRPG itemRarity = LootTables[i].GetRarity(roll);
+                bestRarity = ((int)itemRarity > (int)bestRarity) ? itemRarity : bestRarity;
+                Console.WriteLine($"{player.NickName} item dropped rarity : {itemRarity} + luckmod is {luckModifier} + rolls is {roll}");
                 player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, adventureClass, GetDistribution());
                 player.Points += Convert.ToInt32(Math.Pow((int)itemRarity,lootMultiplier));
             }
+            ReduceTextCongestion(GetScenario(scenarios).GetText(player.NickName, bestRarity, adventureClass), ref sbLoot, playerCount, bestRarity);
+            sbLoot.Append("\n");
         }
 
         private ItemDistribution GetDistribution()
@@ -147,28 +153,34 @@ namespace BHungerGaemsBot
             return ItemDistribution.Average;
         }
 
-        private void GetExp(PlayerRPG player)
+        private ScenarioRPG GetScenario(ScenarioRPG[] scenarios)
         {
-            int totalExp = 0;
-            int exp = 10 + player.Level;
-            if (player.InteractiveRPGDecision == InteractiveRPGDecision.LookForExp)
+            while (true)
             {
-                exp = Convert.ToInt32(exp * 1.25);
+                int randIndex = _random.Next(scenarios.Length);
+                if (scenarios[randIndex].Timer <= 0 )
+                {
+                    scenarios[randIndex].Timer = 0;
+                    return scenarios[randIndex];
+                }
             }
-            
-            for (int i = 0; i < AdventureCompletion; i++)
-            {
-                totalExp += _random.Next(Convert.ToInt32(0.8 * exp), Convert.ToInt32(1.2 * exp));
-                exp = Convert.ToInt32(1.2 * exp);
-            }
-            player.AddExp(exp);
-            player.Points += Convert.ToInt32(exp / 2);
         }
-        private void GetScore(PlayerRPG player, int adventureCompletion)
+
+        private void ReduceTextCongestion(string text, ref StringBuilder sb, int players, RarityRPG rarity)
         {
-            float scoreMultiplier = 1.5f + (player.Level * 1.5f);
-            player.Points += Convert.ToInt32(adventureCompletion * scoreMultiplier);
+            if (players < 15 && (int)rarity > 4)
+            {
+                sb.Append(text + "\n");
+            }
+            else if (players < 30 && (int)rarity > 5)
+            {
+                sb.Append(text + "\n");
+            }
+            else if (players < 60 && (int)rarity > 6)
+            {
+                sb.Append(text + "\n");
+            }
         }
-        
+
     }
 }
