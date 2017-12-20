@@ -26,6 +26,8 @@ namespace BHungerGaemsBot
         //private static readonly Scenario[] Scenarios;
         private static readonly List<ulong> BannedPlayers;
 
+        private static readonly ScenarioRPG[] Scenarios;
+
         private readonly Random _random;
         private readonly HashSet<PlayerRPG> _enchancedPlayers;
         private readonly HashSet<PlayerRPG> _duelImmune;
@@ -128,6 +130,32 @@ namespace BHungerGaemsBot
                 {HeroClass.Assassin,     new List<int>{    2,     9,     8,     3,   9,      2,   3 } },
                 {HeroClass.Elementalist, new List<int>{    3,     4,     6,     8,    9,     3,   3 } },
             };
+
+            Scenarios = new[]
+            {
+                new ScenarioRPG("<{player_name}> stumbled across an abandoned sack. Perhaps a captured Bully dropped it? Opening it, they find a * {rarity_type} * {plass_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> was wistfully skulking around the pier in town, hoping that fishing was released! All of a sudden, they lost their balance, and fell in! Oh my goodness! Hidden beneath the surface they found a * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
+                new ScenarioRPG("Astaroth is very lonely these days, no one bothers to come see him anymore. He tries to get <{player_name}>s attention by offering them a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("Just when <{player_name}> was about to use some scissors on their credit card, they find a * {rarity_type} * <{class_type}> loot! Baited again!", RarityRPG.Common),
+                new ScenarioRPG("While trying to think of a funny HG scenario, <{player_name}> stumbles across a * {rarity_type} * <{class_type}> loot! How ironic. . .", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> defeats Kaleido in a best-of-three to the death arm wrestling competition. For their bravery and strength, they're awarded a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("{player__name} successfully uses all the Discord channels correctly. As a reward, Tarri slips a * {rarity_type} * <{class_type}> loot into their pocket. Good job!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> boldly but stupidly tries to win a drinking competition with Taters. They wake up two days later with a 'sorry about the mess' note taped to their forehead, and a brand new * {rarity_type} * <{class_type}> loot on their pillow.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> finds an extremely rare vending machine in an R4. They deposit 1 rombit. Whirr bzzt zzzzzt nnnngggg bzzzz click thunk! A * {rarity_type} * <{class_type}> loot falls out!", RarityRPG.Common),
+                new ScenarioRPG("Congratulations <{player_name}>! You have been visited by the Mythical Magical Mystical Miraculous Gobby of Giving! With a wave of his hand, he conjures up a * {rarity_type} * <{class_type}> loot just for you! Enjoy!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> has been hiding in z2d4 dressed in their full blubber suit for four days now, and no one has noticed. Finally the moment comes, Gemm turns his back! You steal a * {rarity_type} * <{class_type}> loot!  Muahaha!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> - 'Wahhhhhh. I did 500 raids with a super scroll and all I found was this * {rarity_type} * <{class_type}> loot. Rigged! Refund! Reeeeeeeee!!'", RarityRPG.Common),
+                new ScenarioRPG("Roses are red, Robomax-6000 is blue.\nShadown88 has a * {rarity_type} * <{class_type}> loot,\nAnd now <{player_name}> has one too.", RarityRPG.Common),
+                new ScenarioRPG("As <{player_name}> proceeds to peel off Prof. Oak's bark, they find a * {rarity_type} * <{class_type}> loot hidden inside it's shell.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> signs a death wish under Grimz. Wait! It appears Grimz presented the wrong contract, <{player_name}>  receives a * {rarity_type} * <{class_type}> loot from signing Grimz's death wish.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> lands a critical empower dual strike  on Capt. Woodbeard and is rewarded with a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> raids the Hyper Dimension for the Walkom schematic. <{player_name}> receives 10 friend requests, turns out it was just a : {rarity_legendary} : <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> blacked out on a Fammy Slop bender and woke up in Quinn’s Stables clutching a * {rarity_type} * <{class_type}> loot as a makeshift pillow.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> decided to go for a 0/0/1 speedster build. The regulars at #bh_theorycrafting took pity on such a foolish endeavor and gifted the player a * {rarity_type} * <{class_type}> loot out of charity.", RarityRPG.Common),
+                new ScenarioRPG("Uh oh, <{player_name}>. Someone spiked the hot cocoa last night. Those aren’t your pants you’re wearing. You check the pockets for identification and find a * {rarity_type} * <{class_type}> loot, instead.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> sees Sir Quackers waddling around the pier and throws him some breadcrumbs. Overjoyed, Sir Quackers leads them to his secret loot stash and offers the player a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> sees a “Take an item, leave an item” bin by the guild hall entrance. <{player_name}> takes a * {rarity_type} * <{class_type}> loot and leaves a Bronze Coin in its place. Way to go, you jerk.", RarityRPG.Common)
+            };
         }
 
         public BHungerGamesV3()
@@ -144,11 +172,11 @@ namespace BHungerGaemsBot
             int showPlayersWhenCountEqualIndex = 0;
             int duelCooldown = 4;
             bool crowdExtraDuel = false;
-            
+
             bool bonusItemFind = false;
-            
-            
-            
+
+
+
 
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
@@ -229,7 +257,7 @@ namespace BHungerGaemsBot
                 _ignoreReactions = false;
                 showMessageDelegate($"\n Day **{day}**\nYou have {DelayAfterOptions.Seconds} seconds to input your decision\n"
                     + "You may select how you will want to pursue your * adventure * . \nYour options are: "
-                    + "<:bulb:> to Complete your adventure, <:crossed_swords:> To gain more EXP or <:money_bag:> To gain better" 
+                    + "<:bulb:> to Complete your adventure, <:crossed_swords:> To gain more EXP or <:money_bag:> To gain better"
                     + " loot or <:muscle:> to skip the adventure and train.", null, EmojiAdventureListOption);
                 sb.Clear();
                 Thread.Sleep(DelayAfterOptions);
@@ -241,17 +269,21 @@ namespace BHungerGaemsBot
                     Console.WriteLine(player.InteractiveRPGDecision);
                 }
 
-                    foreach (PlayerRPG player in _players)
+                foreach (PlayerRPG player in _players)
                 {
                     if (player.InteractiveRPGDecision != InteractiveRPGDecision.Train)
                     {
-                        player.adventure.PerformAdventure(player, day, _adventureAffinity);
+                        sb.Append(player.adventure.PerformAdventure(player, day, _adventureAffinity, _players.Count, Scenarios));
                     }
                     else
                     {
-                        //train()
+                        player.Train();
                     }
                 }
+
+                showMessageDelegate("" + sb, null);
+                sb.Clear();
+
 
                 Console.WriteLine("reached adventure completion");
 
@@ -266,12 +298,16 @@ namespace BHungerGaemsBot
                     showMessageDelegate("" + sb, null);
                     sb.Clear();
                 }
+                foreach (ScenarioRPG scenario in Scenarios)
+                {
+                    scenario.ReduceTimer();
+                }
                 if (_players.Count <= ShowPlayersWhenCountEqual[showPlayersWhenCountEqualIndex])
                 {
                     showPlayersWhenCountEqualIndex++;
                     foreach (PlayerRPG contestant in _players)
                     {
-                     //   sb.Append($"<{contestant.ContestantName}> * HP = {contestant.Stamina} *\t");
+                        //   sb.Append($"<{contestant.ContestantName}> * HP = {contestant.Stamina} *\t");
                     }
                     //showMessageDelegate("Players Remaining:\r\n" + sb);
                     sb.Clear();
@@ -302,6 +338,37 @@ namespace BHungerGaemsBot
 
         }
 
+        private void Duel()
+        {
+            //PlayerRPG player1;
+            //PlayerRPG player2;
+            int duelAmount = _players.Count;
+            while (duelAmount != 0)
+            {
+                int index = _random.Next(_players.Count);
+                int index2;
+                int playerCount = _players.Count;
+                //player1 = _players[index];
+                if (_players[index].HasDueled) continue;
+                index2 = index;
+                if (index < 3)
+                {
+                    while (index2 != index && _players[index2].HasDueled) { index2 = _random.Next(5); }
+                }
+                else if (index > _players.Count - 3)
+                {
+                    while (index2 != index && _players[index2].HasDueled) { index2 = _players.Count - _random.Next(5); }
+                }
+                else
+                {
+                    while (index2 != index && _players[index2].HasDueled) { index2 = _random.Next(index - 2, index + 3); }
+                }
+
+                duelAmount--;
+            }
+
+        }
+
         private void SortClasses()
         {
             foreach (PlayerRPG contestant in _players)
@@ -309,7 +376,7 @@ namespace BHungerGaemsBot
                 MakeClass(contestant);
             }
         }
-        
+
         private void MakeClass(PlayerRPG player)
         {
             for (int i = 0; i < player.HeroStats.Length; i++)
@@ -318,7 +385,8 @@ namespace BHungerGaemsBot
                 player.HeroStatMult[i] = HeroScalingDictionary[player.HeroClass][i];
             }
         }
-        
+
+
         public void HandlePlayerInput(ulong userId, string reactionName)
         {
             if (_ignoreReactions) return;

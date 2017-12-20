@@ -10,6 +10,9 @@ namespace BHungerGaemsBot
         public int Notoriety { get; set; }
 
         public bool IsInLeaderboard { get; set; }
+        public bool HasDueled { get; set; }
+
+        Random _random;
 
         private const float LevelFactor = 1.4f;
         private const float BaseExp = 50f;
@@ -58,6 +61,8 @@ namespace BHungerGaemsBot
             {
                 Items[index] = new ItemRPG();
             }
+            _random = new Random(Guid.NewGuid().GetHashCode());
+            HasDueled = false;
         }
         public PlayerRPG(int index) : base(index)
         {
@@ -69,6 +74,37 @@ namespace BHungerGaemsBot
             {
                 Items[i] = new ItemRPG();
             }
+            HasDueled = false;
+        }
+
+        public void GetExp(int adventureCompletion)
+        {
+            int totalExp = 0;
+            int exp = 10 + Level;
+            if (InteractiveRPGDecision == InteractiveRPGDecision.LookForExp)
+            {
+                exp = Convert.ToInt32(exp * 1.25);
+            }
+
+            for (int i = 0; i < adventureCompletion; i++)
+            {
+                totalExp += _random.Next(Convert.ToInt32(0.8 * exp), Convert.ToInt32(1.2 * exp));
+                exp = Convert.ToInt32(1.2 * exp);
+            }
+            AddExp(exp);
+            Points += Convert.ToInt32(exp / 2);
+        }
+        public void GetScore(int adventureCompletion)
+        {
+            float scoreMultiplier = 1.5f + (Level * 1.5f);
+            Points += Convert.ToInt32(adventureCompletion * scoreMultiplier);
+        }
+
+        public void Train()
+        {
+            int exp = 5 + Level * 5;
+            int totalExp = _random.Next(8 * exp, 12 * exp);
+            AddExp(totalExp);
         }
 
         public void AddExp(int value)

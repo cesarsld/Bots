@@ -10,6 +10,7 @@ namespace BHungerGaemsBot
 {
     public class BHungerGamesV2
     {
+#region Variable Declaration
         public const int NumItemTypes = 4;
 
         private const int DelayValue = 1;
@@ -45,6 +46,7 @@ namespace BHungerGaemsBot
 
         private DangerLevel _currentLootDangerLevel;
         private DangerLevel _currentFamDangerLevel;
+#endregion
 
         public class Trap
         {
@@ -431,7 +433,7 @@ namespace BHungerGaemsBot
                     _goblinOption = true;
                     _ignoreReactions = false;
                     showMessageDelegate($"GOBLIN ALERT\n============\nA * legendary * {(GoblinList)_random.Next(5)} is on the loose! Quick, catch him to get his excellent loot!\n"
-                        + "Select how you would like to try to capture him. * A * To Lure him with gold, * B * to use a trap, * C * to charge at him and * D * to use you Bub offhand to nomnom him.", null, EmojiGoblinOption);
+                        + "Select how you would like to try to capture him. * A * To Lure him with gold, * B * to use a trap, * C * to charge at him and * D * to use your Bub offhand to nomnom him.", null, EmojiGoblinOption);
                     Thread.Sleep(DelayAfterOptions);
                     _ignoreReactions = true;
                     _goblinOption = false;
@@ -443,7 +445,10 @@ namespace BHungerGaemsBot
                             _successfulGoblinList.Add(contestant);
                         }
                     }
-                    GoblinLoot(_successfulGoblinList[_random.Next(_successfulGoblinList.Count)], sbLoot, bonusItemFind, r2Bonus);
+                    if (_successfulGoblinList.Count != 0)
+                    {
+                        GoblinLoot(_successfulGoblinList[_random.Next(_successfulGoblinList.Count)], sbLoot, bonusItemFind, r2Bonus);
+                    }
                     showMessageDelegate("" + sbLoot);
                     _successfulGoblinList.Clear();
                     sbLoot.Clear();

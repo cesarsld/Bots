@@ -9,7 +9,7 @@ namespace BHungerGaemsBot
         static void Main()
         {
             while (true)
-            {
+            { 
                 try
                 {
                     new Bot().RunAsync().GetAwaiter().GetResult();
@@ -21,6 +21,8 @@ namespace BHungerGaemsBot
                 }
                 Thread.Sleep(1000);
             }
+            //BHungerGamesV3 bh = new BHungerGamesV3();
+            //bh.Run(1, new System.Collections.Generic.List<Player>(),);
         }
     }
 }
