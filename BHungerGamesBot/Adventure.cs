@@ -8,22 +8,14 @@ namespace BHungerGaemsBot
 {
     class Adventure
     {
-
-        private readonly Random _random;
-        public int AdventureCompletion { get; set; }
-        public HeroClass HeroAffinity { get; set; }
-        //                                    Tr  Co   Uc   Ra   Ep   He   Le   An   Ar   Un 
-        //private static int[] eee = new int[] {  50, 250, 500, 700, 845, 925, 965, 985, 995  };
+        private static readonly Random _random;
 
         private static readonly ReadOnlyCollection<LootTable> LootTables;
 
-        public Adventure()
-        {
-            _random = new Random(Guid.NewGuid().GetHashCode());
-        }
-
         static Adventure()
         {
+
+            _random = new Random(Guid.NewGuid().GetHashCode());
             LootTables = new ReadOnlyCollection<LootTable>( new List<LootTable>()
             {//               Tr  Co   Uc   Ra   Ep   He   Le   An   Ar   Un 
                 new LootTable( 100, 400, 600, 760, 865, 925, 965, 985, 995),
@@ -34,7 +26,7 @@ namespace BHungerGaemsBot
                 new LootTable(   0, 300, 500, 660, 790, 870, 930, 970, 990),
             });
         }
-
+         
         private class LootTable
         {
             public readonly int TrashChance;
@@ -78,21 +70,21 @@ namespace BHungerGaemsBot
             }
         }
 
-        public StringBuilder PerformAdventure(PlayerRPG player, int turn, HeroClass adventureAffinity, int playerNumber, ScenarioRPG[] scenarios)
+        public static StringBuilder PerformAdventure(PlayerRPG player, int turn, HeroClass adventureAffinity, int playerNumber, ScenarioRPG[] scenarios, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
             StringBuilder returnStringBuilder = new StringBuilder(10000);
 
-            AdventureCompletion = 0;
-            HeroAffinity = adventureAffinity;
+            int AdventureCompletion = 0;
+            HeroClass HeroAffinity = adventureAffinity;
             int turnSCaling = 85;
             int levelScaling = 120;
             float CPscaling = 0.5f;
-
             int adventureCombatPower = 0;
-            adventureCombatPower = turn * turnSCaling + player.Level * levelScaling + Convert.ToInt32(player.EffectiveCombatStats * CPscaling);
+            if (player.HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Adventure_Completion) CPscaling = 0.4f;
+            adventureCombatPower = turn * turnSCaling + player.Level * levelScaling + Convert.ToInt32(player.EffectiveCombatPower * CPscaling);
             for (int i = 0; i < 10; i++)
             {
-                if (TierTrial(player.EffectiveCombatStats, adventureCombatPower))
+                if (TierTrial(player.EffectiveCombatPower, adventureCombatPower, player.InteractiveRPGDecision))
                 {
                     AdventureCompletion++;
                 }
@@ -103,16 +95,17 @@ namespace BHungerGaemsBot
                 player.Notoriety++;
                 returnStringBuilder.Append($"{player.NickName} has fully completed the adventure! Extra rewards and * notoriety * will be granted to them!\n\n");
             }
-            GetLoot(player, HeroAffinity, ref returnStringBuilder, playerNumber, scenarios);
-            player.GetExp(AdventureCompletion);
-            player.GetScore(AdventureCompletion);
+            GetLoot(player, HeroAffinity, ref returnStringBuilder, playerNumber, scenarios, AdventureCompletion, dailyBuff);
+            player.GetExp(AdventureCompletion, dailyBuff);
+            player.GetScore(AdventureCompletion, dailyBuff);
 
             return returnStringBuilder;
         }
 
-        private bool TierTrial(int a, int b)
+        private static bool TierTrial(int a, int b, InteractiveRPGDecision decision)
         {
             float heroAdvantage = 2f;
+            heroAdvantage = decision == InteractiveRPGDecision.LookForCompletion ? 2.5f : heroAdvantage;
             int totalChances = Convert.ToInt32(a * heroAdvantage);
             if (_random.Next(totalChances + b) < totalChances)
             {
@@ -120,31 +113,39 @@ namespace BHungerGaemsBot
             }
             return false;
         }
-        private void GetLoot(PlayerRPG player, HeroClass adventureClass, ref StringBuilder sbLoot, int playerCount, ScenarioRPG[] scenarios)
+
+        private static void GetLoot(PlayerRPG player, HeroClass adventureClass, ref StringBuilder sbLoot, int playerCount, ScenarioRPG[] scenarios, int adventureCompletion, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
-            //in the future add few line that prioritise adventureClass but also give out other classes 
             int luckModifier = Convert.ToInt32(75 * Math.Log(Math.Pow(player.HeroStats[6], 0.5) / 2));
             RarityRPG bestRarity = RarityRPG.Trash;
+            HeroClass classItem = adventureClass;
             if (player.InteractiveRPGDecision == InteractiveRPGDecision.LookForLoot)
             {
-                luckModifier = Convert.ToInt32(luckModifier * 1.5);
+                luckModifier = Convert.ToInt32(luckModifier * 1.35);
+                if (player.HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Item_Find)
+                {
+                    luckModifier = Convert.ToInt32(luckModifier * 1.15);
+                }
             }
-            int itemsToLoot = AdventureCompletion / 2 + 1;
+            int itemsToLoot = adventureCompletion / 2 + 1;
             for (int i = 0; i < itemsToLoot; i++)
             {
-                double lootMultiplier = 2 + player.Level / 4;
+                classItem = adventureClass;
+                if (!RngRoll(75)) classItem = (HeroClass)_random.Next(7);
+                double lootMultiplier = 2 + player.Level / 7;
                 int roll = _random.Next(luckModifier, 1000);
                 RarityRPG itemRarity = LootTables[i].GetRarity(roll);
                 bestRarity = ((int)itemRarity > (int)bestRarity) ? itemRarity : bestRarity;
-                Console.WriteLine($"{player.NickName} item dropped rarity : {itemRarity} + luckmod is {luckModifier} + rolls is {roll}");
-                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, adventureClass, GetDistribution());
-                player.Points += Convert.ToInt32(Math.Pow((int)itemRarity,lootMultiplier));
+                //Console.WriteLine($"{player.NickName} item dropped rarity : {itemRarity} + luckmod is {luckModifier} + rolls is {roll}");
+                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, classItem, GetDistribution());
+                //player.Points += Convert.ToInt32(Math.Pow((int)itemRarity,lootMultiplier));//NERF
+                player.Points += Convert.ToInt32((int)itemRarity * lootMultiplier);
             }
-            ReduceTextCongestion(GetScenario(scenarios).GetText(player.NickName, bestRarity, adventureClass), ref sbLoot, playerCount, bestRarity);
+            ReduceTextCongestion(GetScenario(scenarios).GetText(player.NickName, bestRarity, classItem), ref sbLoot, playerCount, bestRarity);
             sbLoot.Append("\n");
         }
 
-        private ItemDistribution GetDistribution()
+        private static ItemDistribution GetDistribution()
         {
             int index = _random.Next(100);
             if (index < 20) return ItemDistribution.Average;
@@ -153,7 +154,7 @@ namespace BHungerGaemsBot
             return ItemDistribution.Average;
         }
 
-        private ScenarioRPG GetScenario(ScenarioRPG[] scenarios)
+        public static ScenarioRPG GetScenario(ScenarioRPG[] scenarios)
         {
             while (true)
             {
@@ -166,7 +167,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        private void ReduceTextCongestion(string text, ref StringBuilder sb, int players, RarityRPG rarity)
+        private static void ReduceTextCongestion(string text, ref StringBuilder sb, int players, RarityRPG rarity)
         {
             if (players < 15 && (int)rarity > 4)
             {
@@ -182,5 +183,11 @@ namespace BHungerGaemsBot
             }
         }
 
+        private static bool RngRoll(int a)
+        {
+            int chance = a * 10;
+            int roll = _random.Next(0, 1000);
+            return roll <= chance;
+        }
     }
 }

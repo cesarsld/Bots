@@ -7,4 +7,10 @@
         Healing,
         LootFind
     }
+    public enum ScenarioTypeRPG
+    {
+        Training,
+        Looting,
+        Dueling
+    }
 }

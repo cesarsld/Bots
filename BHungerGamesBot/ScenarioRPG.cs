@@ -8,6 +8,7 @@ namespace BHungerGaemsBot
     {
         private string Description;
         private RarityRPG Rarity;
+        public ScenarioTypeRPG Type;
         public int Timer;
 
         public ScenarioRPG(string description, RarityRPG rarity)
@@ -15,6 +16,13 @@ namespace BHungerGaemsBot
             Description = description;
             Rarity = rarity;
             Timer = 0;
+            //Type = type;
+        }
+        public ScenarioRPG(string description, ScenarioTypeRPG type)
+        {
+            Description = description;
+            Timer = 0;
+            Type = type;
         }
 
         public string GetText(string player, RarityRPG rarity, HeroClass heroClass)
@@ -23,6 +31,11 @@ namespace BHungerGaemsBot
             value = value?.Replace("{rarity_type}", rarity.ToString());
             value = value?.Replace("{class_type}", heroClass.ToString());
 
+            return value;
+        }
+        public string GetText(string player)
+        {
+            string value = Description?.Replace("{player_name}", player);
             return value;
         }
 

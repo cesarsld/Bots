@@ -5,12 +5,13 @@ namespace BHungerGaemsBot
 {
     class PlayerRPG : Player
     {
-        public int Points { get; set; }
-        public Adventure adventure;
+        public int Points { get; set; } // NERF POINTS
+        //public Adventure adventure;
         public int Notoriety { get; set; }
 
         public bool IsInLeaderboard { get; set; }
         public bool HasDueled { get; set; }
+        public bool AuraBonus { get; set; }
 
         Random _random;
 
@@ -25,7 +26,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        public int EffectiveCombatStats {
+        public int EffectiveCombatPower {
             get
             {
                 int CombatPower = 0;
@@ -53,7 +54,7 @@ namespace BHungerGaemsBot
 
         public PlayerRPG(IUser userParm) : base(userParm)
         {
-            adventure = new Adventure();
+            //adventure = new Adventure();
             HeroClass = HeroClass.Mage;
             IsInLeaderboard = false;
             Items = new ItemRPG[BHungerGamesV3.NumItemTypes];
@@ -63,10 +64,11 @@ namespace BHungerGaemsBot
             }
             _random = new Random(Guid.NewGuid().GetHashCode());
             HasDueled = false;
+            AuraBonus = false;
         }
         public PlayerRPG(int index) : base(index)
         {
-            adventure = new Adventure();
+            //adventure = new Adventure();
             HeroClass = HeroClass.Mage;
             IsInLeaderboard = false;
             Items = new ItemRPG[BHungerGamesV3.NumItemTypes];
@@ -75,15 +77,21 @@ namespace BHungerGaemsBot
                 Items[i] = new ItemRPG();
             }
             HasDueled = false;
+            AuraBonus = false;
+            _random = new Random(Guid.NewGuid().GetHashCode());
         }
 
-        public void GetExp(int adventureCompletion)
+        public void GetExp(int adventureCompletion, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
             int totalExp = 0;
             int exp = 10 + Level;
             if (InteractiveRPGDecision == InteractiveRPGDecision.LookForExp)
             {
                 exp = Convert.ToInt32(exp * 1.25);
+                if (HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Experience_Gain)
+                {
+                    exp = Convert.ToInt32(exp * 1.15);
+                }
             }
 
             for (int i = 0; i < adventureCompletion; i++)
@@ -91,26 +99,46 @@ namespace BHungerGaemsBot
                 totalExp += _random.Next(Convert.ToInt32(0.8 * exp), Convert.ToInt32(1.2 * exp));
                 exp = Convert.ToInt32(1.2 * exp);
             }
-            AddExp(exp);
-            Points += Convert.ToInt32(exp / 2);
+            AddExp(totalExp);
+            Points += Convert.ToInt32(totalExp / 4);
         }
-        public void GetScore(int adventureCompletion)
+        public void GetScore(int adventureCompletion, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
             float scoreMultiplier = 1.5f + (Level * 1.5f);
+            if (HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Points_Collection)
+            {
+                scoreMultiplier = Convert.ToInt32(scoreMultiplier * 1.15);
+            }
             Points += Convert.ToInt32(adventureCompletion * scoreMultiplier);
         }
 
-        public void Train()
+        public String Train(ScenarioRPG[] scenarios, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
-            int exp = 5 + Level * 5;
+            String returnString = "";
+            int exp = 3 + Level * 3;
+            if (HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Experience_Gain)
+            {
+                exp = Convert.ToInt32(exp * 1.15);
+            }
             int totalExp = _random.Next(8 * exp, 12 * exp);
+            Console.WriteLine($"totale exp : {totalExp} and threshold is {11 * exp}");
+            if (totalExp > (11 * exp))
+            {
+                AuraBonus = true;
+                returnString = (Adventure.GetScenario(scenarios).GetText(NickName) + "\n");
+            }
             AddExp(totalExp);
+            return returnString;
         }
 
         public void AddExp(int value)
         {
             Experience += value;
         }
-
+        public int GiveExpValue()
+        {
+            return Experience;
+        }
+        //NERF
     }
 }

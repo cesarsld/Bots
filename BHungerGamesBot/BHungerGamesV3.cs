@@ -19,14 +19,15 @@ namespace BHungerGaemsBot
         private static readonly TimeSpan DelayBetweenCycles;
         private static readonly TimeSpan DelayAfterOptions;
         private static readonly int[] ShowPlayersWhenCountEqual;
-        private static readonly ReadOnlyCollection<LootLevel> LootLevels;
         private static readonly ReadOnlyCollection<IEmote> EmojiClassListOptions;
         private static readonly ReadOnlyCollection<IEmote> EmojiAdventureListOption;
         private static readonly ReadOnlyCollection<IEmote> EmojiListCrowdDecision;
-        //private static readonly Scenario[] Scenarios;
         private static readonly List<ulong> BannedPlayers;
 
-        private static readonly ScenarioRPG[] Scenarios;
+        private static readonly ScenarioRPG[] LootScenarios;
+        private static readonly ScenarioRPG[] TrainScenarios;
+        //private static readonly ScenarioRPG[] TrainScenarios;
+
 
         private readonly Random _random;
         private readonly HashSet<PlayerRPG> _enchancedPlayers;
@@ -42,52 +43,11 @@ namespace BHungerGaemsBot
         private int _reactionA;
         private int _reactionB;
 
-        public class LootLevel
-        {
-            public readonly LootQuality Quality;
-            //public readonly int FailChance;
-            public readonly int CommonChance;
-            public readonly int RareChance;
-            public readonly int EpicChance;
-            public readonly int LegendaryChance;
-            public readonly int SetChance;
-
-            public LootLevel(LootQuality quality, int commonChance, int rareChance, int epicChance, int legendaryChance, int setChance)
-            {
-                Quality = quality;
-                //FailChance = failChance;
-                CommonChance = commonChance;
-                RareChance = rareChance;
-                EpicChance = epicChance;
-                LegendaryChance = legendaryChance;
-                SetChance = setChance;
-            }
-
-            public Rarity GetRarity(int value)
-            {
-                if (value < CommonChance) return Rarity.Common;
-                if (value < RareChance) return Rarity.Rare;
-                if (value < EpicChance) return Rarity.Epic;
-                if (value < LegendaryChance) return Rarity.Legendary;
-                if (value < SetChance) return Rarity.Set;
-                return Rarity.None;
-            }
-        }
-
         static BHungerGamesV3()
         {
-            DelayBetweenCycles = new TimeSpan(0, 0, 0, 10);
-            DelayAfterOptions = new TimeSpan(0, 0, 0, 10);
+            DelayBetweenCycles = new TimeSpan(0, 0, 0, 15);
+            DelayAfterOptions = new TimeSpan(0, 0, 0, 15);
 
-            LootLevels = new ReadOnlyCollection<LootLevel>(new List<LootLevel>()
-            {
-                new LootLevel(LootQuality.None, 0, 0, 0, 0, 0),
-                new LootLevel(LootQuality.Micro, 80, 92, 97, 100, 105),
-                new LootLevel(LootQuality.Low, 57, 82, 94, 98, 100),
-                new LootLevel(LootQuality.Medium, 40, 70, 85, 95, 100),
-                new LootLevel(LootQuality.High, 0, 40, 70, 90, 100),
-                new LootLevel(LootQuality.Extreme, 0, 40, 70, 90, 100)
-            });
 
             ShowPlayersWhenCountEqual = new[] { 20, 10, 5, 2, 0 };
             EmojiClassListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🇦"), new Emoji("🇧"), new Emoji("🇨"), new Emoji("🇩"), new Emoji("🇪"), new Emoji("🇫"), new Emoji("🇬") });
@@ -131,15 +91,16 @@ namespace BHungerGaemsBot
                 {HeroClass.Elementalist, new List<int>{    3,     4,     6,     8,    9,     3,   3 } },
             };
 
-            Scenarios = new[]
+            LootScenarios = new[]
             {
+                //Looting
                 new ScenarioRPG("<{player_name}> stumbled across an abandoned sack. Perhaps a captured Bully dropped it? Opening it, they find a * {rarity_type} * {plass_type} loot.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> was wistfully skulking around the pier in town, hoping that fishing was released! All of a sudden, they lost their balance, and fell in! Oh my goodness! Hidden beneath the surface they found a * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
                 new ScenarioRPG("Astaroth is very lonely these days, no one bothers to come see him anymore. He tries to get <{player_name}>s attention by offering them a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
                 new ScenarioRPG("Just when <{player_name}> was about to use some scissors on their credit card, they find a * {rarity_type} * <{class_type}> loot! Baited again!", RarityRPG.Common),
                 new ScenarioRPG("While trying to think of a funny HG scenario, <{player_name}> stumbles across a * {rarity_type} * <{class_type}> loot! How ironic. . .", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> defeats Kaleido in a best-of-three to the death arm wrestling competition. For their bravery and strength, they're awarded a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("{player__name} successfully uses all the Discord channels correctly. As a reward, Tarri slips a * {rarity_type} * <{class_type}> loot into their pocket. Good job!", RarityRPG.Common),
+                new ScenarioRPG("{player_name} successfully uses all the Discord channels correctly. As a reward, Tarri slips a * {rarity_type} * <{class_type}> loot into their pocket. Good job!", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> boldly but stupidly tries to win a drinking competition with Taters. They wake up two days later with a 'sorry about the mess' note taped to their forehead, and a brand new * {rarity_type} * <{class_type}> loot on their pillow.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> finds an extremely rare vending machine in an R4. They deposit 1 rombit. Whirr bzzt zzzzzt nnnngggg bzzzz click thunk! A * {rarity_type} * <{class_type}> loot falls out!", RarityRPG.Common),
                 new ScenarioRPG("Congratulations <{player_name}>! You have been visited by the Mythical Magical Mystical Miraculous Gobby of Giving! With a wave of his hand, he conjures up a * {rarity_type} * <{class_type}> loot just for you! Enjoy!", RarityRPG.Common),
@@ -155,6 +116,13 @@ namespace BHungerGaemsBot
                 new ScenarioRPG("Uh oh, <{player_name}>. Someone spiked the hot cocoa last night. Those aren’t your pants you’re wearing. You check the pockets for identification and find a * {rarity_type} * <{class_type}> loot, instead.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> sees Sir Quackers waddling around the pier and throws him some breadcrumbs. Overjoyed, Sir Quackers leads them to his secret loot stash and offers the player a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> sees a “Take an item, leave an item” bin by the guild hall entrance. <{player_name}> takes a * {rarity_type} * <{class_type}> loot and leaves a Bronze Coin in its place. Way to go, you jerk.", RarityRPG.Common)
+
+
+            };
+            TrainScenarios = new[]
+            {
+                new ScenarioRPG("{player_name}'s training session has been extremely helpful. He has attained such a level of mastery that he can now predict his opponent's movements 0.5 seconds in the future. Additionally he senses an * Aura Bonus * within his body granting him extra performance on his next action.", ScenarioTypeRPG.Training),
+                new ScenarioRPG("After Empower critting for over 99,999 dmg on a practice dummy, {player_name} feel re-energised.  As a side effect, they obtained an * Aura Bonus *.", ScenarioTypeRPG.Dueling)
             };
         }
 
@@ -172,22 +140,19 @@ namespace BHungerGaemsBot
             int showPlayersWhenCountEqualIndex = 0;
             int duelCooldown = 4;
             bool crowdExtraDuel = false;
-
             bool bonusItemFind = false;
-
-
-
+            Tuple<HeroClass, DailyBuff> dailyBuff;
 
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
-            StringBuilder sbFamLoot = new StringBuilder(2000);
-            //_traps = new List<Trap>();
-            //List<Trap> trapsToBeRemoved = new List<Trap>();
+            StringBuilder sbTrain = new StringBuilder(2000);
+
             List<PlayerRPG> playersToBeRemoved = new List<PlayerRPG>();
             List<Player> bannedPlayersToRemove = new List<Player>();
 
             Logger.LogInternal("V3 Game started, total ppl: " + contestantsTransfer.Count);
 
+            #region Game Initialization
             foreach (Player player in contestantsTransfer)
             {
                 if (BannedPlayers.Contains(player.UserId))
@@ -206,11 +171,8 @@ namespace BHungerGaemsBot
                 for (int i = 0; i < numToRemove; i++)
                 {
                     int randIndex = _random.Next(contestantsTransfer.Count);
-                    //sb.Append($"<{contestantsTransfer[randIndex].ContestantName}>\t");
                     contestantsTransfer.RemoveAt(randIndex);
                 }
-                //showMessageDelegate("Players killed in the stampede trying to get to the arena:\r\n" + sb);
-                //sb.Clear();
             }
 
             _players = new List<PlayerRPG>();
@@ -220,15 +182,19 @@ namespace BHungerGaemsBot
                 if (interactivePlayer != null)
                 {
                     _players.Add(interactivePlayer);
-                    sb.Append($"<{player.ContestantName}>\t");
+                    //sb.Append($"<{player.ContestantName}>\t");
                 }
             }
-            for (int g = 1; g <= 10; g++)
+            //for (int g = 1; g <= 10; g++)
+            //{
+            //    _players.Add(new PlayerRPG(g));
+            //}
+            //showMessageDelegate("Players that successfully entered the arena:\r\n" + sb);
+            //sb.Clear();
+            if (playerNumberinLeaderboard > _players.Count)
             {
-                _players.Add(new PlayerRPG(g));
+                playerNumberinLeaderboard = _players.Count;
             }
-            showMessageDelegate("Players that successfully entered the arena:\r\n" + sb);
-            sb.Clear();
             _ignoreReactions = false;
             _classInit = true;
             showMessageDelegate($"\nPlease select the hero class that you would like to become. Available classes are :"
@@ -238,11 +204,7 @@ namespace BHungerGaemsBot
             _ignoreReactions = true;
             _classInit = false;
             SortClasses();
-
-            if (playerNumberinLeaderboard > _players.Count)
-            {
-                playerNumberinLeaderboard = _players.Count;
-            }
+            #endregion
 
             while (_players.Count > /*numWinners*/ 0)
             {
@@ -252,37 +214,44 @@ namespace BHungerGaemsBot
 
                 // FindAdventure();
                 _adventureAffinity = (HeroClass)_random.Next(7);
+                dailyBuff = RandomClassBuff(sb);
+                showMessageDelegate("" + sb);
+                sb.Clear();
                 //add flavour text
 
                 _ignoreReactions = false;
                 showMessageDelegate($"\n Day **{day}**\nYou have {DelayAfterOptions.Seconds} seconds to input your decision\n"
+                    + $"Today's adventure is more suited for: * {_adventureAffinity} *"
                     + "You may select how you will want to pursue your * adventure * . \nYour options are: "
                     + "<:bulb:> to Complete your adventure, <:crossed_swords:> To gain more EXP or <:money_bag:> To gain better"
                     + " loot or <:muscle:> to skip the adventure and train.", null, EmojiAdventureListOption);
-                sb.Clear();
                 Thread.Sleep(DelayAfterOptions);
                 _ignoreReactions = true;
 
-                foreach (PlayerRPG player in _players)
-                {
-                    player.InteractiveRPGDecision = (InteractiveRPGDecision)(_random.Next(3) + 2);
-                    Console.WriteLine(player.InteractiveRPGDecision);
-                }
+                //foreach (PlayerRPG player in _players)
+                //{
+                //    player.InteractiveRPGDecision = (InteractiveRPGDecision)(_random.Next(3) + 2);
+                //    Console.WriteLine(player.InteractiveRPGDecision);
+                //}
 
                 foreach (PlayerRPG player in _players)
                 {
+                    //if (day > 30)
+                    //    player.InteractiveRPGDecision = InteractiveRPGDecision.LookForLoot;
+                    //else player.InteractiveRPGDecision = InteractiveRPGDecision.Train;
                     if (player.InteractiveRPGDecision != InteractiveRPGDecision.Train)
                     {
-                        sb.Append(player.adventure.PerformAdventure(player, day, _adventureAffinity, _players.Count, Scenarios));
+                        sb.Append(Adventure.PerformAdventure(player, day, _adventureAffinity, _players.Count, LootScenarios, dailyBuff));
                     }
                     else
                     {
-                        player.Train();
+                        sbTrain.Append(player.Train(TrainScenarios, dailyBuff));
                     }
                 }
 
-                showMessageDelegate("" + sb, null);
+                showMessageDelegate("" + sb +  sbTrain, null);
                 sb.Clear();
+                sbTrain.Clear();
 
 
                 Console.WriteLine("reached adventure completion");
@@ -293,35 +262,28 @@ namespace BHungerGaemsBot
                     sb.Append("LEADERBOARD\n\n");
                     for (int i = 0; i < playerNumberinLeaderboard; i++)
                     {
-                        sb.Append($"{i + 1}. {descendingList[i].NickName} || Score = {descendingList[i].Points} || Lvl = {descendingList[i].Level} || Combat power = {descendingList[i].EffectiveCombatStats}\n");
+                        sb.Append($"{i + 1}. {descendingList[i].NickName} || Score = {descendingList[i].Points} || Lvl = {descendingList[i].Level} || Combat power = {descendingList[i].EffectiveCombatPower}\n");
                     }
                     showMessageDelegate("" + sb, null);
                     sb.Clear();
                 }
-                foreach (ScenarioRPG scenario in Scenarios)
+                foreach (ScenarioRPG scenario in TrainScenarios)
                 {
                     scenario.ReduceTimer();
                 }
-                if (_players.Count <= ShowPlayersWhenCountEqual[showPlayersWhenCountEqualIndex])
-                {
-                    showPlayersWhenCountEqualIndex++;
-                    foreach (PlayerRPG contestant in _players)
-                    {
-                        //   sb.Append($"<{contestant.ContestantName}> * HP = {contestant.Stamina} *\t");
-                    }
-                    //showMessageDelegate("Players Remaining:\r\n" + sb);
-                    sb.Clear();
-                }
-
 
                 Thread.Sleep(DelayBetweenCycles);
 
-                if (cannelGame())
-                    return;
-                if (duelCooldown != 0)
+                if (cannelGame()) return;
+
+                if (duelCooldown != 0) duelCooldown--;
+                else if (_players.Count > 9)
                 {
-                    duelCooldown--;
+                    Duel(sb);
+                    showMessageDelegate("Duels\n=====\n\n" + sb, null);
+                    sb.Clear();
                 }
+
                 if (day == 35) break;
             }
 
@@ -338,35 +300,108 @@ namespace BHungerGaemsBot
 
         }
 
-        private void Duel()
+        private Tuple<HeroClass, DailyBuff> RandomClassBuff(StringBuilder sb)
         {
-            //PlayerRPG player1;
-            //PlayerRPG player2;
-            int duelAmount = _players.Count;
+            HeroClass dailyClassBuff = (HeroClass)_random.Next(7);
+            DailyBuff dailyBuff = (DailyBuff)_random.Next(4);
+            sb.Append($"Today's daily buff affects * {dailyClassBuff} * and are rewarded with a <{dailyBuff}> buff.\n");
+            return new Tuple<HeroClass, DailyBuff>(dailyClassBuff, dailyBuff);
+        }
+
+        private void Duel(StringBuilder sb)
+        {
+            int duelAmount = Convert.ToInt32(_players.Count * 0.1);
+            int safetyNet = 0;
+            int rangeMod = 0;
             while (duelAmount != 0)
             {
-                int index = _random.Next(_players.Count);
+                int index = _random.Next(_players.Count); //selecting first player in duel
                 int index2;
-                int playerCount = _players.Count;
-                //player1 = _players[index];
-                if (_players[index].HasDueled) continue;
+                if (_players[index].HasDueled) continue; //restarts loop if player1 already dueled
                 index2 = index;
-                if (index < 3)
+                if (index < 4)
                 {
-                    while (index2 != index && _players[index2].HasDueled) { index2 = _random.Next(5); }
+                    //if player 1 is in top of leaderboard, to prevent having scope element error
+                    while (index2 != index && _players[index2].HasDueled)
+                    {
+                        index2 = _random.Next(5 + rangeMod);
+                        safetyNet++;
+                        if (safetyNet == 20) rangeMod += 2;
+                    }
                 }
-                else if (index > _players.Count - 3)
+                else if (index > _players.Count - 4)
                 {
-                    while (index2 != index && _players[index2].HasDueled) { index2 = _players.Count - _random.Next(5); }
+                    //if player 1 is in bottom of leaderboard, to prevent having scope element error
+                    while (index2 != index && _players[index2].HasDueled)
+                    {
+                        index2 = _players.Count - _random.Next(5 + rangeMod);
+                        if (safetyNet == 20) rangeMod += 2;
+                    }
                 }
                 else
                 {
-                    while (index2 != index && _players[index2].HasDueled) { index2 = _random.Next(index - 2, index + 3); }
+                    while (index2 != index && _players[index2].HasDueled)
+                    {
+                        index2 = _random.Next(index - (4 + rangeMod), index + 5 + rangeMod);
+                        if (safetyNet == 20) rangeMod ++;
+                    }
                 }
-
+                sb.Append(PerformDuel(index, index2));
                 duelAmount--;
+                rangeMod = 0;
+                safetyNet = 0;
             }
 
+        }
+
+        private String PerformDuel(int index1, int index2)
+        {
+            int p1W = 0, p2W = 0;
+            float p1Advantage = 1, p2Advantage = 1;
+            int classDiff = ((int)_players[index1].HeroClass) - ((int)_players[index1].HeroClass);
+            switch (classDiff)
+            {
+                case 1:
+                case 7:
+                    p2Advantage = 1.25f;
+                    break;
+                case 2:
+                case 6:
+                    p2Advantage = 1.125f;
+                    break;
+                case -1:
+                case -7:
+                    p1Advantage = 1.25f;
+                    break;
+                case -2:
+                case -6:
+                    p1Advantage = 1.125f;
+                    break;
+            }
+            int p1Chance = Convert.ToInt32((_players[index1].EffectiveCombatPower) * p1Advantage / ((_players[index1].EffectiveCombatPower) * p1Advantage + (_players[index1].EffectiveCombatPower) * p2Advantage) * 100);
+            for (int i = 0; i < 5; i++)
+            {
+                if (RngRoll(p1Chance)) p1W++;
+                else p2W++;
+            }
+            if (p1W < p2W)
+            {
+                index1 = index1 ^ index2;
+                index2 = index1 ^ index2;
+                index1 = index1 ^ index2;
+            }
+            _players[index1].AddExp(_players[index2].Level * 6);
+            _players[index1].Points += Convert.ToInt32(_players[index2].Points * 0.05);
+            _players[index1].AuraBonus = true;
+            string returnString = $"{_players[index1].NickName} came out victorious in the duel agaisnt {_players[index2].NickName}. On top of additional exp and points, he gains an * Aura Bonus * he can use on his next action!\n\n";
+            return returnString;
+        }
+
+        private bool RngRoll(int a)
+        {
+            int chance = a * 10;
+            int roll = _random.Next(0, 1000);
+            return roll <= chance;
         }
 
         private void SortClasses()
@@ -385,7 +420,6 @@ namespace BHungerGaemsBot
                 player.HeroStatMult[i] = HeroScalingDictionary[player.HeroClass][i];
             }
         }
-
 
         public void HandlePlayerInput(ulong userId, string reactionName)
         {
