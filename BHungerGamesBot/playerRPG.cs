@@ -6,12 +6,13 @@ namespace BHungerGaemsBot
     class PlayerRPG : Player
     {
         public int Points { get; set; } // NERF POINTS
-        //public Adventure adventure;
         public int Notoriety { get; set; }
 
         public bool IsInLeaderboard { get; set; }
         public bool HasDueled { get; set; }
         public bool AuraBonus { get; set; }
+        public bool PartookInEvent { get; set; }
+        public GamblingOptions GamblingOption { get; set; }
 
         Random _random;
 
@@ -54,8 +55,8 @@ namespace BHungerGaemsBot
 
         public PlayerRPG(IUser userParm) : base(userParm)
         {
-            //adventure = new Adventure();
             HeroClass = HeroClass.Mage;
+            GamblingOption = GamblingOptions._0;
             IsInLeaderboard = false;
             Items = new ItemRPG[BHungerGamesV3.NumItemTypes];
             for (var index = 0; index < Items.Length; index++)
@@ -65,11 +66,12 @@ namespace BHungerGaemsBot
             _random = new Random(Guid.NewGuid().GetHashCode());
             HasDueled = false;
             AuraBonus = false;
+            PartookInEvent = false;
         }
         public PlayerRPG(int index) : base(index)
         {
-            //adventure = new Adventure();
             HeroClass = HeroClass.Mage;
+            GamblingOption = GamblingOptions._0;
             IsInLeaderboard = false;
             Items = new ItemRPG[BHungerGamesV3.NumItemTypes];
             for (var i = 0; i < Items.Length; i++)
@@ -78,10 +80,48 @@ namespace BHungerGaemsBot
             }
             HasDueled = false;
             AuraBonus = false;
+            PartookInEvent = false;
             _random = new Random(Guid.NewGuid().GetHashCode());
         }
 
-        public void GetExp(int adventureCompletion, Tuple<HeroClass, DailyBuff> dailyBuff)
+        public void WorldBossRewards(bool battleResult)
+        {
+            float gamblingMult = 0;
+            switch (GamblingOption)
+            {
+                case GamblingOptions._1:
+                    gamblingMult = 0.01f;
+                    break;
+                case GamblingOptions._5:
+                    gamblingMult = 0.05f;
+                    break;
+                case GamblingOptions._10:
+                    gamblingMult = 0.1f;
+                    break;
+                case GamblingOptions._25:
+                    gamblingMult = 0.25f;
+                    break;
+                case GamblingOptions._50:
+                    gamblingMult = 0.5f;
+                    break;
+                case GamblingOptions._75:
+                    gamblingMult = 0.75f;
+                    break;
+                case GamblingOptions._100:
+                    gamblingMult = 1f;
+                    break;
+            }
+            if (battleResult)
+            {
+                Points += Convert.ToInt32(Points * gamblingMult) * 3;
+            }
+            else
+            {
+                Points -= Convert.ToInt32(Points * gamblingMult);
+            }
+        }
+
+        public void GiveExp(int adventureCompletion, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
             int totalExp = 0;
             int exp = 10 + Level;
@@ -93,6 +133,11 @@ namespace BHungerGaemsBot
                     exp = Convert.ToInt32(exp * 1.15);
                 }
             }
+            if (AuraBonus && InteractiveRPGDecision == InteractiveRPGDecision.LookForExp)
+            {
+                exp *= 2;
+                AuraBonus = !AuraBonus;
+            }
 
             for (int i = 0; i < adventureCompletion; i++)
             {
@@ -100,11 +145,12 @@ namespace BHungerGaemsBot
                 exp = Convert.ToInt32(1.2 * exp);
             }
             AddExp(totalExp);
-            Points += Convert.ToInt32(totalExp / 4);
+            Points += Convert.ToInt32(totalExp / 2);
         }
-        public void GetScore(int adventureCompletion, Tuple<HeroClass, DailyBuff> dailyBuff)
+
+        public void GiveScore(int adventureCompletion, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
-            float scoreMultiplier = 1.5f + (Level * 1.5f);
+            double scoreMultiplier = 1.5 + (Level * 1.5) + Math.Pow(Level, 2);
             if (HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Points_Collection)
             {
                 scoreMultiplier = Convert.ToInt32(scoreMultiplier * 1.15);
@@ -115,10 +161,15 @@ namespace BHungerGaemsBot
         public String Train(ScenarioRPG[] scenarios, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
             String returnString = "";
-            int exp = 3 + Level * 3;
+            int exp = Convert.ToInt32(Math.Pow(Level, 1.3) * 1.3);
             if (HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Experience_Gain)
             {
                 exp = Convert.ToInt32(exp * 1.15);
+            }
+            if (AuraBonus && InteractiveRPGDecision == InteractiveRPGDecision.Train)
+            {
+                exp *= 2;
+                AuraBonus = !AuraBonus;
             }
             int totalExp = _random.Next(8 * exp, 12 * exp);
             Console.WriteLine($"totale exp : {totalExp} and threshold is {11 * exp}");
@@ -135,10 +186,17 @@ namespace BHungerGaemsBot
         {
             Experience += value;
         }
+
         public int GiveExpValue()
         {
             return Experience;
         }
-        //NERF
+
+        public void ResetVars()
+        {
+            InteractiveRPGDecision = InteractiveRPGDecision.Nothing;
+            PartookInEvent = false;
+            GamblingOption = GamblingOptions._0;
+        }
     }
 }

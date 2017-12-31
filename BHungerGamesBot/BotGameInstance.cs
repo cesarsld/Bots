@@ -34,6 +34,12 @@ namespace BHungerGaemsBot
             _channel.SendMessageAsync(message);
         }
 
+        protected void SendImageFile(string path, string logMsgOnly = null, IReadOnlyList<IEmote> emotes = null)
+        {
+            Logger.LogInternal("Uploading file from: " + path);
+            _channel.SendFileAsync(path);
+        }
+
         protected void LogAndReplyError(string message, string method)
         {
             Logger.Log(new LogMessage(LogSeverity.Error, method, message));
@@ -143,6 +149,13 @@ namespace BHungerGaemsBot
             Task.Run(() => RunGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, context, userName, false));
             return true;
         }
+        public bool StartGame(int maxTurn, int maxMinutesToWait, int maxScore, ICommandContext context, string userName, int testUsers)
+        {
+            _testUsers = testUsers;
+
+            Task.Run(() => RunGame( maxMinutesToWait, maxScore, maxTurn, context, userName));
+            return true;
+        }
 
         protected void CheckReactionUsers(IUserMessage gameMessage, Dictionary<string, string> newPlayersNickNameLookup)
         {
@@ -192,10 +205,13 @@ namespace BHungerGaemsBot
                 + $"React to this message with the {ReactionToUseText} emoji to enter!  Multiple Reactions(emojis) will NOT enter you more than once.\r\nPlayer entered: ";
         }
 
+        protected virtual string GetRunGameMessage(string bhgRoleMention, string userName, int maxMinutesToWait, int maxTurns, int maxScore) { return ""; }
+
         protected virtual void RunGameInternal(int numWinners, int secondsDelayBetweenDays, List<Player> players, int maxPlayers = 0)
         {
             new BHungerGames().Run(numWinners, secondsDelayBetweenDays, players, LogToChannel, GetCancelGame, maxPlayers);
         }
+        protected virtual void RunGameInternal(int maxScore, int maxTurns, List<Player> players) { }
 
         private void RunGame(int numWinners, int maxUsers, int maxMinutesToWait, int secondsDelayBetweenDays, ICommandContext context, string userName, bool startWhenMaxUsers = true)
         {
@@ -418,6 +434,231 @@ namespace BHungerGaemsBot
             }
         }
 
+        //method used for HG3
+        private void RunGame( int maxMinutesToWait, int maxScore, int maxTurn, ICommandContext context, string userName)
+        {
+            bool removeHandler = false;
+            try
+            {
+                _channel = context.Channel;
+
+                // see if BHG exists, if so mention it
+                var roles = context.Guild.Roles;
+                string bhgRoleMention = "";
+                string bannerImagePath = "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\gobby.png";
+                foreach (IRole role in roles)
+                {
+                    if (role.IsMentionable && string.Equals(role.Name, "BHG", StringComparison.OrdinalIgnoreCase))
+                    {
+                        bhgRoleMention = role.Mention;
+                        break;
+                    }
+                }
+                //string bhgRoleMention, string userName, int maxMinutesToWait, int maxTurns, int maxScore
+                string gameMessageText = GetRunGameMessage(bhgRoleMention, userName, maxMinutesToWait, maxTurn, maxScore);
+                Task<IUserMessage> messageTask;
+                messageTask = _channel.SendFileAsync(bannerImagePath);
+                messageTask = _channel.SendMessageAsync(gameMessageText + "0");
+                Logger.Log(gameMessageText);
+                messageTask.Wait();
+
+                if (messageTask.IsFaulted)
+                {
+                    LogAndReplyError("Error getting players.", "RunGame");
+                    return;
+                }
+                var gameMessage = messageTask.Result;
+                if (gameMessage == null)
+                {
+                    LogAndReplyError("Error accessing Game Message.", "RunGame");
+                    return;
+                }
+                lock (SyncObj)
+                {
+                    _players = new Dictionary<Player, Player>();
+                    _cheatingPlayers = new Dictionary<Player, List<string>>();
+                    _firstPlayersToReact = new List<string>();
+                    MessageId = gameMessage.Id;
+                }
+
+                Bot.DiscordClient.ReactionAdded += HandleReactionAdded;
+                //Bot.DiscordClient.ReactionRemoved += HandleReactionRemoved;
+                removeHandler = true;
+
+                Dictionary<Player, Player> newPlayersUserNameLookup;
+                Dictionary<Player, List<string>> newCheatingPlayersLookup;
+                List<string> newFirstPlayersToReact;
+                DateTime now = DateTime.Now;
+                int secondCounter = 0;
+                int lastPlayerCount = 0;
+                while (true)
+                {
+                    int currentPlayerCount;
+                    lock (SyncObj)
+                    {
+                        if (CancelGame)
+                            return;
+                        currentPlayerCount = _players.Count;
+                        //if (startWhenMaxUsers && currentPlayerCount >= maxUsers)
+                        //{
+                        //    MessageId = 0;
+                        //    newPlayersUserNameLookup = _players;
+                        //    newCheatingPlayersLookup = _cheatingPlayers;
+                        //    newFirstPlayersToReact = _firstPlayersToReact;
+                        //    _players = new Dictionary<Player, Player>();
+                        //    _cheatingPlayers = new Dictionary<Player, List<string>>();
+                        //    _firstPlayersToReact = new List<string>();
+                        //    break;
+                        //}
+                    }
+                    if (secondCounter > 10)
+                    {
+                        secondCounter = 0;
+                        if (currentPlayerCount != lastPlayerCount)
+                        {
+                            lastPlayerCount = currentPlayerCount;
+                            gameMessage.ModifyAsync(x => x.Content = gameMessageText + currentPlayerCount); // + "```\r\n");
+                        }
+                    }
+
+                    Thread.Sleep(1000);
+                    secondCounter++;
+                    if ((DateTime.Now - now).TotalSeconds >= maxMinutesToWait)//changes to seconds for faster testing
+                    {
+                        lock (SyncObj)
+                        {
+                            if (CancelGame)
+                                return;
+                            MessageId = 0;
+                            newPlayersUserNameLookup = _players;
+                            newCheatingPlayersLookup = _cheatingPlayers;
+                            newFirstPlayersToReact = _firstPlayersToReact;
+                            _players = new Dictionary<Player, Player>();
+                            _cheatingPlayers = new Dictionary<Player, List<string>>();
+                            _firstPlayersToReact = new List<string>();
+                        }
+                        break;
+                    }
+                }
+
+                Bot.DiscordClient.ReactionAdded -= HandleReactionAdded;
+                //Bot.DiscordClient.ReactionRemoved -= HandleReactionRemoved;
+                removeHandler = false;
+
+                //CheckReactionUsers(gameMessage, newPlayersNickNameLookup);
+
+                // for now we don't use this anymore so don't update it.
+                //lock (_syncObj)
+                //{
+                //    _players = new Dictionary<string, string>(newPlayersNickNameLookup);
+                //}
+
+                List<Player> players;
+                if (_testUsers > 0)
+                {
+                    players = new List<Player>(_testUsers);
+                    for (int i = 0; i < _testUsers; i++)
+                        players.Add(new Player(i));
+                }
+                else
+                {
+                    players = new List<Player>(newPlayersUserNameLookup.Values);
+                    if (players.Count < 1)
+                    {
+                        LogAndReplyError("Error, no players reacted.", "RunGame");
+                        return;
+                    }
+                }
+
+                if (lastPlayerCount != players.Count)
+                {
+                    gameMessage.ModifyAsync(x => x.Content = gameMessageText + players.Count); //  + "```\r\n"
+                }
+
+                if (newFirstPlayersToReact.Count > 0)
+                {
+                    StringBuilder sb = new StringBuilder(2000);
+                    foreach (string fullUserName in newFirstPlayersToReact)
+                    {
+                        sb.Append($"<{fullUserName}> ## ");
+                    }
+                    string guildName = context.Guild?.Name ?? "NULL";
+                    Logger.LogInternal($"G: {guildName} First Users To React: " + sb);
+                }
+
+                if (newCheatingPlayersLookup.Count > 0)
+                {
+                    StringBuilder sb = new StringBuilder(2000);
+                    foreach (KeyValuePair<Player, List<string>> pair in newCheatingPlayersLookup)
+                    {
+                        sb.Append($"(ID:<{pair.Key.UserId}>): ");
+                        foreach (string fullUserName in pair.Value)
+                        {
+                            sb.Append($"<{fullUserName}> ");
+                        }
+                        sb.Append("\r\n");
+                    }
+                    LogToChannel("Players REMOVED from game due to multiple NickNames:\r\n" + sb);
+                }
+                //RunGameInternal(int secondsDelayBetweenDays, int maxScore, int maxTurns, List<Player> players, int maxPlayers = 0)
+                RunGameInternal(maxScore, maxTurn, players);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception", ex));
+                try
+                {
+                    LogAndReply("Error Starting Game.");
+                }
+                catch (Exception ex2)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception Sending Error to Discord", ex2));
+                }
+            }
+            finally
+            {
+                try
+                {
+                    if (removeHandler)
+                    {
+                        Bot.DiscordClient.ReactionAdded -= HandleReactionAdded;
+                        //Bot.DiscordClient.ReactionRemoved -= HandleReactionRemoved;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception In Finally", ex));
+                }
+                try
+                {
+                    BaseCommands.RemoveChannelCommandInstance(context.Channel.Id);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception In Finally2", ex));
+                }
+                try
+                {
+                    string cancelMessage = null;
+                    lock (SyncObj)
+                    {
+                        if (CancelGame)
+                        {
+                            cancelMessage = "GAME CANCELLED!!!";
+                        }
+                    }
+                    if (cancelMessage != null)
+                    {
+                        LogAndReply(cancelMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(new LogMessage(LogSeverity.Error, "RunGame", "Unexpected Exception In Finally3", ex));
+                }
+            }
+        }
+        
         protected IUserMessage SendMarkdownMsg(string msg)
         {
             var message = _channel.SendMessageAsync("```Markdown\r\n" + msg + "```\r\n").GetAwaiter().GetResult();
@@ -472,6 +713,7 @@ namespace BHungerGaemsBot
                 foreach (IEmote emoji in emotes)
                 {
                     message.AddReactionAsync(emoji);
+                    Thread.Sleep(new TimeSpan(0, 0, 2));
                 }
 
             }

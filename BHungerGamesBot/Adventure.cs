@@ -24,6 +24,7 @@ namespace BHungerGaemsBot
                 new LootTable(  10, 340, 540, 700, 820, 892, 944, 976, 992),
                 new LootTable(   0, 320, 320, 680, 805, 881, 937, 973, 991),
                 new LootTable(   0, 300, 500, 660, 790, 870, 930, 970, 990),
+                new LootTable(   0,   0,   0,   0, 200, 500, 700, 850, 950),
             });
         }
          
@@ -70,6 +71,17 @@ namespace BHungerGaemsBot
             }
         }
 
+        public static string GoblinLoot(PlayerRPG player)
+        {
+            int luckModifier = Convert.ToInt32(75 * Math.Log(Math.Pow(player.HeroStats[6], 0.5) / 2));
+            HeroClass itemClass = player.HeroClass;
+            int roll = _random.Next(luckModifier, 1000);
+            RarityRPG itemRarity = LootTables[6].GetRarity(roll);
+            player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, itemClass, GetDistribution());
+            string returnString = $"<{player.NickName}> captured a <{(GoblinList)_random.Next(5)}> and obtained a * {itemRarity} * item!\n";
+            return returnString;
+        }
+
         public static StringBuilder PerformAdventure(PlayerRPG player, int turn, HeroClass adventureAffinity, int playerNumber, ScenarioRPG[] scenarios, Tuple<HeroClass, DailyBuff> dailyBuff)
         {
             StringBuilder returnStringBuilder = new StringBuilder(10000);
@@ -81,6 +93,11 @@ namespace BHungerGaemsBot
             float CPscaling = 0.5f;
             int adventureCombatPower = 0;
             if (player.HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Adventure_Completion) CPscaling = 0.4f;
+            if (player.AuraBonus && player.InteractiveRPGDecision == InteractiveRPGDecision.LookForCompletion)
+            {
+                CPscaling = 0.3f;
+                player.AuraBonus = !(player.AuraBonus);
+            }
             adventureCombatPower = turn * turnSCaling + player.Level * levelScaling + Convert.ToInt32(player.EffectiveCombatPower * CPscaling);
             for (int i = 0; i < 10; i++)
             {
@@ -96,8 +113,8 @@ namespace BHungerGaemsBot
                 returnStringBuilder.Append($"{player.NickName} has fully completed the adventure! Extra rewards and * notoriety * will be granted to them!\n\n");
             }
             GetLoot(player, HeroAffinity, ref returnStringBuilder, playerNumber, scenarios, AdventureCompletion, dailyBuff);
-            player.GetExp(AdventureCompletion, dailyBuff);
-            player.GetScore(AdventureCompletion, dailyBuff);
+            player.GiveExp(AdventureCompletion, dailyBuff);
+            player.GiveScore(AdventureCompletion, dailyBuff);
 
             return returnStringBuilder;
         }
@@ -126,6 +143,11 @@ namespace BHungerGaemsBot
                 {
                     luckModifier = Convert.ToInt32(luckModifier * 1.15);
                 }
+            }
+            if (player.AuraBonus && player.InteractiveRPGDecision == InteractiveRPGDecision.LookForLoot)
+            {
+                luckModifier *= 2;
+                player.AuraBonus = !(player.AuraBonus);
             }
             int itemsToLoot = adventureCompletion / 2 + 1;
             for (int i = 0; i < itemsToLoot; i++)

@@ -37,20 +37,21 @@ namespace BHungerGaemsBot
             return Task.CompletedTask;
         }
 
-        protected override string GetRunGameMessage(string bhgRoleMention, string userName, int maxUsers, int maxMinutesToWait, bool startWhenMaxUsers)
+        protected override string GetRunGameMessage(string bhgRoleMention, string userName, int maxMinutesToWait, int maxTurns, int maxScore)
         {
-            return $"{bhgRoleMention} Preparing to start a Bit Heroes BattleGround Game for ```Markdown\r\n<{userName}> in {maxMinutesToWait} minutes"
-                   + (startWhenMaxUsers ? $" or when we get {maxUsers} reactions!" : $"!  At the start of the game the # of players will be reduced to {maxUsers} if needed.") + "```\r\n"
+            return $"{bhgRoleMention} Preparing to start a Bit Heroes BattleGround Game for ```Markdown\r\n<{userName}> in {maxMinutesToWait} minutes. "
+                   + $"The Game will last {maxTurns} turns" + (maxScore == 1000000000 ? "." : $" OR when a player reaches a Score of <{maxScore} points>.")
+                   + "```\r\n"
                    + "React to this message with any emoji to enter!  Multiple Reactions(emojis) will NOT enter you more than once.\r\nPlayer entered: ";
         }
 
-        protected override void RunGameInternal(int numWinners, int secondsDelayBetweenDays, List<Player> players, int maxPlayers = 0)
+        protected override void RunGameInternal(int maxScore, int maxTurns, List<Player> players)
         {
             Bot.DiscordClient.ReactionAdded += FetchPlayerInput;
             try
             {
                 _gameInstance = new BHungerGamesV3();
-                _gameInstance.Run(numWinners, players, LogToChannel, GetCancelGame, maxPlayers);
+                _gameInstance.Run(players, maxScore, maxTurns,  LogToChannel, GetCancelGame, SendImageFile);
 
             }
             finally

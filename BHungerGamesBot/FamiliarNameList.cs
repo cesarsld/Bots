@@ -4,6 +4,12 @@ using System.Text;
 
 namespace BHungerGaemsBot
 {
+    enum WorldBossList
+    {
+        Orlag,
+        Netherworld
+    }
+
     enum GoblinList
     {
         Gobby,

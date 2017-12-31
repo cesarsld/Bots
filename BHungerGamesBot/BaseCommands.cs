@@ -150,7 +150,7 @@ namespace BHungerGaemsBot
 
                 foreach (IRole role in roles)
                 {
-                    if (role.Name.Contains("Admin") || role.Name.StartsWith("Mod"))
+                    if (role.Name.Contains("Admin") || role.Name.StartsWith("Mod") || role.Name.StartsWith("Git"))
                     {
                         rolesWithAccess.Add(role.Id);
                     }
@@ -454,15 +454,15 @@ namespace BHungerGaemsBot
             }
         }
         [Command("StartV3", RunMode = RunMode.Async), Summary("STart the BitHeroes BattleGriund")]
-        public async Task BHBG([Summary("Max User that can play")]string strMaxUsers,
-            [Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
-            [Summary("Number of Winners")]string strNumWinners = null
+        public async Task BHBG([Summary("Max minutes to wait for players")]string strMaxMinutesToWait = null,
+            [Summary("Max User that can play")]string strMaxTurns = null,
+            [Summary("Number of Winners")]string strMaxScore = null
         )
         {
-            if (CheckAccess())
+            if (CheckAccess(true))
             {
                 BotV3GameInstance gameInstance = new BotV3GameInstance();
-                await StartGameInternal(gameInstance, strMaxUsers, strMaxMinutesToWait, "1", strNumWinners, 0);
+                await StartGameInternal(gameInstance, strMaxMinutesToWait, strMaxTurns, strMaxScore, 0);
             }
         }
 
@@ -530,6 +530,70 @@ namespace BHungerGaemsBot
                         SocketGuildUser user = Context.Message.Author as SocketGuildUser;
                         string userThatStartedGame = user?.Nickname ?? Context.Message.Author.Username;
                         gameInstance.StartGame(numWinners, maxUsers, maxMinutesToWait, secondsDelayBetweenDays, Context, userThatStartedGame, testUsers);
+                        cleanupCommandInstance = false;
+                        //await Context.Channel.SendMessageAsync($"MaxUsers: {maxUsers}  MaxMinutesToWait: {maxMinutesToWait} SecondsDelayBetweenDays: {secondsDelayBetweenDays} NumWinners: {numWinners}");
+                    }
+                    else
+                    {
+                        try
+                        {
+                            await LogAndReplyAsync($"The '{commandInfo.CommandName}' command is currently running!.  Can't run this command until that finishes");
+                        }
+                        catch (Exception ex)
+                        {
+                            await Logger.Log(new LogMessage(LogSeverity.Error, "StartGameInternal", "Unexpected Exception", ex));
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.Log(new LogMessage(LogSeverity.Error, "StartGame", "Unexpected Exception", ex));
+            }
+            finally
+            {
+                try
+                {
+                    if (cleanupCommandInstance)
+                        RemoveChannelCommandInstance(Context.Channel.Id);
+                }
+                catch (Exception ex)
+                {
+                    await Logger.Log(new LogMessage(LogSeverity.Error, "StartGame", "Unexpected Exception in Finally", ex));
+                }
+            }
+        }
+        private async Task StartGameInternal(BotGameInstance gameInstance, string strMaxMinutesToWait, string strMaxTurns, string strMaxScore, int testUsers)
+        {
+            bool cleanupCommandInstance = false;
+            try
+            {
+                Logger.LogInternal($"G:{Context.Guild.Name}  Command " + (testUsers > 0 ? "T" : "") + $"'startGame' executed by '{Context.Message.Author.Username}'");
+
+                if (CheckAccess())
+                {
+                    RunningCommandInfo commandInfo;
+                    if (CreateChannelCommandInstance("StartGame", Context.User.Id, Context.Channel.Id, Context.Guild.Id, gameInstance, out commandInfo))
+                    {
+                        cleanupCommandInstance = true;
+                        //int maxUsers;
+                        int maxMinutesToWait;
+                        int maxScore;
+                        int maxTurn;
+
+
+                        if (Int32.TryParse(strMaxMinutesToWait, out maxMinutesToWait) == false) maxMinutesToWait = 5;
+                        if (Int32.TryParse(strMaxScore, out maxScore) == false) maxScore = 1000000000;
+                        if (Int32.TryParse(strMaxTurns, out maxTurn) == false) maxTurn = 35;
+                        if (maxTurn <= 0) maxTurn = 1;
+                        if (maxMinutesToWait <= 0) maxMinutesToWait = 1;
+                        if (maxScore <= 0) maxScore = 1000000000;
+                        //if (maxUsers <= 0) maxUsers = 1;
+
+
+                        SocketGuildUser user = Context.Message.Author as SocketGuildUser;
+                        string userThatStartedGame = user?.Nickname ?? Context.Message.Author.Username;
+                        gameInstance.StartGame(maxTurn, maxMinutesToWait, maxScore, Context, userThatStartedGame, testUsers);
                         cleanupCommandInstance = false;
                         //await Context.Channel.SendMessageAsync($"MaxUsers: {maxUsers}  MaxMinutesToWait: {maxMinutesToWait} SecondsDelayBetweenDays: {secondsDelayBetweenDays} NumWinners: {numWinners}");
                     }
