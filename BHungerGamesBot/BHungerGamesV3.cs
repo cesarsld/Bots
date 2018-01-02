@@ -101,7 +101,7 @@ namespace BHungerGaemsBot
             LootScenarios = new[]
             {
                 //Looting
-                new ScenarioRPG("<{player_name}> stumbled across an abandoned sack. Perhaps a captured Bully dropped it? Opening it, they find a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> stumbled across an abandoned sack. Perhaps a captured Bully dropped it? Opening it, they find a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> was wistfully skulking around the pier in town, hoping that fishing was released! All of a sudden, they lost their balance, and fell in! Oh my goodness! Hidden beneath the surface they found a * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
                 new ScenarioRPG("Astaroth is very lonely these days, no one bothers to come see him anymore. He tries to get <{player_name}>s attention by offering them a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
                 new ScenarioRPG("Just when <{player_name}> was about to use some scissors on their credit card, they find a * {rarity_type} * <{class_type}> loot! Baited again!", RarityRPG.Common),
@@ -149,7 +149,7 @@ namespace BHungerGaemsBot
             int playerNumberinLeaderboard = 20;
             int duelCooldown = 4;
             //bool crowdExtraDuel = false;
-            bool bonusItemFind = false;
+            //bool bonusItemFind = false;
             int goblinFestChance = 5;
 
             ClassPicker classPicker = new ClassPicker();
@@ -280,10 +280,6 @@ namespace BHungerGaemsBot
                 showMessageDelegate("" + sb +  sbTrain, null);
                 sb.Clear();
                 sbTrain.Clear();
-
-
-                Console.WriteLine("reached adventure completion");
-
                 
                 if (day > 2 && day % 4 == 0)
                 {
@@ -316,18 +312,12 @@ namespace BHungerGaemsBot
                 ResetDecisions();
 
                 Logger.LogInternal($"Total players CP is : {_players.Sum(p => p.EffectiveCombatPower)}");
+                Logger.LogInternal("" + Adventure.sbData);
 
-                if (day == maxScore || _players.Max(player => player.Points > maxScore)) break;
+                if (day == maxTurns || _players.Max(player => player.Points) > maxScore) break;
             }
 
             sb.Append("\n\n**Game Over**\r\n\r\n");
-            //StringBuilder sbP = new StringBuilder(1000);
-            //foreach (PlayerRPG contestant in _players)
-            //{
-            //    sbP.Append($"(ID:{contestant.UserId})<{contestant.FullUserName}> is victorious!\r\n");
-            //    sb.Append($"<{contestant.FullUserName}> is victorious!\r\n");
-            //}
-            //showMessageDelegate(sb.ToString(), sbP.ToString());
             descendingList = _players.OrderByDescending(player => player.Points).ToList();
             sb.Append("LEADERBOARD\n\n");
             for (int i = 0; i < playerNumberinLeaderboard; i++)

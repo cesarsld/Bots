@@ -30,7 +30,7 @@ namespace BHungerGaemsBot
                     for (int j = 0; j < 7; j++)
                     {
                         if (j == i) continue;
-                        weightedClass[j].Weight += 3;
+                        weightedClass[j].Weight += 4;
                     }
                     return (HeroClass)i;
                 }

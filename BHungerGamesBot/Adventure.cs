@@ -9,7 +9,7 @@ namespace BHungerGaemsBot
     class Adventure
     {
         private static readonly Random _random;
-
+        private static StringBuilder sbData = new StringBuilder();
         private static readonly ReadOnlyCollection<LootTable> LootTables;
 
         static Adventure()
@@ -99,6 +99,7 @@ namespace BHungerGaemsBot
                 player.AuraBonus = !(player.AuraBonus);
             }
             adventureCombatPower = turn * turnSCaling + player.Level * levelScaling + Convert.ToInt32(player.EffectiveCombatPower * CPscaling);
+            sbData.Append($"Day = {turn} ; Player CP = {player.EffectiveCombatPower} ; Adventure CP = {adventureCombatPower}");
             for (int i = 0; i < 10; i++)
             {
                 if (TierTrial(player.EffectiveCombatPower, adventureCombatPower, player.InteractiveRPGDecision))
