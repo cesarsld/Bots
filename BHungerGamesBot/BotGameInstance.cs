@@ -209,7 +209,7 @@ namespace BHungerGaemsBot
 
         protected virtual void RunGameInternal(int numWinners, int secondsDelayBetweenDays, List<Player> players, int maxPlayers = 0)
         {
-            new BHungerGames().Run(numWinners, secondsDelayBetweenDays, players, LogToChannel, GetCancelGame, maxPlayers);
+            new BHungerGames().Run(numWinners, secondsDelayBetweenDays, players, LogToChannel, SendMsg, GetCancelGame, maxPlayers);
         }
         protected virtual void RunGameInternal(int maxScore, int maxTurns, List<Player> players) { }
 
@@ -667,6 +667,15 @@ namespace BHungerGaemsBot
                 MessageId = message.Id;
             }
             return message;
+        }
+
+        protected void SendMsg(string msg, string logMsgOnly = null, IReadOnlyList<IEmote> emotes = null)
+        {
+            var message = _channel.SendMessageAsync(msg + "\r\n").GetAwaiter().GetResult();
+            lock (SyncObj)
+            {
+                MessageId = message.Id;
+            }
         }
 
         private bool ChrEqualToBreakableChr(char chr)

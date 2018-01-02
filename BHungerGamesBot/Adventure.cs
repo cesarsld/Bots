@@ -9,7 +9,7 @@ namespace BHungerGaemsBot
     class Adventure
     {
         private static readonly Random _random;
-        private static StringBuilder sbData = new StringBuilder();
+        public static StringBuilder sbData = new StringBuilder();
         private static readonly ReadOnlyCollection<LootTable> LootTables;
 
         static Adventure()

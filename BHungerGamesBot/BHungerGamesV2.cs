@@ -318,7 +318,7 @@ namespace BHungerGaemsBot
             }
         }
 
-        public void Run(int numWinners, List<Player> contestantsTransfer, BotGameInstance.ShowMessageDelegate showMessageDelegate, Func<bool> cannelGame, int maxPlayers = 0)
+        public void Run(int numWinners, List<Player> contestantsTransfer, BotGameInstance.ShowMessageDelegate showMessageDelegate, BotGameInstance.ShowMessageDelegate sendMsg, Func<bool> cannelGame, int maxPlayers = 0)
         {
             int day = 0;
             int night = 0;
@@ -335,6 +335,8 @@ namespace BHungerGaemsBot
             StringBuilder sb = new StringBuilder(2000);
             StringBuilder sbLoot = new StringBuilder(2000);
             StringBuilder sbFamLoot = new StringBuilder(2000);
+            StringBuilder sbDeath = new StringBuilder(2000);
+
             _traps = new List<Trap>();
             List<Trap> trapsToBeRemoved = new List<Trap>();
             List<InteractivePlayer> playersToBeRemoved = new List<InteractivePlayer>();
@@ -501,6 +503,10 @@ namespace BHungerGaemsBot
                 sb.Clear();
 
                 _contestants = _contestants.Except(playersToBeRemoved).ToList();
+                foreach (InteractivePlayer player in playersToBeRemoved)
+                {
+                    AddDeathID(sbDeath, player);
+                }
                 playersToBeRemoved.Clear();
 
                 //enhanced
@@ -587,6 +593,7 @@ namespace BHungerGaemsBot
                                 sb.Append($" * Current HP = {currentPlayer.Hp} *\n\n");
                                 if (currentPlayer.Hp <= 0)
                                 {
+                                    AddDeathID(sbDeath, _contestants[index]);
                                     _contestants.RemoveAt(index);
                                 }
                                 else
@@ -595,6 +602,7 @@ namespace BHungerGaemsBot
                                 }
                                 break;
                             case ScenarioType.Lethal:
+                                AddDeathID(sbDeath, _contestants[index]);
                                 _contestants.RemoveAt(index);
                                 sb.Append("\n\n");
                                 break;
@@ -628,6 +636,7 @@ namespace BHungerGaemsBot
                             if (_contestants[playerIndex].Hp <= 0)
                             {
                                 sb.Append($"<{_contestants[playerIndex].NickName}> died from <{contestant.NickName}>'s {contestant.Familiar.FamiliarName}.\n\n");
+                                AddDeathID(sbDeath, _contestants[playerIndex]);
                                 playersToBeRemoved.Add(_contestants[playerIndex]);
                             }
                             else
@@ -652,6 +661,7 @@ namespace BHungerGaemsBot
                         if (_contestants[index].Hp <= 0)
                         {
                             sb.Append($"<{_contestants[index].NickName}> died from the trap.\n\n");
+                            AddDeathID(sbDeath, _contestants[index]);
                             _contestants.RemoveAt(index);
                         }
                         else
@@ -668,12 +678,12 @@ namespace BHungerGaemsBot
                 }
                 else if (_contestants.Count - _duelImmune.Count > numWinners)
                 {
-                    Duel(sb);
+                    Duel(sb, sbDeath);
                     if (crowdExtraDuel)
                     {
                         if (_contestants.Count - _duelImmune.Count > numWinners)
                         {
-                            Duel(sb);
+                            Duel(sb, sbDeath);
                         }
                         else
                         {
@@ -706,6 +716,9 @@ namespace BHungerGaemsBot
                 playersToBeRemoved.Clear();
                 _duelImmune.Clear();
                 sb.Clear();
+
+                sendMsg($"Dead people:\n" + sbDeath);
+                sbDeath.Clear();
 
                 if (_contestants.Count <= ShowPlayersWhenCountEqual[showPlayersWhenCountEqualIndex])
                 {
@@ -741,7 +754,7 @@ namespace BHungerGaemsBot
         }
 
         //duel method
-        private void Duel(StringBuilder sb)
+        private void Duel(StringBuilder sb, StringBuilder sbDeath)
         {
             int duelChance = 50;
             int duelist1 = _random.Next(_contestants.Count);
@@ -762,11 +775,13 @@ namespace BHungerGaemsBot
             if (RngRoll(duelChance))
             {
                 sb.Append($"<{_contestants[duelist1].NickName}> won the duel and slew <{_contestants[duelist2].NickName}>\n\n");
+                AddDeathID(sbDeath, _contestants[duelist2]);
                 _contestants.RemoveAt(duelist2);
             }
             else
             {
                 sb.Append($"<{_contestants[duelist2].NickName}> won the duel and slew <{_contestants[duelist1].NickName}>\n\n");
+                AddDeathID(sbDeath, _contestants[duelist1]);
                 _contestants.RemoveAt(duelist1);
             }
         }
@@ -1245,6 +1260,11 @@ namespace BHungerGaemsBot
                     crowdScenarios = 3;
                     break;
             }
+        }
+
+        public void AddDeathID(StringBuilder sb, InteractivePlayer player)
+        {
+            sb.Append($"<@{player.UserId}> ");
         }
 
         public void HandlePlayerInput(ulong userId, string reactionName)

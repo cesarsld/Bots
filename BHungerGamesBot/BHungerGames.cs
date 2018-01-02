@@ -197,7 +197,7 @@ namespace BHungerGaemsBot
                 for (int i = 0; i < numUsers; i++)
                     players.Add(new Player(i));
 
-                new BHungerGames().Run(1, 1, players, Console.WriteLine, () => false, 40);
+                new BHungerGames().Run(1, 1, players, Console.WriteLine, Console.WriteLine, () => false, 40);
                 Console.ReadLine();
             }
             catch (Exception e)
@@ -224,11 +224,12 @@ namespace BHungerGaemsBot
             }
         }
 
-        public void Run(int numWinners, int secondsDelayBetweenDays, List<Player> contestants, BotGameInstance.ShowMessageDelegate showMessageDelegate, Func<bool> cannelGame, int maxPlayers = 0)
+        public void Run(int numWinners, int secondsDelayBetweenDays, List<Player> contestants, BotGameInstance.ShowMessageDelegate showMessageDelegate, BotGameInstance.ShowMessageDelegate sendMsg, Func<bool> cannelGame, int maxPlayers = 0)
         {
             TimeSpan delayBetweenDays = new TimeSpan(0, 0, 0, secondsDelayBetweenDays);
             int day = 0;
             StringBuilder sb = new StringBuilder(2000);
+            StringBuilder sbDeath = new StringBuilder(2000);
             int consecutiveNoCasualties = 0;
             int showPlayersWhenCountEqualIndex = 0;
 
@@ -255,6 +256,7 @@ namespace BHungerGaemsBot
                     { // Someone has to die.
                         randIndex = _random.Next(contestants.Count);
                         string selectedPlayer = "<" + contestants[randIndex].ContestantName + ">";
+                        AddDeathID(sbDeath, contestants[randIndex]);
                         contestants.RemoveAt(randIndex);
                         string[] players;
                         if (contestants.Count == 1)
@@ -298,6 +300,8 @@ namespace BHungerGaemsBot
                 }
 
                 showMessageDelegate($"\nDay **{++day}**  <{startingContestantCount}> Players remaining\n\n" + sb);
+                sendMsg($"Dead people:\n" + sbDeath);
+                sbDeath.Clear();
                 sb.Clear();
 
                 if (cannelGame())
@@ -331,6 +335,11 @@ namespace BHungerGaemsBot
                 sb.Append($"<{contestant.FullUserName}> is victorious!\r\n");
             }
             showMessageDelegate(sb.ToString(), sbP.ToString());
+        }
+
+        public void AddDeathID(StringBuilder sb, Player player)
+        {
+            sb.Append($"<@{player.UserId}> ");
         }
     }
 }

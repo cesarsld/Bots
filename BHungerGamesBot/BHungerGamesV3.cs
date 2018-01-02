@@ -143,7 +143,7 @@ namespace BHungerGaemsBot
             _worldBoss = false;
         }
 
-        public void Run(List<Player> contestantsTransfer, int maxScore, int maxTurns, BotGameInstance.ShowMessageDelegate showMessageDelegate, Func<bool> cannelGame, BotGameInstance.ShowMessageDelegate SendImageFile)
+        public void Run(List<Player> contestantsTransfer, int maxScore, int maxTurns, BotGameInstance.ShowMessageDelegate showMessageDelegate, Func<bool> cannelGame, BotGameInstance.ShowMessageDelegate SendImageFile, BotGameInstance.ShowMessageDelegate sendMsg)
         {
             int day = 0;
             int playerNumberinLeaderboard = 20;
@@ -158,6 +158,7 @@ namespace BHungerGaemsBot
             StringBuilder sb = new StringBuilder(20000);
             StringBuilder sbLoot = new StringBuilder(20000);
             StringBuilder sbTrain = new StringBuilder(20000);
+            StringBuilder sbDeath = new StringBuilder(20000);
 
             List<PlayerRPG> playersToBeRemoved = new List<PlayerRPG>();
             List<Player> bannedPlayersToRemove = new List<Player>();

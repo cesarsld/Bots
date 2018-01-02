@@ -50,7 +50,7 @@ namespace BHungerGaemsBot
             try
             {
                 _gameInstance = new BHungerGamesV2();
-                _gameInstance.Run(numWinners, players, LogToChannel, GetCancelGame, maxPlayers);
+                _gameInstance.Run(numWinners, players, LogToChannel, SendMsg, GetCancelGame, maxPlayers);
 
             }
             finally
