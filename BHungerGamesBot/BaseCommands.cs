@@ -158,6 +158,7 @@ namespace BHungerGaemsBot
             }
             else if (Context.Guild.Name.Equals("Bit Heroes - FR") || Context.Guild.Name.Equals("Crash Test Server"))
             {
+                return true;
                 // 150-199  ,  200-249 ,  250+ ,  Admin , Modérateur
                 foreach (IRole role in roles)
                 {
@@ -395,6 +396,7 @@ namespace BHungerGaemsBot
                 }
                 await user.RemoveRoleAsync(guildRoleList[curentRole]);
                 await user.AddRoleAsync(guildRoleList[NextRole]);
+                await Context.Message.DeleteAsync();
             }
         }
 
@@ -419,6 +421,7 @@ namespace BHungerGaemsBot
                 }
                 await user.RemoveRoleAsync(guildRoleList[curentRole]);
                 await user.AddRoleAsync(guildRoleList[NextRole]);
+                await Context.Message.DeleteAsync();
             }
         }
 
