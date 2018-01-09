@@ -23,6 +23,7 @@ namespace BHungerGaemsBot
         private Dictionary<Player, List<string>> _cheatingPlayers;
         private List<string> _firstPlayersToReact;
         protected bool CancelGame;
+        protected bool StartSooner;
 
         protected ulong MessageId;
         private IMessageChannel _channel;
@@ -134,6 +135,14 @@ namespace BHungerGaemsBot
             }
         }
 
+        public void StartGameSooner()
+        {
+            lock (SyncObj)
+            {
+                StartSooner = true;
+            }
+        }
+
         protected bool GetCancelGame()
         {
             lock (SyncObj)
@@ -234,8 +243,6 @@ namespace BHungerGaemsBot
 
                 string gameMessageText = GetRunGameMessage(bhgRoleMention, userName, maxUsers, maxMinutesToWait, startWhenMaxUsers);
                 Task<IUserMessage> messageTask = _channel.SendMessageAsync(gameMessageText + "0");
-                Console.WriteLine("Helo");
-                Console.WriteLine(bhgRoleMention);
                 Logger.Log(gameMessageText);
                 messageTask.Wait();
 
@@ -300,7 +307,7 @@ namespace BHungerGaemsBot
 
                     Thread.Sleep(1000);
                     secondCounter++;
-                    if ((DateTime.Now - now).TotalSeconds >= maxMinutesToWait)//changes to seconds for faster testing
+                    if ((DateTime.Now - now).TotalSeconds >= maxMinutesToWait || StartSooner)//changes to seconds for faster testing
                     {
                         lock (SyncObj)
                         {

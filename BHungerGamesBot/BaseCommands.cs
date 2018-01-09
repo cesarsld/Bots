@@ -6,6 +6,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System.Threading;
+using System.Linq;
 
 namespace BHungerGaemsBot
 {
@@ -113,6 +114,30 @@ namespace BHungerGaemsBot
             }
 
             Logger.LogInternal(sb.ToString());
+            return false;
+        }
+
+        private bool CheckModAccessBitHeroesGuild()
+        {
+            HashSet<ulong> rolesWithAccess = new HashSet<ulong>();
+            var roles = Context.Guild.Roles;
+            if (Context.Guild.Name.Equals("Bit Heroes"))
+            {
+                foreach (IRole role in roles)
+                {
+                    if (role.Name.Contains("Admin") || role.Name.StartsWith("Mod") || Context.User.Id == 195567858133106697)
+                    {
+                        rolesWithAccess.Add(role.Id);
+                    }
+                }
+
+                var authorRoles = ((IGuildUser)Context.Message.Author).RoleIds;
+                foreach (ulong roleId in authorRoles)
+                {
+                    if (rolesWithAccess.Contains(roleId))
+                        return true;
+                }
+            }
             return false;
         }
 
@@ -345,6 +370,84 @@ namespace BHungerGaemsBot
             catch (Exception ex)
             {
                 await Logger.Log(new LogMessage(LogSeverity.Error, "CancelGame", "Unexpected Exception", ex));
+            }
+        }
+
+        [Command("Promote"), Summary("Promotes user to next rank.")]
+        public async Task Promote(SocketGuildUser user)
+        {
+            if (CheckModAccessBitHeroesGuild())
+            {
+                var guildRoleList = Context.Guild.Roles.OrderBy(x => x.Position).ToList();
+                int curentRole = 0;
+                int NextRole = 3;
+                var userRoleList = user.Roles;
+
+                foreach (var role in userRoleList)
+                {
+                    if (role.Position == 23) return;
+                    if ((role.Position > 2 && role.Position < 8) || (role.Position > 18 && role.Position < 23))
+                    {
+                        curentRole = role.Position;
+                        if (role.Position == 7) NextRole = 19;
+                        else NextRole = role.Position + 1;
+                    }
+                }
+                await user.RemoveRoleAsync(guildRoleList[curentRole]);
+                await user.AddRoleAsync(guildRoleList[NextRole]);
+            }
+        }
+
+        [Command("Demote"), Summary("Demotes user to next rank.")]
+        public async Task Demote(SocketGuildUser user)
+        {
+            if (CheckModAccessBitHeroesGuild())
+            {
+                var guildRoleList = Context.Guild.Roles.OrderBy(x => x.Position).ToList();
+                int curentRole = 0;
+                int NextRole = 0;
+                var userRoleList = user.Roles;
+
+                foreach (var role in userRoleList)
+                {
+                    if ((role.Position > 3 && role.Position < 8) || (role.Position > 18 && role.Position < 24))
+                    {
+                        curentRole = role.Position;
+                        if (role.Position == 19) NextRole = 7;
+                        else NextRole = role.Position - 1;
+                    }
+                }
+                await user.RemoveRoleAsync(guildRoleList[curentRole]);
+                await user.AddRoleAsync(guildRoleList[NextRole]);
+            }
+        }
+
+        [Command("StartNow"), Summary("Start game before end of timer.")]
+        public async Task StartNow()
+        {
+            try
+            {
+                if (CheckAccess())
+                {
+                    string returnMessage = "No Game is currently running!";
+                    lock (SyncObj)
+                    {
+                        RunningCommandInfo commandInfo = GetRunningCommandInfo(Context.Channel.Id);
+                        if (commandInfo?.GameInstance != null)
+                        {
+                            if (Context.Message.Author.Id == commandInfo.UserId)
+                            {
+                                commandInfo.GameInstance.StartGameSooner();
+                                returnMessage = "Starting game sooner.";
+                            }
+                        }
+                    }
+                    await LogAndReplyAsync(returnMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.Log(new LogMessage(LogSeverity.Error, "StartGameSooner", "Unexpected Exception", ex));
             }
         }
 
