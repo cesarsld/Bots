@@ -717,8 +717,11 @@ namespace BHungerGaemsBot
                 _duelImmune.Clear();
                 sb.Clear();
 
-                sendMsg($"Dead people:\n" + sbDeath);
-                sbDeath.Clear();
+                if (sbDeath.Length > 0)
+                {
+                    sendMsg($"Dead people:\n" + sbDeath);
+                    sbDeath.Clear();
+                }
 
                 if (_contestants.Count <= ShowPlayersWhenCountEqual[showPlayersWhenCountEqualIndex])
                 {

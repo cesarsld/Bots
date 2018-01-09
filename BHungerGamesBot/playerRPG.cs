@@ -33,11 +33,11 @@ namespace BHungerGaemsBot
                 int CombatPower = 0;
                 for (int i = 0; i < HeroStats.Length; i++)
                 {
-                    CombatPower += Convert.ToInt32(HeroStats[i] * BHungerGamesV3.HeroScalingDictionary[HeroClass][i]);
+                    CombatPower += Convert.ToInt32(HeroStats[i] * HeroStatMult[i]);
                 }
                 foreach (ItemRPG item in Items)
                 {
-                    CombatPower += Convert.ToInt32(item.GetEffectiveCombatStats(HeroClass, item.ItemStats));
+                    CombatPower += Convert.ToInt32(item.GetEffectiveCombatStats(HeroStatMult, item.ItemStats));
                 }
                 return CombatPower;
             }
@@ -197,6 +197,7 @@ namespace BHungerGaemsBot
             InteractiveRPGDecision = InteractiveRPGDecision.Nothing;
             PartookInEvent = false;
             GamblingOption = GamblingOptions._0;
+            HasDueled = false;
         }
     }
 }

@@ -77,7 +77,7 @@ namespace BHungerGaemsBot
             HeroClass itemClass = player.HeroClass;
             int roll = _random.Next(luckModifier, 1000);
             RarityRPG itemRarity = LootTables[6].GetRarity(roll);
-            player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, itemClass, GetDistribution());
+            player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, itemClass, player.HeroStatMult, GetDistribution());
             string returnString = $"<{player.NickName}> captured a <{(GoblinList)_random.Next(5)}> and obtained a * {itemRarity} * item!\n";
             return returnString;
         }
@@ -99,7 +99,7 @@ namespace BHungerGaemsBot
                 player.AuraBonus = !(player.AuraBonus);
             }
             adventureCombatPower = turn * turnSCaling + player.Level * levelScaling + Convert.ToInt32(player.EffectiveCombatPower * CPscaling);
-            sbData.Append($"Day = {turn} ; Player CP = {player.EffectiveCombatPower} ; Adventure CP = {adventureCombatPower}");
+            sbData.Append($"Day = {turn} ; Player name = {player.NickName}; Player CP = {player.EffectiveCombatPower} ; Adventure CP = {adventureCombatPower}\n");
             for (int i = 0; i < 10; i++)
             {
                 if (TierTrial(player.EffectiveCombatPower, adventureCombatPower, player.InteractiveRPGDecision))
@@ -160,7 +160,7 @@ namespace BHungerGaemsBot
                 RarityRPG itemRarity = LootTables[i].GetRarity(roll);
                 bestRarity = ((int)itemRarity > (int)bestRarity) ? itemRarity : bestRarity;
                 //Console.WriteLine($"{player.NickName} item dropped rarity : {itemRarity} + luckmod is {luckModifier} + rolls is {roll}");
-                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, classItem, GetDistribution());
+                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, player.HeroClass, player.HeroStatMult, GetDistribution());
                 //player.Points += Convert.ToInt32(Math.Pow((int)itemRarity,lootMultiplier));//NERF
                 player.Points += Convert.ToInt32((int)itemRarity * lootMultiplier);
             }

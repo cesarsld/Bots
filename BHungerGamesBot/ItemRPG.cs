@@ -47,29 +47,29 @@ namespace BHungerGaemsBot
 
         public int[] ItemStats = new int[7];
 
-        public int GetEffectiveCombatStats (HeroClass heroClassType, int[] itemStats)
+        public int GetEffectiveCombatStats (float[] heroStatMult, int[] itemStats)
         {  
                 int CombatPower = 0;
                 for (int i = 0; i < itemStats.Length; i++)
                 {
-                    CombatPower += Convert.ToInt32(itemStats[i] * BHungerGamesV3.HeroScalingDictionary[heroClassType][i]);
+                    CombatPower += Convert.ToInt32(itemStats[i] * heroStatMult[i]);
                 }
                 return CombatPower;
         }
-        public void GetNewItem(int level, RarityRPG rarity, HeroClass heroClassType, ItemDistribution itemDistribution)
+        public void GetNewItem(int level, RarityRPG rarity, HeroClass itemClassType, float[] heroStatMult, ItemDistribution itemDistribution)
         {
-            Random rand = new Random();
+            Random rand = new Random(Guid.NewGuid().GetHashCode());
             int totalStats = (int)rarity * 5 + 50 + rand.Next((int)rarity * 2 + 20);
             float levelMultiplier = 1f + level / 4f;
             totalStats = Convert.ToInt32(totalStats * levelMultiplier);
             int[] newItemStats = new int[7];
             for (int i = 0; i < newItemStats.Length; i++)
             {
-                newItemStats[i] = Convert.ToInt32(totalStats * ItemStatDistributioDictionary[Tuple.Create(heroClassType, itemDistribution)][i]);
+                newItemStats[i] = Convert.ToInt32(totalStats * ItemStatDistributioDictionary[Tuple.Create(itemClassType, itemDistribution)][i]);
             }
 
-            int newCombatPower = GetEffectiveCombatStats(heroClassType, newItemStats);
-            if (newCombatPower > GetEffectiveCombatStats(heroClassType, ItemStats))
+            int newCombatPower = GetEffectiveCombatStats(heroStatMult, newItemStats);
+            if (newCombatPower > GetEffectiveCombatStats(heroStatMult, ItemStats))
             {
                 ItemStats = newItemStats;
                 Rarity = rarity;

@@ -136,7 +136,7 @@ namespace BHungerGaemsBot
                 // 150-199  ,  200-249 ,  250+ ,  Admin , Modérateur
                 foreach (IRole role in roles)
                 {
-                    if ((checkCancelAccess == false && (role.Name.Contains("150") || role.Name.Contains("200")))
+                    if ((checkCancelAccess == false && (/*role.Name.Contains("150") ||*/ role.Name.Contains("300")))
                         || role.Name.Contains("Admin") || role.Name.StartsWith("Mod"))
                     {
                         rolesWithAccess.Add(role.Id);
@@ -459,11 +459,20 @@ namespace BHungerGaemsBot
             [Summary("Number of Winners")]string strMaxScore = null
         )
         {
-            if (CheckAccess(true))
+            if (CheckAccess())
             {
                 BotV3GameInstance gameInstance = new BotV3GameInstance();
                 await StartGameInternal(gameInstance, strMaxMinutesToWait, strMaxTurns, strMaxScore, 0);
             }
+        }
+
+        [Command("Lure", RunMode = RunMode.Async), Summary("lure bots")]
+        public async Task Lure()
+        {
+            await ReplyAsync($"<@&344302343703101441> Preparing to start a Game for ```Markdown\r\n<[K] Je suis Shadown88 🐛> in 5 minutes"
+                + $"!  At the start of the game the # of players will be reduced to 150 if needed." + "```\r\n"
+                + $"React to this message with the 😃 emoji to enter!  Multiple Reactions(emojis) will NOT enter you more than once.\r\nPlayer entered: \n\n"
+                + "**THIS IS A TEST TO FIND SELF BOTS PLEASE DO NOT REACT IF YOU ARE A HUMAN AS WE WILL PERMA BAN PEOPLE USING SELF BOTS**");
         }
 
         [Command("startGame", RunMode = RunMode.Async), Summary("Starts the BHungerGames.")]
@@ -570,7 +579,7 @@ namespace BHungerGaemsBot
             {
                 Logger.LogInternal($"G:{Context.Guild.Name}  Command " + (testUsers > 0 ? "T" : "") + $"'startGame' executed by '{Context.Message.Author.Username}'");
 
-                if (CheckAccess())
+                if (CheckAccess(true)) // CHANGE HERE FOR LAUCNH REMOVE TRUE
                 {
                     RunningCommandInfo commandInfo;
                     if (CreateChannelCommandInstance("StartGame", Context.User.Id, Context.Channel.Id, Context.Guild.Id, gameInstance, out commandInfo))

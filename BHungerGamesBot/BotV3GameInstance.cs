@@ -39,7 +39,7 @@ namespace BHungerGaemsBot
 
         protected override string GetRunGameMessage(string bhgRoleMention, string userName, int maxMinutesToWait, int maxTurns, int maxScore)
         {
-            return $"{bhgRoleMention} Preparing to start a Bit Heroes BattleGround Game for ```Markdown\r\n<{userName}> in {maxMinutesToWait} minutes. "
+            return $"{bhgRoleMention} Preparing to start a Bit Heroes BattleGround Game for ```Markdown\r\n<{userName}> in {maxMinutesToWait} seconds. "
                    + $"The Game will last {maxTurns} turns" + (maxScore == 1000000000 ? "." : $" OR when a player reaches a Score of <{maxScore} points>.")
                    + "```\r\n"
                    + "React to this message with any emoji to enter!  Multiple Reactions(emojis) will NOT enter you more than once.\r\nPlayer entered: ";

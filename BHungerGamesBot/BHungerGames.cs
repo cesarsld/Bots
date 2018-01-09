@@ -300,8 +300,11 @@ namespace BHungerGaemsBot
                 }
 
                 showMessageDelegate($"\nDay **{++day}**  <{startingContestantCount}> Players remaining\n\n" + sb);
-                sendMsg($"Dead people:\n" + sbDeath);
-                sbDeath.Clear();
+                if (sbDeath.Length > 0)
+                {
+                    sendMsg($"Dead people:\n" + sbDeath);
+                    sbDeath.Clear();
+                }
                 sb.Clear();
 
                 if (cannelGame())

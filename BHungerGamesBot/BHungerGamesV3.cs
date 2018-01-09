@@ -31,7 +31,6 @@ namespace BHungerGaemsBot
         private static readonly ScenarioRPG[] LootScenarios;
         private static readonly ScenarioRPG[] TrainScenarios;
 
-
         private readonly Random _random;
         private readonly HashSet<PlayerRPG> _goblinPlayers;
         private readonly HashSet<PlayerRPG> _duelImmune;
@@ -55,15 +54,13 @@ namespace BHungerGaemsBot
             DelayAfterOptions = new TimeSpan(0, 0, 0, 10);
             GobbyImage = "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\gobby.png";
 
-
             ShowPlayersWhenCountEqual = new[] { 20, 10, 5, 2, 0 };
             EmojiClassListOptions = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🇦"), new Emoji("🇧"), new Emoji("🇨"), new Emoji("🇩"), new Emoji("🇪"), new Emoji("🇫"), new Emoji("🇬") });
             EmojiAdventureListOption = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("💡"), new Emoji("⚔"), new Emoji("💰"), new Emoji("💪") });
             EmojiListCrowdDecision = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🅰"), new Emoji("🅱") });
 
             BannedPlayers = new List<ulong>
-            {
-            };
+            { };
 
             HeroScalingDictionary = new Dictionary<HeroClass, List<float>>()
             {                                           //  STA    STR    AGI    INT   DEX    WIS  LCK
@@ -100,7 +97,6 @@ namespace BHungerGaemsBot
 
             LootScenarios = new[]
             {
-                //Looting
                 new ScenarioRPG("<{player_name}> stumbled across an abandoned sack. Perhaps a captured Bully dropped it? Opening it, they find a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> was wistfully skulking around the pier in town, hoping that fishing was released! All of a sudden, they lost their balance, and fell in! Oh my goodness! Hidden beneath the surface they found a * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
                 new ScenarioRPG("Astaroth is very lonely these days, no one bothers to come see him anymore. He tries to get <{player_name}>s attention by offering them a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
@@ -117,19 +113,69 @@ namespace BHungerGaemsBot
                 new ScenarioRPG("As <{player_name}> proceeds to peel off Prof. Oak's bark, they find a * {rarity_type} * <{class_type}> loot hidden inside it's shell.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> signs a death wish under Grimz. Wait! It appears Grimz presented the wrong contract, <{player_name}>  receives a * {rarity_type} * <{class_type}> loot from signing Grimz's death wish.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> lands a critical empower dual strike  on Capt. Woodbeard and is rewarded with a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> raids the Hyper Dimension for the Walkom schematic. <{player_name}> receives 10 friend requests, turns out it was just a : {rarity_type} : <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> raids the Hyper Dimension for the Walkom schematic. <{player_name}> receives 10 friend requests, turns out it was just a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> blacked out on a Fammy Slop bender and woke up in Quinn’s Stables clutching a * {rarity_type} * <{class_type}> loot as a makeshift pillow.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> decided to go for a 0/0/1 speedster build. The regulars at #bh_theorycrafting took pity on such a foolish endeavor and gifted the player a * {rarity_type} * <{class_type}> loot out of charity.", RarityRPG.Common),
                 new ScenarioRPG("Uh oh, <{player_name}>. Someone spiked the hot cocoa last night. Those aren’t your pants you’re wearing. You check the pockets for identification and find a * {rarity_type} * <{class_type}> loot, instead.", RarityRPG.Common),
                 new ScenarioRPG("<{player_name}> sees Sir Quackers waddling around the pier and throws him some breadcrumbs. Overjoyed, Sir Quackers leads them to his secret loot stash and offers the player a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> sees a “Take an item, leave an item” bin by the guild hall entrance. <{player_name}> takes a * {rarity_type} * <{class_type}> loot and leaves a Bronze Coin in its place. Way to go, you jerk.", RarityRPG.Common)
+                new ScenarioRPG("<{player_name}> sees a “Take an item, leave an item” bin by the guild hall entrance. <{player_name}> takes a * {rarity_type} * <{class_type}> loot and leaves a Bronze Coin in its place. Way to go, you jerk.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> Comes accross Grim!  Grim says 'I have plans for you' and produces a* {rarity_type} * {class_type} loot from his robe!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> finds himself running from XL-Ombis!  XL-Ombis dies from fatigue and {player_name} takes his * {rarity_type} * {class_type} loot!  That's why we don't skip leg day boys and girls!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> stumbles upon X4-Gombo disguised as a dentist!  Gombo says 'Open up.'  and <{player_name}> says 'Sometimes I feel sad'.  Gombo feels bad and gives them a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> has horrible luck in hunger games and Wifey feels bad for them.  After secretly rigging the code for hunger games they are suddenly given a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> steps into a room to find Gemm bench pressing.  Gemm yells “Chest day is the best day!” and gives {Player_name} a * {rarity_type} * {Class_type} loot because he’s in such a good mood!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> decides to try a magic trick!?!?  Instead of pulling a rabbit out of their hat they screw up and pull a {rarity_type} : {class_type} loot out instead!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> was attacked by a wild bully. Fleeing for their lives they lost their way in the raid but came across an empty corridor. Inside the corridor they found a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("While hunting for the elusive shrump, <{player_name}> came across a wounded SSS1. <{player_name}> offered SSS1 their last healing potion and was rewarded a * {rarity_type} * {class_type} loot from their new friend!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> fought vigorously through the gauntlet until their final foe. Losing the battle and out of pots they have one final attack. Fortunately, their weapon becomes Empowered. They strike with Critical Precision slaying their foe and retrieving the * {rarity_type} * {class_type} loot from their cold dead fingers.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> walks calmly through the halls with their strongest familiar, Tubbo.  It's Christmas time and Tubbo offers a * {rarity_type} * {class_type} loot to their master for lifelong loyalty and friendship.", RarityRPG.Common),
+                new ScenarioRPG("While traversing the countryside, <{player_name}> falls off a cliff right into BH lake. As they begin to sink  they notice a gleam in the sandy sediment. Further investigation reveals a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> throws a party with their fellow heroes. After the night has ended, they notice  someone has left a * {rarity_type} * {class_type} loot on the floor.  {player_name} decides to hold on to it for safe keeping.", RarityRPG.Common),
+                new ScenarioRPG("'Welcome to the arena scrub! Pick your weapon!' - <{player_name}> receives a * {rarity_type} * {class_type} loot from the PVP  instructor on training day.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> saved all of their gems up to buy a large equipment chest. Upon opening it they discover a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> trips over something while walking. Oh wait, what WAS that?! They look closer to find a * {rarity_type} * {class_type} loot on the ground!", RarityRPG.Common),
+                new ScenarioRPG("While hunting wild McGobbelsteins for dinner, <{player_name}> slays one only to find it had mistakenly swallowed a * {rarity_type} * {class_type}. This will go great with their outfit!", RarityRPG.Common),
+                new ScenarioRPG("Exhausted from battle, {player_name} prays to RNGesus for the strength to defeat their enemies. Suddenly a magical Driffin appears out of nowhere to present {player_name} with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("After winning a bodybuilding championship against that fabled Gemm, <{player_name}> was awarded with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("After days of grinding without sleep, <{player_name}> accidentally wanders into unreleased content, before the Devs realize what they've done, they steal a * {rarity_type} * {class_type} loot and run back to where they belong.", RarityRPG.Common),
+                new ScenarioRPG("A pack of Zorg have lost their favorite chew bone. <{player_name}> finds it and defeats the evil Staeus that stole it from them. The Zorg reward {player_name} with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("Baby Tubbo has wandered away from its Grampz, <{player_name}> finds the Tubbo and brings it home, subsequently being rewarded a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("After much deliberation the cult of Bebemenz has declared <{player_name}> as their leader, rewarding them with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("In an attempt to escape an angry Rombolio, <{player_name}> climbs into a tree to hide. There they find a * {rarity_type} * {class_type} loot stuck in its bark.", RarityRPG.Common),
+                new ScenarioRPG("After months of grinding <{player_name}> decides to replace their Item Find runes with Experience runes. Moments later they find a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> accidentally stumbles into a secret room in the new raid. Searching its contents they come across a * {rarity_type} * {class_type} loot. They're not sure what to do with it, but they take it anyway.", RarityRPG.Common),
+                new ScenarioRPG("While fighting Mega Zorg, <{player_name}> accidentally breaks their weapon and begins to cry. Mega Zorg takes pity on them and rewards them with a hug and a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("It turns out that <{player_name}> is a long lost relative of Astaroth. After Astaroth's death, the executor of his will seeks out <{player_name}> to award them a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("In an effort to balance the community, the 10 weakest players in Bit Heroes are selected to receive better gear. <{player_name}> is rewarded with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                //new ScenarioRPG("", RarityRPG.Common),
+                //new ScenarioRPG("", RarityRPG.Common),
+                //new ScenarioRPG("", RarityRPG.Common),
+                //new ScenarioRPG("", RarityRPG.Common),
 
 
             };
             TrainScenarios = new[]
             {
-                new ScenarioRPG("{player_name}'s training session has been extremely helpful. He has attained such a level of mastery that he can now predict his opponent's movements 0.5 seconds in the future. Additionally he senses an * Aura Bonus * within his body granting him extra performance on his next action.", ScenarioTypeRPG.Training),
-                new ScenarioRPG("After Empower critting for over 99,999 dmg on a practice dummy, {player_name} feel re-energised.  As a side effect, they obtained an * Aura Bonus *.", ScenarioTypeRPG.Dueling)
+                new ScenarioRPG("<{player_name}>'s training session has been extremely helpful. He has attained such a level of mastery that he can now predict his opponent's movements 0.5 seconds in the future. Additionally he senses an * Aura Bonus * within his body granting him extra performance on his next action.", ScenarioTypeRPG.Training),
+                new ScenarioRPG("After Empower critting for over 99,999 dmg on a practice dummy, <{player_name}> feel re-energised.  As a side effect, they obtained an * Aura Bonus *.", ScenarioTypeRPG.Training),
+                new ScenarioRPG("'What doesn't kill you makes you stronger'. <{player_name}> decided to follow this advice and napped all day. When they woke up, they felt an * Aura Bonus * within their body!", ScenarioTypeRPG.Training),
+                new ScenarioRPG("Drops of sweat running on his broad chest, <{player_name}> just finished an extemely fulfilling work out. They feel they have reached a state of * Aura Bonus * .", ScenarioTypeRPG.Training),
+                new ScenarioRPG("<{player_name}> focused all his energy into his palms and managed to throw a miniature energy beam. They obtained a * Aura Bonus * . ", ScenarioTypeRPG.Training),
+                new ScenarioRPG("<{player_name}> outlasted Gemm's insanity workout!. He transfers him an * Aura Bonus * .", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                //new ScenarioRPG("", ScenarioTypeRPG.Training),
             };
         }
 
@@ -147,7 +193,7 @@ namespace BHungerGaemsBot
         {
             int day = 0;
             int playerNumberinLeaderboard = 20;
-            int duelCooldown = 4;
+            int duelCooldown = 0;
             //bool crowdExtraDuel = false;
             //bool bonusItemFind = false;
             int goblinFestChance = 5;
@@ -223,7 +269,6 @@ namespace BHungerGaemsBot
             while (_players.Count > /*numWinners*/ 0)
             {
                 day++;
-
                 if (RngRoll(goblinFestChance))
                 {
                     goblinFestChance = 5;
@@ -242,7 +287,7 @@ namespace BHungerGaemsBot
                 }
 
                 _adventureAffinity = classPicker.PickAClass();
-                
+
                 dailyBuff = RandomClassBuff(sb);
                 showMessageDelegate("" + sb);
                 sb.Clear();
@@ -278,10 +323,10 @@ namespace BHungerGaemsBot
                     }
                 }
 
-                showMessageDelegate("" + sb +  sbTrain, null);
+                showMessageDelegate("" + sb + sbTrain, null);
                 sb.Clear();
                 sbTrain.Clear();
-                
+
                 if (day > 2 && day % 4 == 0)
                 {
                     descendingList = _players.OrderByDescending(player => player.Points).ToList();
@@ -313,7 +358,7 @@ namespace BHungerGaemsBot
                 ResetDecisions();
 
                 Logger.LogInternal($"Total players CP is : {_players.Sum(p => p.EffectiveCombatPower)}");
-                Logger.LogInternal("" + Adventure.sbData);
+
 
                 if (day == maxTurns || _players.Max(player => player.Points) > maxScore) break;
             }
@@ -326,7 +371,8 @@ namespace BHungerGaemsBot
                 sb.Append($"{i + 1}. {descendingList[i].NickName} || Score = {descendingList[i].Points} || Lvl = {descendingList[i].Level} || Combat power = {descendingList[i].EffectiveCombatPower}\n");
             }
             showMessageDelegate("" + sb, null);
-
+            Logger.LogInternal("" + Adventure.sbData);
+            Adventure.sbData.Clear();
 
 
         }
@@ -353,8 +399,8 @@ namespace BHungerGaemsBot
             _worldBoss = true;
             showMessageDelegate($"ATTENTION, GLOBAL WORLD BOSS ALERT\n==================================\n"
                               + $"The Ultimate Boss of Bosses from the <{(WorldBossList)_random.Next(2)}> area has managed to break the Arcane Seal, put in place to prevent his escape from the crypt!\n"
-                              +  "You can allocate some of your <Points> to help send the boss back in its Crypt. If the Heroes succeed, you will be rewarded with * TRIPLE * the amounts of <Points> allocated. If the Heroes fail, you will lose them. \n"
-                              +  "Each reaction will allocate a different %.\nA : <1%>\nB : <5%> \nC : <10%> \nD : <25%>\nE : <50%>\nF : <75%>\nG : <100%>\n", null, EmojiClassListOptions);
+                              + "You can allocate some of your <Points> to help send the boss back in its Crypt. If the Heroes succeed, you will be rewarded with * TRIPLE * the amounts of <Points> allocated. If the Heroes fail, you will lose them. \n"
+                              + "Each reaction will allocate a different %.\nA : <1%>\nB : <5%> \nC : <10%> \nD : <25%>\nE : <50%>\nF : <75%>\nG : <100%>\n", null, EmojiClassListOptions);
             _worldBoss = false;
             _ignoreReactions = true;
             Thread.Sleep(new TimeSpan(0, 0, 25));
@@ -369,7 +415,7 @@ namespace BHungerGaemsBot
         {
             StringBuilder sb = new StringBuilder();
             int goblinCount = _players.Count / 10 + 1;
-            string one = goblinCount == 1 ? ". Yes an army of 1 is still an army.Goblins are vicious beings!" : ""; 
+            string one = goblinCount == 1 ? ". Yes an army of 1 is still an army.Goblins are vicious beings!" : "";
             _ignoreReactions = false;
             _goblinHunt = true;
             showMessageDelegate("The goblin Fest Banaza has begun!\nAn army of goblins is on the loose and has stolen a large quantity of <rare goods>. Try to capture them to be rewarded with EXP and loot.\n"
@@ -408,46 +454,45 @@ namespace BHungerGaemsBot
             while (duelAmount != 0)
             {
                 int index = _random.Next(_players.Count); //selecting first player in duel
-                int index2;
+                int index2 = index;
                 if (_players[index].HasDueled) continue; //restarts loop if player1 already dueled
-                index2 = index;
-                if (index < 4)
+                while (index2 == index)
                 {
-                    //if player 1 is in top of leaderboard, to prevent having scope element error
-                    while (index2 == index && _players[index2].HasDueled)
+                    int value = 0;
+                    switch (value)
                     {
-                        index2 = _random.Next(5 + rangeMod);
-                        safetyNet++;
-                        if (safetyNet % 20 == 0) rangeMod += 2;
+                        case 0 when index < 4:
+                            index2 = _random.Next(5 + rangeMod);
+                            break;
+                        case 0 when index > _players.Count - 4:
+                            index2 = _players.Count - 1 - _random.Next(5 + rangeMod);
+                            break;
+                        default:
+                            index2 = _random.Next(index - (4 + rangeMod), index + 5 + rangeMod);
+                            break;
                     }
-                }
-                else if (index > _players.Count - 4)
-                {
-                    //if player 1 is in bottom of leaderboard, to prevent having scope element error
-                    while (index2 == index && _players[index2].HasDueled)
+                    if (_players[index2].HasDueled)
                     {
-                        index2 = _players.Count - _random.Next(5 + rangeMod);
-                        if (safetyNet % 20 == 0) rangeMod += 2;
+                        index2 = index;
+                        continue;
                     }
-                }
-                else
-                {
-                    while (index2 == index && _players[index2].HasDueled)
-                    {
-                        index2 = _random.Next(index - (4 + rangeMod), index + 5 + rangeMod);
-                        if (safetyNet % 20 == 0) rangeMod ++;
-                    }
+                    safetyNet++;
+                    if (safetyNet % 20 == 0) rangeMod++;
                 }
                 sb.Append(PerformDuel(index, index2));
                 duelAmount--;
                 rangeMod = 0;
                 safetyNet = 0;
+
             }
 
         }
 
         private String PerformDuel(int index1, int index2)
         {
+            _players[index1].HasDueled = true;
+            _players[index2].HasDueled = true;
+
             int p1W = 0, p2W = 0;
             float p1Advantage = 1, p2Advantage = 1;
             int classDiff = ((int)_players[index1].HeroClass) - ((int)_players[index1].HeroClass);
@@ -486,7 +531,7 @@ namespace BHungerGaemsBot
             _players[index1].AddExp(_players[index2].Level * 6);
             _players[index1].Points += Convert.ToInt32(_players[index2].Points * 0.05);
             _players[index1].AuraBonus = true;
-            string returnString = $"{_players[index1].NickName} came out victorious in the duel agaisnt {_players[index2].NickName}. On top of additional exp and points, he gains an * Aura Bonus * he can use on his next action!\n\n";
+            string returnString = $"<{_players[index1].NickName}> came out victorious in the duel agaisnt <{_players[index2].NickName}>. On top of additional exp and points, he gains an * Aura Bonus * he can use on his next action!\n\n";
             return returnString;
         }
 

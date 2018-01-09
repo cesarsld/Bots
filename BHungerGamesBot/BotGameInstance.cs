@@ -207,7 +207,7 @@ namespace BHungerGaemsBot
 
         protected virtual string GetRunGameMessage(string bhgRoleMention, string userName, int maxMinutesToWait, int maxTurns, int maxScore) { return ""; }
 
-        protected virtual void RunGameInternal(int numWinners, int secondsDelayBetweenDays, List<Player> players, int maxPlayers = 0)
+        protected virtual void RunGameInternal(int numWinners, int secondsDelayBetweenDays, List<Player> players, int maxPlayers)
         {
             new BHungerGames().Run(numWinners, secondsDelayBetweenDays, players, LogToChannel, SendMsg, GetCancelGame, maxPlayers);
         }
@@ -234,6 +234,8 @@ namespace BHungerGaemsBot
 
                 string gameMessageText = GetRunGameMessage(bhgRoleMention, userName, maxUsers, maxMinutesToWait, startWhenMaxUsers);
                 Task<IUserMessage> messageTask = _channel.SendMessageAsync(gameMessageText + "0");
+                Console.WriteLine("Helo");
+                Console.WriteLine(bhgRoleMention);
                 Logger.Log(gameMessageText);
                 messageTask.Wait();
 
@@ -445,7 +447,7 @@ namespace BHungerGaemsBot
                 // see if BHG exists, if so mention it
                 var roles = context.Guild.Roles;
                 string bhgRoleMention = "";
-                string bannerImagePath = "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\gobby.png";
+                string bannerImagePath = "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\HG32.png";
                 foreach (IRole role in roles)
                 {
                     if (role.IsMentionable && string.Equals(role.Name, "BHG", StringComparison.OrdinalIgnoreCase))
@@ -458,6 +460,7 @@ namespace BHungerGaemsBot
                 string gameMessageText = GetRunGameMessage(bhgRoleMention, userName, maxMinutesToWait, maxTurn, maxScore);
                 Task<IUserMessage> messageTask;
                 messageTask = _channel.SendFileAsync(bannerImagePath);
+                Thread.Sleep(3000);
                 messageTask = _channel.SendMessageAsync(gameMessageText + "0");
                 Logger.Log(gameMessageText);
                 messageTask.Wait();
