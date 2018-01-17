@@ -88,9 +88,9 @@ namespace BHungerGaemsBot
 
             int AdventureCompletion = 0;
             HeroClass HeroAffinity = adventureAffinity;
-            int turnSCaling = 85;
-            int levelScaling = 120;
-            float CPscaling = 0.5f;
+            int turnSCaling = 95;
+            int levelScaling = 140;
+            float CPscaling = 0.65f;
             int adventureCombatPower = 0;
             if (player.HeroClass == dailyBuff.Item1 && dailyBuff.Item2 == DailyBuff.Increased_Adventure_Completion) CPscaling = 0.4f;
             if (player.AuraBonus && player.InteractiveRPGDecision == InteractiveRPGDecision.LookForCompletion)
@@ -137,6 +137,7 @@ namespace BHungerGaemsBot
             int luckModifier = Convert.ToInt32(75 * Math.Log(Math.Pow(player.HeroStats[6], 0.5) / 2));
             RarityRPG bestRarity = RarityRPG.Trash;
             HeroClass classItem = adventureClass;
+            ItemDistribution bestItemDistrition = ItemDistribution.Average;
             if (player.InteractiveRPGDecision == InteractiveRPGDecision.LookForLoot)
             {
                 luckModifier = Convert.ToInt32(luckModifier * 1.35);
@@ -158,13 +159,20 @@ namespace BHungerGaemsBot
                 double lootMultiplier = 2 + player.Level / 7;
                 int roll = _random.Next(luckModifier, 1000);
                 RarityRPG itemRarity = LootTables[i].GetRarity(roll);
+                ItemDistribution itemDistibution = GetDistribution();
+                if ((int)itemRarity > (int)bestRarity)
+                {
+                    bestRarity = itemRarity;
+                    bestItemDistrition = itemDistibution;
+                }
                 bestRarity = ((int)itemRarity > (int)bestRarity) ? itemRarity : bestRarity;
                 //Console.WriteLine($"{player.NickName} item dropped rarity : {itemRarity} + luckmod is {luckModifier} + rolls is {roll}");
-                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, player.HeroClass, player.HeroStatMult, GetDistribution());
+                player.Items[_random.Next(4)].GetNewItem(player.Level, itemRarity, player.HeroClass, player.HeroStatMult, itemDistibution);
                 //player.Points += Convert.ToInt32(Math.Pow((int)itemRarity,lootMultiplier));//NERF
                 player.Points += Convert.ToInt32((int)itemRarity * lootMultiplier);
             }
-            ReduceTextCongestion(GetScenario(scenarios).GetText(player.NickName, bestRarity, classItem), ref sbLoot, playerCount, bestRarity);
+            ReduceTextCongestion(GetScenario(scenarios).GetText(player.NickName, bestRarity, classItem, bestItemDistrition), ref sbLoot, playerCount, bestRarity);
+            if (sbLoot.Length > 140)
             sbLoot.Append("\n");
         }
 
@@ -201,6 +209,10 @@ namespace BHungerGaemsBot
                 sb.Append(text + "\n");
             }
             else if (players < 60 && (int)rarity > 6)
+            {
+                sb.Append(text + "\n");
+            }
+            else if (players >= 60 && (int)rarity > 8)
             {
                 sb.Append(text + "\n");
             }

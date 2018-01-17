@@ -150,7 +150,7 @@ namespace BHungerGaemsBot
                 foreach (IRole role in roles)
                 {
                     if ((checkCancelAccess == false && role.Name.Contains("Level 6"))
-                        || role.Name.Contains("300+") || role.Name.Contains("400") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod ") || Context.User.Username.Contains("Owl of") || role.Name.Contains("[K]"))
+                        || role.Name.Contains("250") || role.Name.Contains("300+") || role.Name.Contains("400") || role.Name.Contains("Admin") || role.Name.StartsWith("Mod ") || Context.User.Username.Contains("Owl of") || role.Name.Contains("[K]"))
                     {
                         rolesWithAccess.Add(role.Id);
                     }
@@ -274,6 +274,17 @@ namespace BHungerGaemsBot
                                 + "For more information on how to play, type the command: <!V2Rules> ```\r\n");
         }
 
+        public async Task ShowGameHelpV3()
+        {
+            await ReplyAsync("```Markdown\r\n<!StartV3> - Starts a new game if one is not already running.\n"
+                                + "You must provide the first parameter to run, all other parameters are optional, like so:\n"
+                                + "StartV2 120 25\n"
+                                + "Parameters are in order:\n"
+                                + "<Seconds before start of game>\n"
+                                + "<Max Turns before Game OVer>\n"
+                                + "For more information on how to play, type the command: <!V3Rules> ```\r\n");
+        }
+
         [Command("V2Rules"), Summary("Show HG2 rules")]
         public async Task Helpv2()
         {
@@ -282,7 +293,7 @@ namespace BHungerGaemsBot
                 if (CheckAccess(true))
                 {
                     await ReplyAsync("__**Interactive HGv2**__\n"
-                        + "__**Objective**__: Be the last survivor.\n" 
+                        + "__**Objective**__: Be the last survivor.\n"
                         + "__**Initial Options**__\n"
                         + "__Loot__ ( :moneybag: ) = You have a chance to obtain gear (weapon/offhand/armor/helmet). Gear increases your chance to win duels. Weapon is destroyed after 5 duels.\n"
                         + "  •    Safe = No Damage = Low Quality Loot\n"
@@ -321,6 +332,44 @@ namespace BHungerGaemsBot
             }
         }
 
+
+        [Command("V3Rules"), Summary("Show HG3 rules")]
+        public async Task Helpv3()
+        {
+            try
+            {
+                if (CheckAccess(true))
+                {
+                    await ReplyAsync(
+                         "**__HG3 RULES__**\n"
+                       + "**__Entering__**\n"
+                       + " •    As HG2, just react to an emote during selection phase.\n\n"
+                       + "__**Initialisation**__\n"
+                       + " •    You will be asked to choose a class amongst 7 classes.If you fail to select one, you will be a mage by default.\n\n"
+                       + "**__Options__**\n"
+                       + " •    There are 4 options in the game:\n"
+                       + "   •    ( :bulb: ) = More chances to complete your adventure giving you Notoriety Points(Notoriety still don't do anything... but will evbentually)\n"
+                       + "   •    ( :crossed_swords: ) = Gain more EXP while completing an adventure.\n"
+                       + "   •    ( :moneybag: ) = Higher chances at obtaining better loot after completing an adventure.\n"
+                       + "   •    ( :muscle: ) = Decide to skip the forthcoming adventure and train to gain a large amount of EXP at the cost of points and loot.Small chance of obtaining an Aura Bonus.\n\n"
+                       + "**__Events__**\n"
+                       + " •    There will be some events during the game that may or may not happen (I did add a pity timer so they should happen). I won't spoil for the time being.\n\n"
+                       + "**__Duels__**\n"
+                       + " •    Duels will happen if more than 10 players are in the game. They are similar to HG2 duels but you are not eleiminated if you lose. If you win a duel, you are rewarded with 5% of your opponent's EXP and Points on top of receiving an Aura Bonus.\n\n"
+                       + "**__How to win__**\n"
+                       + " •    Simple, get the most points. There are no deaths. Adventures give points.Adventures scale with your level.The higher level you are the more Points you will earn (game still subject to balancing). A leaderboard with the top 20 players will be shown every 4 turns.\n\n"
+                       + "** __Additional features__**\n"
+                       + " •    Aura Bonus = Your next day's action will have its bonus doubled.\n"
+                       + " •    CP(Combat Power) = Players will have their CP updated all the time.Items with higher rarity and class match will provide the best CP increase.\n"
+                       + " •    Loot Distribution = Items will have 3 different stat distribution.Average, Advantageous and Extreme.Extreme allocates the stats in the most efficient way.\n"
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.Log(new LogMessage(LogSeverity.Error, "CancelGame", "Unexpected Exception", ex));
+            }
+        }
         [Command("Help"), Summary("Shows Bot Help")]
         public async Task Help()
         {
@@ -334,6 +383,7 @@ namespace BHungerGaemsBot
                     await ReplyAsync("```Markdown\r\n<!CleanUp> - Deletes all the messages by this Bot in the last 100 messages.```\r\n");
                     await ShowGameHelp();
                     await ShowGameHelpV2();
+                    await ShowGameHelpV3();
                 }
             }
             catch (Exception ex)
@@ -699,7 +749,7 @@ namespace BHungerGaemsBot
 
                         if (Int32.TryParse(strMaxMinutesToWait, out maxMinutesToWait) == false) maxMinutesToWait = 5;
                         if (Int32.TryParse(strMaxScore, out maxScore) == false) maxScore = 1000000000;
-                        if (Int32.TryParse(strMaxTurns, out maxTurn) == false) maxTurn = 35;
+                        if (Int32.TryParse(strMaxTurns, out maxTurn) == false) maxTurn = 25;
                         if (maxTurn <= 0) maxTurn = 1;
                         if (maxMinutesToWait <= 0) maxMinutesToWait = 1;
                         if (maxScore <= 0) maxScore = 1000000000;

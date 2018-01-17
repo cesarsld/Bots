@@ -51,7 +51,7 @@ namespace BHungerGaemsBot
         static BHungerGamesV3()
         {
             DelayBetweenCycles = new TimeSpan(0, 0, 0, 10);
-            DelayAfterOptions = new TimeSpan(0, 0, 0, 10);
+            DelayAfterOptions = new TimeSpan(0, 0, 0, 12);
             GobbyImage = "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\gobby.png";
 
             ShowPlayersWhenCountEqual = new[] { 20, 10, 5, 2, 0 };
@@ -60,7 +60,9 @@ namespace BHungerGaemsBot
             EmojiListCrowdDecision = new ReadOnlyCollection<IEmote>(new List<IEmote> { new Emoji("🅰"), new Emoji("🅱") });
 
             BannedPlayers = new List<ulong>
-            { };
+            {
+                330768300386811916
+            };
 
             HeroScalingDictionary = new Dictionary<HeroClass, List<float>>()
             {                                           //  STA    STR    AGI    INT   DEX    WIS  LCK
@@ -97,56 +99,56 @@ namespace BHungerGaemsBot
 
             LootScenarios = new[]
             {
-                new ScenarioRPG("<{player_name}> stumbled across an abandoned sack. Perhaps a captured Bully dropped it? Opening it, they find a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> was wistfully skulking around the pier in town, hoping that fishing was released! All of a sudden, they lost their balance, and fell in! Oh my goodness! Hidden beneath the surface they found a * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
-                new ScenarioRPG("Astaroth is very lonely these days, no one bothers to come see him anymore. He tries to get <{player_name}>s attention by offering them a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("Just when <{player_name}> was about to use some scissors on their credit card, they find a * {rarity_type} * <{class_type}> loot! Baited again!", RarityRPG.Common),
-                new ScenarioRPG("While trying to think of a funny HG scenario, <{player_name}> stumbles across a * {rarity_type} * <{class_type}> loot! How ironic. . .", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> defeats Kaleido in a best-of-three to the death arm wrestling competition. For their bravery and strength, they're awarded a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("{player_name} successfully uses all the Discord channels correctly. As a reward, Tarri slips a * {rarity_type} * <{class_type}> loot into their pocket. Good job!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> boldly but stupidly tries to win a drinking competition with Taters. They wake up two days later with a 'sorry about the mess' note taped to their forehead, and a brand new * {rarity_type} * <{class_type}> loot on their pillow.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> finds an extremely rare vending machine in an R4. They deposit 1 rombit. Whirr bzzt zzzzzt nnnngggg bzzzz click thunk! A * {rarity_type} * <{class_type}> loot falls out!", RarityRPG.Common),
-                new ScenarioRPG("Congratulations <{player_name}>! You have been visited by the Mythical Magical Mystical Miraculous Gobby of Giving! With a wave of his hand, he conjures up a * {rarity_type} * <{class_type}> loot just for you! Enjoy!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> has been hiding in z2d4 dressed in their full blubber suit for four days now, and no one has noticed. Finally the moment comes, Gemm turns his back! You steal a * {rarity_type} * <{class_type}> loot!  Muahaha!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> - 'Wahhhhhh. I did 500 raids with a super scroll and all I found was this * {rarity_type} * <{class_type}> loot. Rigged! Refund! Reeeeeeeee!!'", RarityRPG.Common),
-                new ScenarioRPG("Roses are red, Robomax-6000 is blue.\nShadown88 has a * {rarity_type} * <{class_type}> loot,\nAnd now <{player_name}> has one too.", RarityRPG.Common),
-                new ScenarioRPG("As <{player_name}> proceeds to peel off Prof. Oak's bark, they find a * {rarity_type} * <{class_type}> loot hidden inside it's shell.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> signs a death wish under Grimz. Wait! It appears Grimz presented the wrong contract, <{player_name}>  receives a * {rarity_type} * <{class_type}> loot from signing Grimz's death wish.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> lands a critical empower dual strike  on Capt. Woodbeard and is rewarded with a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> raids the Hyper Dimension for the Walkom schematic. <{player_name}> receives 10 friend requests, turns out it was just a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> blacked out on a Fammy Slop bender and woke up in Quinn’s Stables clutching a * {rarity_type} * <{class_type}> loot as a makeshift pillow.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> decided to go for a 0/0/1 speedster build. The regulars at #bh_theorycrafting took pity on such a foolish endeavor and gifted the player a * {rarity_type} * <{class_type}> loot out of charity.", RarityRPG.Common),
-                new ScenarioRPG("Uh oh, <{player_name}>. Someone spiked the hot cocoa last night. Those aren’t your pants you’re wearing. You check the pockets for identification and find a * {rarity_type} * <{class_type}> loot, instead.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> sees Sir Quackers waddling around the pier and throws him some breadcrumbs. Overjoyed, Sir Quackers leads them to his secret loot stash and offers the player a * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> sees a “Take an item, leave an item” bin by the guild hall entrance. <{player_name}> takes a * {rarity_type} * <{class_type}> loot and leaves a Bronze Coin in its place. Way to go, you jerk.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> Comes accross Grim!  Grim says 'I have plans for you' and produces a* {rarity_type} * {class_type} loot from his robe!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> finds himself running from XL-Ombis!  XL-Ombis dies from fatigue and {player_name} takes his * {rarity_type} * {class_type} loot!  That's why we don't skip leg day boys and girls!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> stumbles upon X4-Gombo disguised as a dentist!  Gombo says 'Open up.'  and <{player_name}> says 'Sometimes I feel sad'.  Gombo feels bad and gives them a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> has horrible luck in hunger games and Wifey feels bad for them.  After secretly rigging the code for hunger games they are suddenly given a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> steps into a room to find Gemm bench pressing.  Gemm yells “Chest day is the best day!” and gives {Player_name} a * {rarity_type} * {Class_type} loot because he’s in such a good mood!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> decides to try a magic trick!?!?  Instead of pulling a rabbit out of their hat they screw up and pull a {rarity_type} : {class_type} loot out instead!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> was attacked by a wild bully. Fleeing for their lives they lost their way in the raid but came across an empty corridor. Inside the corridor they found a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("While hunting for the elusive shrump, <{player_name}> came across a wounded SSS1. <{player_name}> offered SSS1 their last healing potion and was rewarded a * {rarity_type} * {class_type} loot from their new friend!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> fought vigorously through the gauntlet until their final foe. Losing the battle and out of pots they have one final attack. Fortunately, their weapon becomes Empowered. They strike with Critical Precision slaying their foe and retrieving the * {rarity_type} * {class_type} loot from their cold dead fingers.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> walks calmly through the halls with their strongest familiar, Tubbo.  It's Christmas time and Tubbo offers a * {rarity_type} * {class_type} loot to their master for lifelong loyalty and friendship.", RarityRPG.Common),
-                new ScenarioRPG("While traversing the countryside, <{player_name}> falls off a cliff right into BH lake. As they begin to sink  they notice a gleam in the sandy sediment. Further investigation reveals a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> throws a party with their fellow heroes. After the night has ended, they notice  someone has left a * {rarity_type} * {class_type} loot on the floor.  {player_name} decides to hold on to it for safe keeping.", RarityRPG.Common),
-                new ScenarioRPG("'Welcome to the arena scrub! Pick your weapon!' - <{player_name}> receives a * {rarity_type} * {class_type} loot from the PVP  instructor on training day.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> saved all of their gems up to buy a large equipment chest. Upon opening it they discover a * {rarity_type} * {class_type} loot!", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> trips over something while walking. Oh wait, what WAS that?! They look closer to find a * {rarity_type} * {class_type} loot on the ground!", RarityRPG.Common),
-                new ScenarioRPG("While hunting wild McGobbelsteins for dinner, <{player_name}> slays one only to find it had mistakenly swallowed a * {rarity_type} * {class_type}. This will go great with their outfit!", RarityRPG.Common),
-                new ScenarioRPG("Exhausted from battle, {player_name} prays to RNGesus for the strength to defeat their enemies. Suddenly a magical Driffin appears out of nowhere to present {player_name} with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("After winning a bodybuilding championship against that fabled Gemm, <{player_name}> was awarded with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("After days of grinding without sleep, <{player_name}> accidentally wanders into unreleased content, before the Devs realize what they've done, they steal a * {rarity_type} * {class_type} loot and run back to where they belong.", RarityRPG.Common),
-                new ScenarioRPG("A pack of Zorg have lost their favorite chew bone. <{player_name}> finds it and defeats the evil Staeus that stole it from them. The Zorg reward {player_name} with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("Baby Tubbo has wandered away from its Grampz, <{player_name}> finds the Tubbo and brings it home, subsequently being rewarded a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("After much deliberation the cult of Bebemenz has declared <{player_name}> as their leader, rewarding them with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("In an attempt to escape an angry Rombolio, <{player_name}> climbs into a tree to hide. There they find a * {rarity_type} * {class_type} loot stuck in its bark.", RarityRPG.Common),
-                new ScenarioRPG("After months of grinding <{player_name}> decides to replace their Item Find runes with Experience runes. Moments later they find a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("<{player_name}> accidentally stumbles into a secret room in the new raid. Searching its contents they come across a * {rarity_type} * {class_type} loot. They're not sure what to do with it, but they take it anyway.", RarityRPG.Common),
-                new ScenarioRPG("While fighting Mega Zorg, <{player_name}> accidentally breaks their weapon and begins to cry. Mega Zorg takes pity on them and rewards them with a hug and a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("It turns out that <{player_name}> is a long lost relative of Astaroth. After Astaroth's death, the executor of his will seeks out <{player_name}> to award them a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
-                new ScenarioRPG("In an effort to balance the community, the 10 weakest players in Bit Heroes are selected to receive better gear. <{player_name}> is rewarded with a * {rarity_type} * {class_type} loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> stumbled across an abandoned sack. Perhaps a captured Bully dropped it? Opening it, they find an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> was wistfully skulking around the pier in town, hoping that fishing was released! All of a sudden, they lost their balance, and fell in! Oh my goodness! Hidden beneath the surface they found an <{item_distribution}> * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
+                new ScenarioRPG("Astaroth is very lonely these days, no one bothers to come see him anymore. He tries to get <{player_name}>s attention by offering them an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("Just when <{player_name}> was about to use some scissors on their credit card, they find an <{item_distribution}> * {rarity_type} * <{class_type}> loot! Baited again!", RarityRPG.Common),
+                new ScenarioRPG("While trying to think of a funny HG scenario, <{player_name}> stumbles across an <{item_distribution}> * {rarity_type} * <{class_type}> loot! How ironic. . .", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> defeats Kaleido in a best-of-three to the death arm wrestling competition. For their bravery and strength, they're awarded an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("{player_name} successfully uses all the Discord channels correctly. As a reward, Tarri slips an <{item_distribution}> * {rarity_type} * <{class_type}> loot into their pocket. Good job!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> boldly but stupidly tries to win a drinking competition with Taters. They wake up two days later with a 'sorry about the mess' note taped to their forehead, and a brand new <{item_distribution}> * {rarity_type} * <{class_type}> loot on their pillow.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> finds an extremely rare vending machine in an R4. They deposit 1 rombit. Whirr bzzt zzzzzt nnnngggg bzzzz click thunk! An <{item_distribution}> * {rarity_type} * <{class_type}> loot falls out!", RarityRPG.Common),
+                new ScenarioRPG("Congratulations <{player_name}>! You have been visited by the Mythical Magical Mystical Miraculous Gobby of Giving! With a wave of his hand, he conjures up an <{item_distribution}> * {rarity_type} * <{class_type}> loot just for you! Enjoy!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> has been hiding in z2d4 dressed in their full blubber suit for four days now, and no one has noticed. Finally the moment comes, Gemm turns his back! You steal an <{item_distribution}> * {rarity_type} * <{class_type}> loot!  Muahaha!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> - 'Wahhhhhh. I did 500 raids with a super scroll and all I found was this <{item_distribution}> * {rarity_type} * <{class_type}> loot. Rigged! Refund! Reeeeeeeee!!'", RarityRPG.Common),
+                new ScenarioRPG("Roses are red, Robomax-6000 is blue.\nShadown88 has an <{item_distribution}> * {rarity_type} * <{class_type}> loot,\nAnd now <{player_name}> has one too.", RarityRPG.Common),
+                new ScenarioRPG("As <{player_name}> proceeds to peel off Prof. Oak's bark, they find an <{item_distribution}> * {rarity_type} * <{class_type}> loot hidden inside it's shell.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> signs a death wish under Grimz. Wait! It appears Grimz presented the wrong contract, <{player_name}>  receives an <{item_distribution}> * {rarity_type} * <{class_type}> loot from signing Grimz's death wish.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> lands a critical empower dual strike  on Capt. Woodbeard and is rewarded with an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> raids the Hyper Dimension for the Walkom schematic. <{player_name}> receives 10 friend requests, turns out it was just an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> blacked out on a Fammy Slop bender and woke up in Quinn’s Stables clutching an <{item_distribution}> * {rarity_type} * <{class_type}> loot as a makeshift pillow.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> decided to go for a 0/0/1 speedster build. The regulars at #bh_theorycrafting took pity on such a foolish endeavor and gifted the player an <{item_distribution}> * {rarity_type} * <{class_type}> loot out of charity.", RarityRPG.Common),
+                new ScenarioRPG("Uh oh, <{player_name}>. Someone spiked the hot cocoa last night. Those aren’t your pants you’re wearing. You check the pockets for identification and find an <{item_distribution}> * {rarity_type} * <{class_type}> loot, instead.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> sees Sir Quackers waddling around the pier and throws him some breadcrumbs. Overjoyed, Sir Quackers leads them to his secret loot stash and offers the player an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> sees a “Take an item, leave an item” bin by the guild hall entrance. <{player_name}> takes an <{item_distribution}> * {rarity_type} * <{class_type}> loot and leaves a Bronze Coin in its place. Way to go, you jerk.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> Comes accross Grim!  Grim says 'I have plans for you' and produces an <{item_distribution}> * {rarity_type} * <{class_type}> loot from his robe!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> finds himself running from XL-Ombis!  XL-Ombis dies from fatigue and {player_name} takes his <{item_distribution}> * {rarity_type} * <{class_type}> loot!  That's why we don't skip leg day boys and girls!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> stumbles upon X4-Gombo disguised as a dentist!  Gombo says 'Open up.'  and <{player_name}> says 'Sometimes I feel sad'.  Gombo feels bad and gives them an <{item_distribution}> * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> has horrible luck in hunger games and Wifey feels bad for them.  After secretly rigging the code for hunger games they are suddenly given an <{item_distribution}> * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> steps into a room to find Gemm bench pressing.  Gemm yells “Chest day is the best day!” and gives {Player_name} an <{item_distribution}> * {rarity_type} * <{class_type}> loot because he’s in such a good mood!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> decides to try a magic trick!?!?  Instead of pulling a rabbit out of their hat they screw up and pull an <{item_distribution}> {rarity_type} : <{class_type}> loot out instead!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> was attacked by a wild bully. Fleeing for their lives they lost their way in the raid but came across an empty corridor. Inside the corridor they found an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("While hunting for the elusive shrump, <{player_name}> came across a wounded SSS1. <{player_name}> offered SSS1 their last healing potion and was rewarded an <{item_distribution}> * {rarity_type} * <{class_type}> loot from their new friend!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> fought vigorously through the gauntlet until their final foe. Losing the battle and out of pots they have one final attack. Fortunately, their weapon becomes Empowered. They strike with Critical Precision slaying their foe and retrieving the * {rarity_type} * <{class_type}> loot from their cold dead fingers.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> walks calmly through the halls with their strongest familiar, Tubbo.  It's Christmas time and Tubbo offers an <{item_distribution}> * {rarity_type} * <{class_type}> loot to their master for lifelong loyalty and friendship.", RarityRPG.Common),
+                new ScenarioRPG("While traversing the countryside, <{player_name}> falls off a cliff right into BH lake. As they begin to sink  they notice a gleam in the sandy sediment. Further investigation reveals an <{item_distribution}> * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> throws a party with their fellow heroes. After the night has ended, they notice  someone has left an <{item_distribution}> * {rarity_type} * <{class_type}> loot on the floor.  {player_name} decides to hold on to it for safe keeping.", RarityRPG.Common),
+                new ScenarioRPG("'Welcome to the arena scrub! Pick your weapon!' - <{player_name}> receives an <{item_distribution}> * {rarity_type} * <{class_type}> loot from the PVP  instructor on training day.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> saved all of their gems up to buy a large equipment chest. Upon opening it they discover an <{item_distribution}> * {rarity_type} * <{class_type}> loot!", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> trips over something while walking. Oh wait, what WAS that?! They look closer to find an <{item_distribution}> * {rarity_type} * <{class_type}> loot on the ground!", RarityRPG.Common),
+                new ScenarioRPG("While hunting wild McGobbelsteins for dinner, <{player_name}> slays one only to find it had mistakenly swallowed an <{item_distribution}> * {rarity_type} * <{class_type}>. This will go great with their outfit!", RarityRPG.Common),
+                new ScenarioRPG("Exhausted from battle, {player_name} prays to RNGesus for the strength to defeat their enemies. Suddenly a magical Driffin appears out of nowhere to present {player_name} with an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("After winning a bodybuilding championship against that fabled Gemm, <{player_name}> was awarded with an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("After days of grinding without sleep, <{player_name}> accidentally wanders into unreleased content, before the Devs realize what they've done, they steal an <{item_distribution}> * {rarity_type} * <{class_type}> loot and run back to where they belong.", RarityRPG.Common),
+                new ScenarioRPG("A pack of Zorg have lost their favorite chew bone. <{player_name}> finds it and defeats the evil Staeus that stole it from them. The Zorg reward {player_name} with an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("Baby Tubbo has wandered away from its Grampz, <{player_name}> finds the Tubbo and brings it home, subsequently being rewarded an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("After much deliberation the cult of Bebemenz has declared <{player_name}> as their leader, rewarding them with an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("In an attempt to escape an angry Rombolio, <{player_name}> climbs into a tree to hide. There they find an <{item_distribution}> * {rarity_type} * <{class_type}> loot stuck in its bark.", RarityRPG.Common),
+                new ScenarioRPG("After months of grinding <{player_name}> decides to replace their Item Find runes with Experience runes. Moments later they find an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("<{player_name}> accidentally stumbles into a secret room in the new raid. Searching its contents they come across an <{item_distribution}> * {rarity_type} * <{class_type}> loot. They're not sure what to do with it, but they take it anyway.", RarityRPG.Common),
+                new ScenarioRPG("While fighting Mega Zorg, <{player_name}> accidentally breaks their weapon and begins to cry. Mega Zorg takes pity on them and rewards them with a hug and an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("It turns out that <{player_name}> is a long lost relative of Astaroth. After Astaroth's death, the executor of his will seeks out <{player_name}> to award them an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
+                new ScenarioRPG("In an effort to balance the community, the 10 weakest players in Bit Heroes are selected to receive better gear. <{player_name}> is rewarded with an <{item_distribution}> * {rarity_type} * <{class_type}> loot.", RarityRPG.Common),
                 //new ScenarioRPG("", RarityRPG.Common),
                 //new ScenarioRPG("", RarityRPG.Common),
                 //new ScenarioRPG("", RarityRPG.Common),
@@ -162,9 +164,9 @@ namespace BHungerGaemsBot
                 new ScenarioRPG("Drops of sweat running on his broad chest, <{player_name}> just finished an extemely fulfilling work out. They feel they have reached a state of * Aura Bonus * .", ScenarioTypeRPG.Training),
                 new ScenarioRPG("<{player_name}> focused all his energy into his palms and managed to throw a miniature energy beam. They obtained a * Aura Bonus * . ", ScenarioTypeRPG.Training),
                 new ScenarioRPG("<{player_name}> outlasted Gemm's insanity workout!. He transfers him an * Aura Bonus * .", ScenarioTypeRPG.Training),
-                //new ScenarioRPG("", ScenarioTypeRPG.Training),
-                //new ScenarioRPG("", ScenarioTypeRPG.Training),
-                //new ScenarioRPG("", ScenarioTypeRPG.Training),
+                new ScenarioRPG("Deep in Gemm's Cell <{player_name}> finds Gemm's locker room.  Inside Gemm's locker is Popeye's Mythical Can of Spinach!  After consuming the slimey substance they feel strength coursing through their body!  They have received an * aura bonus * !", ScenarioTypeRPG.Training),
+                new ScenarioRPG("<{player_name}> found a long forgotten library in Dryad's Heart.  Blowing the dust off one of the ancient tomes they are amazed to find the grimoire thought long ago destroyed!  It's 'The Idiot's Guide to Bit Heroes'!  Reading through the legendary book they gain deep understanding.  They have received an * aura bonus *!", ScenarioTypeRPG.Training),
+                new ScenarioRPG("After drinking Gemm's sweat juices, <{player_name}> feels an * Aura Bonus * entering his body!", ScenarioTypeRPG.Training),
                 //new ScenarioRPG("", ScenarioTypeRPG.Training),
                 //new ScenarioRPG("", ScenarioTypeRPG.Training),
                 //new ScenarioRPG("", ScenarioTypeRPG.Training),
@@ -193,7 +195,7 @@ namespace BHungerGaemsBot
         {
             int day = 0;
             int playerNumberinLeaderboard = 20;
-            int duelCooldown = 0;
+            int duelCooldown = 5;
             //bool crowdExtraDuel = false;
             //bool bonusItemFind = false;
             int goblinFestChance = 5;
@@ -245,7 +247,7 @@ namespace BHungerGaemsBot
                     //sb.Append($"<{player.ContestantName}>\t");
                 }
             }
-            //for (int g = 1; g <= 10; g++)
+            //for (int g = 1; g <= 200; g++)
             //{
             //    _players.Add(new PlayerRPG(g));
             //}
@@ -260,7 +262,7 @@ namespace BHungerGaemsBot
             showMessageDelegate($"\nPlease select the hero class that you would like to become. Available classes are :"
                                + " Mage ( * A * ), Knight ( * B * ), Archer ( * C * ), Monk ( * D * ), Necromancer ( * E * ), Assassin ( * F * ), Elementalist ( * G * )", null, EmojiClassListOptions);
 
-            Thread.Sleep(DelayAfterOptions);
+            Thread.Sleep(15000);
             _ignoreReactions = true;
             _classInit = false;
             SortClasses();
@@ -343,7 +345,7 @@ namespace BHungerGaemsBot
                     scenario.ReduceTimer();
                 }
 
-                Thread.Sleep(DelayBetweenCycles);
+                Thread.Sleep(5000);
 
                 if (cannelGame()) return;
 
@@ -354,6 +356,7 @@ namespace BHungerGaemsBot
                     showMessageDelegate("Duels\n=====\n\n" + sb, null);
                     sb.Clear();
                 }
+                Thread.Sleep(DelayBetweenCycles);
 
                 ResetDecisions();
 
@@ -387,9 +390,11 @@ namespace BHungerGaemsBot
 
         private void WorldBossEvent(int day, BotGameInstance.ShowMessageDelegate showMessageDelegate)
         {
-            int cpScaling = 25;
+            int cpScaling = 35;
+            float dayscaling = (float)(Math.Pow(2, (1 +((float)day / 20))));
             long playersStrength = _players.Sum(player => player.EffectiveCombatPower);
-            long worldBossStrength = _players.Count * day * cpScaling;
+            long worldBossStrength = Convert.ToInt64(_players.Count * day * cpScaling * dayscaling);
+            Logger.Log($"player strength = {playersStrength} ||  WB strength = {worldBossStrength}");
             bool battleResult = false;
 
             long battleRoll = Convert.ToInt64(_random.NextDouble() * (playersStrength + worldBossStrength));
@@ -448,7 +453,7 @@ namespace BHungerGaemsBot
 
         private void Duel(StringBuilder sb)
         {
-            int duelAmount = Convert.ToInt32(_players.Count * 0.1);
+            int duelAmount = Convert.ToInt32(_players.Count * 0.025) + 1;
             int safetyNet = 0;
             int rangeMod = 0;
             while (duelAmount != 0)

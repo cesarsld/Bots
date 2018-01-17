@@ -25,11 +25,12 @@ namespace BHungerGaemsBot
             Type = type;
         }
 
-        public string GetText(string player, RarityRPG rarity, HeroClass heroClass)
+        public string GetText(string player, RarityRPG rarity, HeroClass heroClass, ItemDistribution itemDistribution)
         {
             string value = Description?.Replace("{player_name}", player);
             value = value?.Replace("{rarity_type}", rarity.ToString());
             value = value?.Replace("{class_type}", heroClass.ToString());
+            value = value?.Replace("{item_distribution}", itemDistribution.ToString());
 
             return value;
         }

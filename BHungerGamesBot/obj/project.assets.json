@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "targets": {
     ".NETCoreApp,Version=v1.1": {
       "Discord.Net/1.0.2": {
@@ -11193,44 +11193,67 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Cesar Jaimes\\.nuget\\packages\\": {}
+    "C:\\Users\\Cesar Jaimes\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackagesFallback\\": {}
   },
   "project": {
     "version": "1.0.0",
+    "restoreSettings": {
+      "hideWarningsAndErrors": true
+    },
     "restore": {
       "projectUniqueName": "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\BHungerGaemsBot.csproj",
       "projectName": "BHungerGaemsBot",
       "projectPath": "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\BHungerGaemsBot.csproj",
+      "packagesPath": "C:\\Users\\Cesar Jaimes\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Cesar Jaimes\\Documents\\GitHub\\Bots\\BHungerGamesBot\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackagesFallback\\"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\Cesar Jaimes\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.Fallback.config"
+      ],
       "originalTargetFrameworks": [
         "netcoreapp1.1"
       ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
       "frameworks": {
         "netcoreapp1.1": {
           "projectReferences": {}
         }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
       }
     },
     "frameworks": {
       "netcoreapp1.1": {
         "dependencies": {
-          "Discord.Net.WebSocket": {
+          "Discord.Net": {
             "target": "Package",
             "version": "[1.0.2, )"
           },
           "Discord.Net.Commands": {
             "target": "Package",
-            "version": "1.0.2"
+            "version": "[1.0.2, )"
+          },
+          "Discord.Net.WebSocket": {
+            "target": "Package",
+            "version": "[1.0.2, )"
           },
           "Microsoft.NETCore.App": {
             "target": "Package",
-            "version": "1.1.2",
+            "version": "[1.1.2, )",
             "autoReferenced": true
-          },
-          "Discord.Net": {
-            "target": "Package",
-            "version": "1.0.2"
           }
         }
       }
